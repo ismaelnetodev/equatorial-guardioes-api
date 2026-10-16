@@ -1,6 +1,6 @@
-# Guardiões
+# Guardiões da Energia
 
-Monorepo da plataforma Guardiões, com uma API para autenticação, administração de conteúdo e progresso em trilhas de capacitação, e um aplicativo React Native para acessar a plataforma.
+Monorepo da plataforma Guardiões da Energia, com uma API para autenticação, administração de conteúdo e progresso em trilhas de capacitação, e um aplicativo React Native para acessar a plataforma.
 
 ## Tecnologias
 

@@ -26,8 +26,8 @@ export async function buildApp(options: FastifyServerOptions = {}) {
   await app.register(swagger, {
     openapi: {
       info: {
-        title: 'Guardiões API',
-        description: 'API da plataforma Guardiões.',
+        title: 'Guardiões da Energia API',
+        description: 'API da plataforma Guardiões da Energia.',
         version: '1.0.0',
       },
       components: { securitySchemes: { bearerAuth: { type: 'http', scheme: 'bearer', description: 'Token recebido no login' } } },
