@@ -42,3 +42,23 @@ export const TrainingStepKind = {
 } as const
 
 export type TrainingStepKind = (typeof TrainingStepKind)[keyof typeof TrainingStepKind]
+
+
+export const ReportStatus = {
+  SENT: 'SENT',
+  RECEIVED: 'RECEIVED',
+  IN_ANALYSIS: 'IN_ANALYSIS',
+  RESOLVED: 'RESOLVED',
+  NOT_CONFIRMED: 'NOT_CONFIRMED'
+} as const
+
+export type ReportStatus = (typeof ReportStatus)[keyof typeof ReportStatus]
+
+
+export const ReportUrgency = {
+  LOW: 'LOW',
+  MEDIUM: 'MEDIUM',
+  HIGH: 'HIGH'
+} as const
+
+export type ReportUrgency = (typeof ReportUrgency)[keyof typeof ReportUrgency]

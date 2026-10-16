@@ -406,7 +406,9 @@ export const ModelName = {
   QuizAttempt: 'QuizAttempt',
   QuizAnswer: 'QuizAnswer',
   TrainingStep: 'TrainingStep',
-  TrainingCard: 'TrainingCard'
+  TrainingCard: 'TrainingCard',
+  Report: 'Report',
+  ReportTimelineEvent: 'ReportTimelineEvent'
 } as const
 
 export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -422,7 +424,7 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
     omit: GlobalOmitOptions
   }
   meta: {
-    modelProps: "user" | "trail" | "trailModule" | "moduleProgress" | "quizQuestion" | "quizOption" | "quizAttempt" | "quizAnswer" | "trainingStep" | "trainingCard"
+    modelProps: "user" | "trail" | "trailModule" | "moduleProgress" | "quizQuestion" | "quizOption" | "quizAttempt" | "quizAnswer" | "trainingStep" | "trainingCard" | "report" | "reportTimelineEvent"
     txIsolationLevel: TransactionIsolationLevel
   }
   model: {
@@ -1166,6 +1168,154 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
         }
       }
     }
+    Report: {
+      payload: Prisma.$ReportPayload<ExtArgs>
+      fields: Prisma.ReportFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.ReportFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ReportPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.ReportFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ReportPayload>
+        }
+        findFirst: {
+          args: Prisma.ReportFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ReportPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.ReportFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ReportPayload>
+        }
+        findMany: {
+          args: Prisma.ReportFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ReportPayload>[]
+        }
+        create: {
+          args: Prisma.ReportCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ReportPayload>
+        }
+        createMany: {
+          args: Prisma.ReportCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.ReportCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ReportPayload>[]
+        }
+        delete: {
+          args: Prisma.ReportDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ReportPayload>
+        }
+        update: {
+          args: Prisma.ReportUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ReportPayload>
+        }
+        deleteMany: {
+          args: Prisma.ReportDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.ReportUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.ReportUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ReportPayload>[]
+        }
+        upsert: {
+          args: Prisma.ReportUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ReportPayload>
+        }
+        aggregate: {
+          args: Prisma.ReportAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateReport>
+        }
+        groupBy: {
+          args: Prisma.ReportGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.ReportGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.ReportCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.ReportCountAggregateOutputType> | number
+        }
+      }
+    }
+    ReportTimelineEvent: {
+      payload: Prisma.$ReportTimelineEventPayload<ExtArgs>
+      fields: Prisma.ReportTimelineEventFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.ReportTimelineEventFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ReportTimelineEventPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.ReportTimelineEventFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ReportTimelineEventPayload>
+        }
+        findFirst: {
+          args: Prisma.ReportTimelineEventFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ReportTimelineEventPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.ReportTimelineEventFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ReportTimelineEventPayload>
+        }
+        findMany: {
+          args: Prisma.ReportTimelineEventFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ReportTimelineEventPayload>[]
+        }
+        create: {
+          args: Prisma.ReportTimelineEventCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ReportTimelineEventPayload>
+        }
+        createMany: {
+          args: Prisma.ReportTimelineEventCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.ReportTimelineEventCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ReportTimelineEventPayload>[]
+        }
+        delete: {
+          args: Prisma.ReportTimelineEventDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ReportTimelineEventPayload>
+        }
+        update: {
+          args: Prisma.ReportTimelineEventUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ReportTimelineEventPayload>
+        }
+        deleteMany: {
+          args: Prisma.ReportTimelineEventDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.ReportTimelineEventUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.ReportTimelineEventUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ReportTimelineEventPayload>[]
+        }
+        upsert: {
+          args: Prisma.ReportTimelineEventUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ReportTimelineEventPayload>
+        }
+        aggregate: {
+          args: Prisma.ReportTimelineEventAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateReportTimelineEvent>
+        }
+        groupBy: {
+          args: Prisma.ReportTimelineEventGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.ReportTimelineEventGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.ReportTimelineEventCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.ReportTimelineEventCountAggregateOutputType> | number
+        }
+      }
+    }
   }
 } & {
   other: {
@@ -1353,6 +1503,38 @@ export const TrainingCardScalarFieldEnum = {
 export type TrainingCardScalarFieldEnum = (typeof TrainingCardScalarFieldEnum)[keyof typeof TrainingCardScalarFieldEnum]
 
 
+export const ReportScalarFieldEnum = {
+  id: 'id',
+  userId: 'userId',
+  title: 'title',
+  description: 'description',
+  address: 'address',
+  neighborhood: 'neighborhood',
+  photoUrl: 'photoUrl',
+  latitude: 'latitude',
+  longitude: 'longitude',
+  status: 'status',
+  urgency: 'urgency',
+  pointsAwarded: 'pointsAwarded',
+  impactSeenAt: 'impactSeenAt',
+  submittedAt: 'submittedAt',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type ReportScalarFieldEnum = (typeof ReportScalarFieldEnum)[keyof typeof ReportScalarFieldEnum]
+
+
+export const ReportTimelineEventScalarFieldEnum = {
+  id: 'id',
+  reportId: 'reportId',
+  status: 'status',
+  occurredAt: 'occurredAt'
+} as const
+
+export type ReportTimelineEventScalarFieldEnum = (typeof ReportTimelineEventScalarFieldEnum)[keyof typeof ReportTimelineEventScalarFieldEnum]
+
+
 export const SortOrder = {
   asc: 'asc',
   desc: 'desc'
@@ -1499,6 +1681,34 @@ export type EnumTrainingStepKindFieldRefInput<$PrismaModel> = FieldRefInputType<
  * Reference to a field of type 'TrainingStepKind[]'
  */
 export type ListEnumTrainingStepKindFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'TrainingStepKind[]'>
+    
+
+
+/**
+ * Reference to a field of type 'ReportStatus'
+ */
+export type EnumReportStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'ReportStatus'>
+    
+
+
+/**
+ * Reference to a field of type 'ReportStatus[]'
+ */
+export type ListEnumReportStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'ReportStatus[]'>
+    
+
+
+/**
+ * Reference to a field of type 'ReportUrgency'
+ */
+export type EnumReportUrgencyFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'ReportUrgency'>
+    
+
+
+/**
+ * Reference to a field of type 'ReportUrgency[]'
+ */
+export type ListEnumReportUrgencyFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'ReportUrgency[]'>
     
 
 /**
@@ -1662,6 +1872,8 @@ export type GlobalOmitConfig = {
   quizAnswer?: Prisma.QuizAnswerOmit
   trainingStep?: Prisma.TrainingStepOmit
   trainingCard?: Prisma.TrainingCardOmit
+  report?: Prisma.ReportOmit
+  reportTimelineEvent?: Prisma.ReportTimelineEventOmit
 }
 
 /* Types for Logging */

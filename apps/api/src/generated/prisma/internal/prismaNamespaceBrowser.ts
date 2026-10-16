@@ -60,7 +60,9 @@ export const ModelName = {
   QuizAttempt: 'QuizAttempt',
   QuizAnswer: 'QuizAnswer',
   TrainingStep: 'TrainingStep',
-  TrainingCard: 'TrainingCard'
+  TrainingCard: 'TrainingCard',
+  Report: 'Report',
+  ReportTimelineEvent: 'ReportTimelineEvent'
 } as const
 
 export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -225,6 +227,38 @@ export const TrainingCardScalarFieldEnum = {
 } as const
 
 export type TrainingCardScalarFieldEnum = (typeof TrainingCardScalarFieldEnum)[keyof typeof TrainingCardScalarFieldEnum]
+
+
+export const ReportScalarFieldEnum = {
+  id: 'id',
+  userId: 'userId',
+  title: 'title',
+  description: 'description',
+  address: 'address',
+  neighborhood: 'neighborhood',
+  photoUrl: 'photoUrl',
+  latitude: 'latitude',
+  longitude: 'longitude',
+  status: 'status',
+  urgency: 'urgency',
+  pointsAwarded: 'pointsAwarded',
+  impactSeenAt: 'impactSeenAt',
+  submittedAt: 'submittedAt',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type ReportScalarFieldEnum = (typeof ReportScalarFieldEnum)[keyof typeof ReportScalarFieldEnum]
+
+
+export const ReportTimelineEventScalarFieldEnum = {
+  id: 'id',
+  reportId: 'reportId',
+  status: 'status',
+  occurredAt: 'occurredAt'
+} as const
+
+export type ReportTimelineEventScalarFieldEnum = (typeof ReportTimelineEventScalarFieldEnum)[keyof typeof ReportTimelineEventScalarFieldEnum]
 
 
 export const SortOrder = {

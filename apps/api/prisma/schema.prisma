@@ -35,6 +35,20 @@ enum TrainingStepKind {
   INFO
 }
 
+enum ReportStatus {
+  SENT
+  RECEIVED
+  IN_ANALYSIS
+  RESOLVED
+  NOT_CONFIRMED
+}
+
+enum ReportUrgency {
+  LOW
+  MEDIUM
+  HIGH
+}
+
 model User {
   id               String           @id @default(uuid()) @db.Uuid
   role             UserRole         @default(USER)
@@ -46,6 +60,7 @@ model User {
   inviteCode       String?
   termsAcceptedAt  DateTime
   moduleProgresses ModuleProgress[]
+  reports          Report[]
   createdAt        DateTime         @default(now())
   updatedAt        DateTime         @updatedAt
 }
@@ -193,4 +208,38 @@ model TrainingCard {
 
   @@unique([stepId, order])
   @@index([stepId, order])
+}
+
+model Report {
+  id            String                @id @default(uuid()) @db.Uuid
+  userId        String                @db.Uuid
+  user          User                  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  title         String
+  description   String                @db.Text
+  address       String
+  neighborhood  String
+  photoUrl      String?
+  latitude      Float?
+  longitude     Float?
+  status        ReportStatus          @default(SENT)
+  urgency       ReportUrgency         @default(MEDIUM)
+  pointsAwarded Int                   @default(0)
+  impactSeenAt  DateTime?
+  submittedAt   DateTime              @default(now())
+  timeline      ReportTimelineEvent[]
+  createdAt     DateTime              @default(now())
+  updatedAt     DateTime              @updatedAt
+
+  @@index([userId, submittedAt])
+  @@index([status, submittedAt])
+}
+
+model ReportTimelineEvent {
+  id         String       @id @default(uuid()) @db.Uuid
+  reportId   String       @db.Uuid
+  report     Report       @relation(fields: [reportId], references: [id], onDelete: Cascade)
+  status     ReportStatus
+  occurredAt DateTime     @default(now())
+
+  @@index([reportId, occurredAt])
 }

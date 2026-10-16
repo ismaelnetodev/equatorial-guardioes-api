@@ -131,3 +131,12 @@ export const adminTrainingSchema = Type.Object({
   moduleId: uuid,
   steps: Type.Array(adminTrainingStepSchema),
 }, { additionalProperties: false })
+
+export {
+  adminReportItemSchema,
+  adminReportStatusBodySchema,
+  adminReportsListSchema,
+  adminReportsQuerySchema,
+  reportParamsSchema,
+} from '../reports/reports.schemas.js'
+export type { AdminReportStatusBody, AdminReportsQuery, ReportParams } from '../reports/reports.schemas.js'

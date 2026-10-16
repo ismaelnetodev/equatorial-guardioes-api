@@ -1,10 +1,15 @@
 import type { FastifyReply, FastifyRequest } from 'fastify'
 import { AuthenticationError } from '../../lib/auth-user.js'
 import * as service from './admin.service.js'
-import type { AdminTrailParams, AdminModuleParams, CreateTrail, UpdateTrail, CreateModule, UpdateModule, ChangeStatus, Reorder, ReplaceQuiz, ReplaceTraining } from './admin.schemas.js'
+import type { AdminTrailParams, AdminModuleParams, CreateTrail, UpdateTrail, CreateModule, UpdateModule, ChangeStatus, Reorder, ReplaceQuiz, ReplaceTraining, AdminReportStatusBody, AdminReportsQuery, ReportParams } from './admin.schemas.js'
+import { ReportError, listAdminReports, updateAdminReportStatus } from '../reports/reports.service.js'
 
 function sendError(reply: FastifyReply, error: unknown) {
   if (error instanceof AuthenticationError) return reply.status(401).send({ code: 'UNAUTHENTICATED', message: error.message })
+  if (error instanceof ReportError) {
+    const status = error.code === 'REPORT_NOT_FOUND' ? 404 : 422
+    return reply.status(status).send({ code: error.code, message: error.message })
+  }
   if (error instanceof service.AdminError) {
     const status = error.code === 'FORBIDDEN' ? 403 : error.code === 'TRAIL_NOT_FOUND' || error.code === 'MODULE_NOT_FOUND' ? 404 : error.code === 'CONTENT_CONFLICT' ? 409 : 422
     return reply.status(status).send({ code: error.code, message: error.message })
@@ -65,4 +70,12 @@ export async function getModuleTrainingController(request: FastifyRequest<{ Para
 
 export async function replaceModuleTrainingController(request: FastifyRequest<{ Params: AdminModuleParams; Body: ReplaceTraining }>, reply: FastifyReply) {
   return respond(reply, () => service.replaceModuleTraining(request.params.trailId, request.params.moduleId, request.body))
+}
+
+export async function listReportsController(request: FastifyRequest<{ Querystring: AdminReportsQuery }>, reply: FastifyReply) {
+  return respond(reply, () => listAdminReports(request.query.status))
+}
+
+export async function updateReportStatusController(request: FastifyRequest<{ Params: ReportParams; Body: AdminReportStatusBody }>, reply: FastifyReply) {
+  return respond(reply, () => updateAdminReportStatus(request.params.reportId, request.body))
 }

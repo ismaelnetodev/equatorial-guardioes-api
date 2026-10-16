@@ -91,3 +91,13 @@ export type TrainingStep = Prisma.TrainingStepModel
  * 
  */
 export type TrainingCard = Prisma.TrainingCardModel
+/**
+ * Model Report
+ * 
+ */
+export type Report = Prisma.ReportModel
+/**
+ * Model ReportTimelineEvent
+ * 
+ */
+export type ReportTimelineEvent = Prisma.ReportTimelineEventModel
