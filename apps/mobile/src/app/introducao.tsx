@@ -27,7 +27,7 @@ export default function IntroductionScreen() {
     setError('')
     try {
       const token = await getAccessToken()
-      router.replace(token ? '/inicio' : '/entrar')
+      router.replace(token ? '/trilha' : '/entrar')
     } catch {
       setError('Não foi possível abrir sua sessão. Tente novamente.')
     } finally {

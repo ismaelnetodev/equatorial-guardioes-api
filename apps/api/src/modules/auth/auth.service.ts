@@ -2,6 +2,8 @@ import { randomBytes, scrypt, timingSafeEqual } from 'node:crypto'
 import { getPrisma } from '../../lib/prisma.js'
 import { Prisma } from '../../generated/prisma/client.js'
 import type { Credentials, LoginCredentials } from './auth.schemas.js'
+import { getSessionUserId } from '../../lib/auth-session.js'
+import { AuthenticationError } from '../../lib/auth-user.js'
 
 export class AuthError extends Error {
   constructor(
@@ -30,6 +32,14 @@ function toPublicUser(user: { id: string; name: string; email: string | null; ce
   }
 }
 
+export async function getCurrentUser(authorization: string | undefined): Promise<PublicUser> {
+  const id = getSessionUserId(authorization)
+  if (!id) throw new AuthenticationError()
+  const user = await getPrisma().user.findUnique({ where: { id }, select: { id: true, name: true, email: true, cellphone: true, neighborhood: true } })
+  if (!user) throw new AuthenticationError()
+  return toPublicUser(user)
+}
+
 function normalizedEmail(email: string | undefined): string | undefined {
   return email?.trim().toLowerCase() || undefined
 }
@@ -53,13 +63,13 @@ function deriveKey(password: string, salt: string): Promise<Buffer> {
   })
 }
 
-async function hashPassword(password: string): Promise<string> {
+export async function hashPassword(password: string): Promise<string> {
   const salt = randomBytes(16).toString('hex')
   const derivedKey = await deriveKey(password, salt)
   return `${salt}:${derivedKey.toString('hex')}`
 }
 
-async function passwordsMatch(password: string, passwordHash: string): Promise<boolean> {
+export async function passwordsMatch(password: string, passwordHash: string): Promise<boolean> {
   const [salt, storedHash] = passwordHash.split(':')
   if (!salt || !storedHash) return false
 

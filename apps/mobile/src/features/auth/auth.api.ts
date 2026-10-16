@@ -17,3 +17,8 @@ type Registration = paths['/api/v1/cadastrar']['post']
 export async function register(credentials: Registration['requestBody']['content']['application/json']) {
   return apiRequest<Registration['responses'][201]['content']['application/json']>('/cadastrar', { method: 'POST', body: JSON.stringify(credentials) })
 }
+
+export type CurrentUser = paths['/api/v1/me']['get']['responses'][200]['content']['application/json']
+export function getCurrentUser(signal?: AbortSignal): Promise<CurrentUser> {
+  return apiRequest<CurrentUser>('/me', { signal })
+}

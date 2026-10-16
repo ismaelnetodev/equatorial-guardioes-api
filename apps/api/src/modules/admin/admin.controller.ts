@@ -1,7 +1,7 @@
 import type { FastifyReply, FastifyRequest } from 'fastify'
 import { AuthenticationError } from '../../lib/auth-user.js'
 import * as service from './admin.service.js'
-import type { AdminTrailParams, AdminModuleParams, CreateTrail, UpdateTrail, CreateModule, UpdateModule, ChangeStatus, Reorder } from './admin.schemas.js'
+import type { AdminTrailParams, AdminModuleParams, CreateTrail, UpdateTrail, CreateModule, UpdateModule, ChangeStatus, Reorder, ChangePassword } from './admin.schemas.js'
 
 function sendError(reply: FastifyReply, error: unknown) {
   if (error instanceof AuthenticationError) return reply.status(401).send({ code: 'UNAUTHENTICATED', message: error.message })
@@ -18,6 +18,10 @@ async function respond<T>(reply: FastifyReply, operation: () => Promise<T>, stat
 
 export async function authorizeAdminRequest(request: FastifyRequest, reply: FastifyReply) {
   try { await service.authorizeAdministrator(request.headers.authorization) } catch (error) { return sendError(reply, error) }
+}
+
+export async function changePasswordController(request: FastifyRequest<{ Body: ChangePassword }>, reply: FastifyReply) {
+  return respond(reply, () => service.changeAdministratorPassword(request.headers.authorization, request.body.currentPassword, request.body.newPassword))
 }
 
 export async function listTrailsController(_request: FastifyRequest, reply: FastifyReply) {
