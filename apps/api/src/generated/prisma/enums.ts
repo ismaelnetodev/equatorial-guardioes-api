@@ -25,3 +25,20 @@ export const ContentStatus = {
 } as const
 
 export type ContentStatus = (typeof ContentStatus)[keyof typeof ContentStatus]
+
+
+export const QuizPhase = {
+  PRE: 'PRE',
+  POST: 'POST'
+} as const
+
+export type QuizPhase = (typeof QuizPhase)[keyof typeof QuizPhase]
+
+
+export const TrainingStepKind = {
+  RECOGNIZE: 'RECOGNIZE',
+  DO_NOT: 'DO_NOT',
+  INFO: 'INFO'
+} as const
+
+export type TrainingStepKind = (typeof TrainingStepKind)[keyof typeof TrainingStepKind]

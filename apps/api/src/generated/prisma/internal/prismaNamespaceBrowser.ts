@@ -57,7 +57,10 @@ export const ModelName = {
   ModuleProgress: 'ModuleProgress',
   QuizQuestion: 'QuizQuestion',
   QuizOption: 'QuizOption',
-  QuizAttempt: 'QuizAttempt'
+  QuizAttempt: 'QuizAttempt',
+  QuizAnswer: 'QuizAnswer',
+  TrainingStep: 'TrainingStep',
+  TrainingCard: 'TrainingCard'
 } as const
 
 export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -131,6 +134,9 @@ export const ModuleProgressScalarFieldEnum = {
   moduleId: 'moduleId',
   startedAt: 'startedAt',
   completedAt: 'completedAt',
+  preTestCompletedAt: 'preTestCompletedAt',
+  trainingCompletedAt: 'trainingCompletedAt',
+  trainingPointsAwarded: 'trainingPointsAwarded',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
 } as const
@@ -143,6 +149,9 @@ export const QuizQuestionScalarFieldEnum = {
   moduleId: 'moduleId',
   statement: 'statement',
   order: 'order',
+  explanationTitle: 'explanationTitle',
+  explanationBody: 'explanationBody',
+  imageUrl: 'imageUrl',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
 } as const
@@ -165,12 +174,57 @@ export type QuizOptionScalarFieldEnum = (typeof QuizOptionScalarFieldEnum)[keyof
 export const QuizAttemptScalarFieldEnum = {
   id: 'id',
   progressId: 'progressId',
+  phase: 'phase',
+  correctCount: 'correctCount',
+  totalCount: 'totalCount',
   score: 'score',
   isApproved: 'isApproved',
+  pointsAwarded: 'pointsAwarded',
+  finishedAt: 'finishedAt',
   submittedAt: 'submittedAt'
 } as const
 
 export type QuizAttemptScalarFieldEnum = (typeof QuizAttemptScalarFieldEnum)[keyof typeof QuizAttemptScalarFieldEnum]
+
+
+export const QuizAnswerScalarFieldEnum = {
+  id: 'id',
+  attemptId: 'attemptId',
+  questionId: 'questionId',
+  optionId: 'optionId',
+  isCorrect: 'isCorrect',
+  answeredAt: 'answeredAt'
+} as const
+
+export type QuizAnswerScalarFieldEnum = (typeof QuizAnswerScalarFieldEnum)[keyof typeof QuizAnswerScalarFieldEnum]
+
+
+export const TrainingStepScalarFieldEnum = {
+  id: 'id',
+  moduleId: 'moduleId',
+  title: 'title',
+  kind: 'kind',
+  order: 'order',
+  durationMinutes: 'durationMinutes',
+  introText: 'introText',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type TrainingStepScalarFieldEnum = (typeof TrainingStepScalarFieldEnum)[keyof typeof TrainingStepScalarFieldEnum]
+
+
+export const TrainingCardScalarFieldEnum = {
+  id: 'id',
+  stepId: 'stepId',
+  title: 'title',
+  description: 'description',
+  order: 'order',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type TrainingCardScalarFieldEnum = (typeof TrainingCardScalarFieldEnum)[keyof typeof TrainingCardScalarFieldEnum]
 
 
 export const SortOrder = {

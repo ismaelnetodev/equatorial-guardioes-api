@@ -263,6 +263,13 @@ export type DateTimeNullableWithAggregatesFilter<$PrismaModel = never> = {
   _max?: Prisma.NestedDateTimeNullableFilter<$PrismaModel>
 }
 
+export type EnumQuizPhaseFilter<$PrismaModel = never> = {
+  equals?: $Enums.QuizPhase | Prisma.EnumQuizPhaseFieldRefInput<$PrismaModel>
+  in?: $Enums.QuizPhase[] | Prisma.ListEnumQuizPhaseFieldRefInput<$PrismaModel>
+  notIn?: $Enums.QuizPhase[] | Prisma.ListEnumQuizPhaseFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumQuizPhaseFilter<$PrismaModel> | $Enums.QuizPhase
+}
+
 export type FloatFilter<$PrismaModel = never> = {
   equals?: number | Prisma.FloatFieldRefInput<$PrismaModel>
   in?: number[] | Prisma.ListFloatFieldRefInput<$PrismaModel>
@@ -272,6 +279,16 @@ export type FloatFilter<$PrismaModel = never> = {
   gt?: number | Prisma.FloatFieldRefInput<$PrismaModel>
   gte?: number | Prisma.FloatFieldRefInput<$PrismaModel>
   not?: Prisma.NestedFloatFilter<$PrismaModel> | number
+}
+
+export type EnumQuizPhaseWithAggregatesFilter<$PrismaModel = never> = {
+  equals?: $Enums.QuizPhase | Prisma.EnumQuizPhaseFieldRefInput<$PrismaModel>
+  in?: $Enums.QuizPhase[] | Prisma.ListEnumQuizPhaseFieldRefInput<$PrismaModel>
+  notIn?: $Enums.QuizPhase[] | Prisma.ListEnumQuizPhaseFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumQuizPhaseWithAggregatesFilter<$PrismaModel> | $Enums.QuizPhase
+  _count?: Prisma.NestedIntFilter<$PrismaModel>
+  _min?: Prisma.NestedEnumQuizPhaseFilter<$PrismaModel>
+  _max?: Prisma.NestedEnumQuizPhaseFilter<$PrismaModel>
 }
 
 export type FloatWithAggregatesFilter<$PrismaModel = never> = {
@@ -288,6 +305,23 @@ export type FloatWithAggregatesFilter<$PrismaModel = never> = {
   _sum?: Prisma.NestedFloatFilter<$PrismaModel>
   _min?: Prisma.NestedFloatFilter<$PrismaModel>
   _max?: Prisma.NestedFloatFilter<$PrismaModel>
+}
+
+export type EnumTrainingStepKindFilter<$PrismaModel = never> = {
+  equals?: $Enums.TrainingStepKind | Prisma.EnumTrainingStepKindFieldRefInput<$PrismaModel>
+  in?: $Enums.TrainingStepKind[] | Prisma.ListEnumTrainingStepKindFieldRefInput<$PrismaModel>
+  notIn?: $Enums.TrainingStepKind[] | Prisma.ListEnumTrainingStepKindFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumTrainingStepKindFilter<$PrismaModel> | $Enums.TrainingStepKind
+}
+
+export type EnumTrainingStepKindWithAggregatesFilter<$PrismaModel = never> = {
+  equals?: $Enums.TrainingStepKind | Prisma.EnumTrainingStepKindFieldRefInput<$PrismaModel>
+  in?: $Enums.TrainingStepKind[] | Prisma.ListEnumTrainingStepKindFieldRefInput<$PrismaModel>
+  notIn?: $Enums.TrainingStepKind[] | Prisma.ListEnumTrainingStepKindFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumTrainingStepKindWithAggregatesFilter<$PrismaModel> | $Enums.TrainingStepKind
+  _count?: Prisma.NestedIntFilter<$PrismaModel>
+  _min?: Prisma.NestedEnumTrainingStepKindFilter<$PrismaModel>
+  _max?: Prisma.NestedEnumTrainingStepKindFilter<$PrismaModel>
 }
 
 export type NestedUuidFilter<$PrismaModel = never> = {
@@ -550,6 +584,23 @@ export type NestedDateTimeNullableWithAggregatesFilter<$PrismaModel = never> = {
   _max?: Prisma.NestedDateTimeNullableFilter<$PrismaModel>
 }
 
+export type NestedEnumQuizPhaseFilter<$PrismaModel = never> = {
+  equals?: $Enums.QuizPhase | Prisma.EnumQuizPhaseFieldRefInput<$PrismaModel>
+  in?: $Enums.QuizPhase[] | Prisma.ListEnumQuizPhaseFieldRefInput<$PrismaModel>
+  notIn?: $Enums.QuizPhase[] | Prisma.ListEnumQuizPhaseFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumQuizPhaseFilter<$PrismaModel> | $Enums.QuizPhase
+}
+
+export type NestedEnumQuizPhaseWithAggregatesFilter<$PrismaModel = never> = {
+  equals?: $Enums.QuizPhase | Prisma.EnumQuizPhaseFieldRefInput<$PrismaModel>
+  in?: $Enums.QuizPhase[] | Prisma.ListEnumQuizPhaseFieldRefInput<$PrismaModel>
+  notIn?: $Enums.QuizPhase[] | Prisma.ListEnumQuizPhaseFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumQuizPhaseWithAggregatesFilter<$PrismaModel> | $Enums.QuizPhase
+  _count?: Prisma.NestedIntFilter<$PrismaModel>
+  _min?: Prisma.NestedEnumQuizPhaseFilter<$PrismaModel>
+  _max?: Prisma.NestedEnumQuizPhaseFilter<$PrismaModel>
+}
+
 export type NestedFloatWithAggregatesFilter<$PrismaModel = never> = {
   equals?: number | Prisma.FloatFieldRefInput<$PrismaModel>
   in?: number[] | Prisma.ListFloatFieldRefInput<$PrismaModel>
@@ -564,6 +615,23 @@ export type NestedFloatWithAggregatesFilter<$PrismaModel = never> = {
   _sum?: Prisma.NestedFloatFilter<$PrismaModel>
   _min?: Prisma.NestedFloatFilter<$PrismaModel>
   _max?: Prisma.NestedFloatFilter<$PrismaModel>
+}
+
+export type NestedEnumTrainingStepKindFilter<$PrismaModel = never> = {
+  equals?: $Enums.TrainingStepKind | Prisma.EnumTrainingStepKindFieldRefInput<$PrismaModel>
+  in?: $Enums.TrainingStepKind[] | Prisma.ListEnumTrainingStepKindFieldRefInput<$PrismaModel>
+  notIn?: $Enums.TrainingStepKind[] | Prisma.ListEnumTrainingStepKindFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumTrainingStepKindFilter<$PrismaModel> | $Enums.TrainingStepKind
+}
+
+export type NestedEnumTrainingStepKindWithAggregatesFilter<$PrismaModel = never> = {
+  equals?: $Enums.TrainingStepKind | Prisma.EnumTrainingStepKindFieldRefInput<$PrismaModel>
+  in?: $Enums.TrainingStepKind[] | Prisma.ListEnumTrainingStepKindFieldRefInput<$PrismaModel>
+  notIn?: $Enums.TrainingStepKind[] | Prisma.ListEnumTrainingStepKindFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumTrainingStepKindWithAggregatesFilter<$PrismaModel> | $Enums.TrainingStepKind
+  _count?: Prisma.NestedIntFilter<$PrismaModel>
+  _min?: Prisma.NestedEnumTrainingStepKindFilter<$PrismaModel>
+  _max?: Prisma.NestedEnumTrainingStepKindFilter<$PrismaModel>
 }
 
 

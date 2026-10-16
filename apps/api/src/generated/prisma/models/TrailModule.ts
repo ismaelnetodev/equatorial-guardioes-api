@@ -291,6 +291,7 @@ export type TrailModuleWhereInput = {
   trail?: Prisma.XOR<Prisma.TrailScalarRelationFilter, Prisma.TrailWhereInput>
   progressRecords?: Prisma.ModuleProgressListRelationFilter
   quizQuestions?: Prisma.QuizQuestionListRelationFilter
+  trainingSteps?: Prisma.TrainingStepListRelationFilter
 }
 
 export type TrailModuleOrderByWithRelationInput = {
@@ -310,6 +311,7 @@ export type TrailModuleOrderByWithRelationInput = {
   trail?: Prisma.TrailOrderByWithRelationInput
   progressRecords?: Prisma.ModuleProgressOrderByRelationAggregateInput
   quizQuestions?: Prisma.QuizQuestionOrderByRelationAggregateInput
+  trainingSteps?: Prisma.TrainingStepOrderByRelationAggregateInput
 }
 
 export type TrailModuleWhereUniqueInput = Prisma.AtLeast<{
@@ -333,6 +335,7 @@ export type TrailModuleWhereUniqueInput = Prisma.AtLeast<{
   trail?: Prisma.XOR<Prisma.TrailScalarRelationFilter, Prisma.TrailWhereInput>
   progressRecords?: Prisma.ModuleProgressListRelationFilter
   quizQuestions?: Prisma.QuizQuestionListRelationFilter
+  trainingSteps?: Prisma.TrainingStepListRelationFilter
 }, "id" | "trailId_order">
 
 export type TrailModuleOrderByWithAggregationInput = {
@@ -391,6 +394,7 @@ export type TrailModuleCreateInput = {
   trail: Prisma.TrailCreateNestedOneWithoutModulesInput
   progressRecords?: Prisma.ModuleProgressCreateNestedManyWithoutModuleInput
   quizQuestions?: Prisma.QuizQuestionCreateNestedManyWithoutModuleInput
+  trainingSteps?: Prisma.TrainingStepCreateNestedManyWithoutModuleInput
 }
 
 export type TrailModuleUncheckedCreateInput = {
@@ -409,6 +413,7 @@ export type TrailModuleUncheckedCreateInput = {
   updatedAt?: Date | string
   progressRecords?: Prisma.ModuleProgressUncheckedCreateNestedManyWithoutModuleInput
   quizQuestions?: Prisma.QuizQuestionUncheckedCreateNestedManyWithoutModuleInput
+  trainingSteps?: Prisma.TrainingStepUncheckedCreateNestedManyWithoutModuleInput
 }
 
 export type TrailModuleUpdateInput = {
@@ -427,6 +432,7 @@ export type TrailModuleUpdateInput = {
   trail?: Prisma.TrailUpdateOneRequiredWithoutModulesNestedInput
   progressRecords?: Prisma.ModuleProgressUpdateManyWithoutModuleNestedInput
   quizQuestions?: Prisma.QuizQuestionUpdateManyWithoutModuleNestedInput
+  trainingSteps?: Prisma.TrainingStepUpdateManyWithoutModuleNestedInput
 }
 
 export type TrailModuleUncheckedUpdateInput = {
@@ -445,6 +451,7 @@ export type TrailModuleUncheckedUpdateInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   progressRecords?: Prisma.ModuleProgressUncheckedUpdateManyWithoutModuleNestedInput
   quizQuestions?: Prisma.QuizQuestionUncheckedUpdateManyWithoutModuleNestedInput
+  trainingSteps?: Prisma.TrainingStepUncheckedUpdateManyWithoutModuleNestedInput
 }
 
 export type TrailModuleCreateManyInput = {
@@ -656,6 +663,20 @@ export type TrailModuleUpdateOneRequiredWithoutQuizQuestionsNestedInput = {
   update?: Prisma.XOR<Prisma.XOR<Prisma.TrailModuleUpdateToOneWithWhereWithoutQuizQuestionsInput, Prisma.TrailModuleUpdateWithoutQuizQuestionsInput>, Prisma.TrailModuleUncheckedUpdateWithoutQuizQuestionsInput>
 }
 
+export type TrailModuleCreateNestedOneWithoutTrainingStepsInput = {
+  create?: Prisma.XOR<Prisma.TrailModuleCreateWithoutTrainingStepsInput, Prisma.TrailModuleUncheckedCreateWithoutTrainingStepsInput>
+  connectOrCreate?: Prisma.TrailModuleCreateOrConnectWithoutTrainingStepsInput
+  connect?: Prisma.TrailModuleWhereUniqueInput
+}
+
+export type TrailModuleUpdateOneRequiredWithoutTrainingStepsNestedInput = {
+  create?: Prisma.XOR<Prisma.TrailModuleCreateWithoutTrainingStepsInput, Prisma.TrailModuleUncheckedCreateWithoutTrainingStepsInput>
+  connectOrCreate?: Prisma.TrailModuleCreateOrConnectWithoutTrainingStepsInput
+  upsert?: Prisma.TrailModuleUpsertWithoutTrainingStepsInput
+  connect?: Prisma.TrailModuleWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.TrailModuleUpdateToOneWithWhereWithoutTrainingStepsInput, Prisma.TrailModuleUpdateWithoutTrainingStepsInput>, Prisma.TrailModuleUncheckedUpdateWithoutTrainingStepsInput>
+}
+
 export type TrailModuleCreateWithoutTrailInput = {
   publicationStatus?: $Enums.ContentStatus
   id?: string
@@ -671,6 +692,7 @@ export type TrailModuleCreateWithoutTrailInput = {
   updatedAt?: Date | string
   progressRecords?: Prisma.ModuleProgressCreateNestedManyWithoutModuleInput
   quizQuestions?: Prisma.QuizQuestionCreateNestedManyWithoutModuleInput
+  trainingSteps?: Prisma.TrainingStepCreateNestedManyWithoutModuleInput
 }
 
 export type TrailModuleUncheckedCreateWithoutTrailInput = {
@@ -688,6 +710,7 @@ export type TrailModuleUncheckedCreateWithoutTrailInput = {
   updatedAt?: Date | string
   progressRecords?: Prisma.ModuleProgressUncheckedCreateNestedManyWithoutModuleInput
   quizQuestions?: Prisma.QuizQuestionUncheckedCreateNestedManyWithoutModuleInput
+  trainingSteps?: Prisma.TrainingStepUncheckedCreateNestedManyWithoutModuleInput
 }
 
 export type TrailModuleCreateOrConnectWithoutTrailInput = {
@@ -750,6 +773,7 @@ export type TrailModuleCreateWithoutProgressRecordsInput = {
   updatedAt?: Date | string
   trail: Prisma.TrailCreateNestedOneWithoutModulesInput
   quizQuestions?: Prisma.QuizQuestionCreateNestedManyWithoutModuleInput
+  trainingSteps?: Prisma.TrainingStepCreateNestedManyWithoutModuleInput
 }
 
 export type TrailModuleUncheckedCreateWithoutProgressRecordsInput = {
@@ -767,6 +791,7 @@ export type TrailModuleUncheckedCreateWithoutProgressRecordsInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   quizQuestions?: Prisma.QuizQuestionUncheckedCreateNestedManyWithoutModuleInput
+  trainingSteps?: Prisma.TrainingStepUncheckedCreateNestedManyWithoutModuleInput
 }
 
 export type TrailModuleCreateOrConnectWithoutProgressRecordsInput = {
@@ -800,6 +825,7 @@ export type TrailModuleUpdateWithoutProgressRecordsInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   trail?: Prisma.TrailUpdateOneRequiredWithoutModulesNestedInput
   quizQuestions?: Prisma.QuizQuestionUpdateManyWithoutModuleNestedInput
+  trainingSteps?: Prisma.TrainingStepUpdateManyWithoutModuleNestedInput
 }
 
 export type TrailModuleUncheckedUpdateWithoutProgressRecordsInput = {
@@ -817,6 +843,7 @@ export type TrailModuleUncheckedUpdateWithoutProgressRecordsInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   quizQuestions?: Prisma.QuizQuestionUncheckedUpdateManyWithoutModuleNestedInput
+  trainingSteps?: Prisma.TrainingStepUncheckedUpdateManyWithoutModuleNestedInput
 }
 
 export type TrailModuleCreateWithoutQuizQuestionsInput = {
@@ -834,6 +861,7 @@ export type TrailModuleCreateWithoutQuizQuestionsInput = {
   updatedAt?: Date | string
   trail: Prisma.TrailCreateNestedOneWithoutModulesInput
   progressRecords?: Prisma.ModuleProgressCreateNestedManyWithoutModuleInput
+  trainingSteps?: Prisma.TrainingStepCreateNestedManyWithoutModuleInput
 }
 
 export type TrailModuleUncheckedCreateWithoutQuizQuestionsInput = {
@@ -851,6 +879,7 @@ export type TrailModuleUncheckedCreateWithoutQuizQuestionsInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   progressRecords?: Prisma.ModuleProgressUncheckedCreateNestedManyWithoutModuleInput
+  trainingSteps?: Prisma.TrainingStepUncheckedCreateNestedManyWithoutModuleInput
 }
 
 export type TrailModuleCreateOrConnectWithoutQuizQuestionsInput = {
@@ -884,6 +913,7 @@ export type TrailModuleUpdateWithoutQuizQuestionsInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   trail?: Prisma.TrailUpdateOneRequiredWithoutModulesNestedInput
   progressRecords?: Prisma.ModuleProgressUpdateManyWithoutModuleNestedInput
+  trainingSteps?: Prisma.TrainingStepUpdateManyWithoutModuleNestedInput
 }
 
 export type TrailModuleUncheckedUpdateWithoutQuizQuestionsInput = {
@@ -901,6 +931,95 @@ export type TrailModuleUncheckedUpdateWithoutQuizQuestionsInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   progressRecords?: Prisma.ModuleProgressUncheckedUpdateManyWithoutModuleNestedInput
+  trainingSteps?: Prisma.TrainingStepUncheckedUpdateManyWithoutModuleNestedInput
+}
+
+export type TrailModuleCreateWithoutTrainingStepsInput = {
+  publicationStatus?: $Enums.ContentStatus
+  id?: string
+  title: string
+  description: string
+  content: string
+  order: number
+  durationMinutes?: number | null
+  isActive?: boolean
+  requiresQuiz?: boolean
+  quizMinimumScore?: number | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  trail: Prisma.TrailCreateNestedOneWithoutModulesInput
+  progressRecords?: Prisma.ModuleProgressCreateNestedManyWithoutModuleInput
+  quizQuestions?: Prisma.QuizQuestionCreateNestedManyWithoutModuleInput
+}
+
+export type TrailModuleUncheckedCreateWithoutTrainingStepsInput = {
+  publicationStatus?: $Enums.ContentStatus
+  id?: string
+  trailId: string
+  title: string
+  description: string
+  content: string
+  order: number
+  durationMinutes?: number | null
+  isActive?: boolean
+  requiresQuiz?: boolean
+  quizMinimumScore?: number | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  progressRecords?: Prisma.ModuleProgressUncheckedCreateNestedManyWithoutModuleInput
+  quizQuestions?: Prisma.QuizQuestionUncheckedCreateNestedManyWithoutModuleInput
+}
+
+export type TrailModuleCreateOrConnectWithoutTrainingStepsInput = {
+  where: Prisma.TrailModuleWhereUniqueInput
+  create: Prisma.XOR<Prisma.TrailModuleCreateWithoutTrainingStepsInput, Prisma.TrailModuleUncheckedCreateWithoutTrainingStepsInput>
+}
+
+export type TrailModuleUpsertWithoutTrainingStepsInput = {
+  update: Prisma.XOR<Prisma.TrailModuleUpdateWithoutTrainingStepsInput, Prisma.TrailModuleUncheckedUpdateWithoutTrainingStepsInput>
+  create: Prisma.XOR<Prisma.TrailModuleCreateWithoutTrainingStepsInput, Prisma.TrailModuleUncheckedCreateWithoutTrainingStepsInput>
+  where?: Prisma.TrailModuleWhereInput
+}
+
+export type TrailModuleUpdateToOneWithWhereWithoutTrainingStepsInput = {
+  where?: Prisma.TrailModuleWhereInput
+  data: Prisma.XOR<Prisma.TrailModuleUpdateWithoutTrainingStepsInput, Prisma.TrailModuleUncheckedUpdateWithoutTrainingStepsInput>
+}
+
+export type TrailModuleUpdateWithoutTrainingStepsInput = {
+  publicationStatus?: Prisma.EnumContentStatusFieldUpdateOperationsInput | $Enums.ContentStatus
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  title?: Prisma.StringFieldUpdateOperationsInput | string
+  description?: Prisma.StringFieldUpdateOperationsInput | string
+  content?: Prisma.StringFieldUpdateOperationsInput | string
+  order?: Prisma.IntFieldUpdateOperationsInput | number
+  durationMinutes?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  requiresQuiz?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  quizMinimumScore?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  trail?: Prisma.TrailUpdateOneRequiredWithoutModulesNestedInput
+  progressRecords?: Prisma.ModuleProgressUpdateManyWithoutModuleNestedInput
+  quizQuestions?: Prisma.QuizQuestionUpdateManyWithoutModuleNestedInput
+}
+
+export type TrailModuleUncheckedUpdateWithoutTrainingStepsInput = {
+  publicationStatus?: Prisma.EnumContentStatusFieldUpdateOperationsInput | $Enums.ContentStatus
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  trailId?: Prisma.StringFieldUpdateOperationsInput | string
+  title?: Prisma.StringFieldUpdateOperationsInput | string
+  description?: Prisma.StringFieldUpdateOperationsInput | string
+  content?: Prisma.StringFieldUpdateOperationsInput | string
+  order?: Prisma.IntFieldUpdateOperationsInput | number
+  durationMinutes?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  requiresQuiz?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  quizMinimumScore?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  progressRecords?: Prisma.ModuleProgressUncheckedUpdateManyWithoutModuleNestedInput
+  quizQuestions?: Prisma.QuizQuestionUncheckedUpdateManyWithoutModuleNestedInput
 }
 
 export type TrailModuleCreateManyTrailInput = {
@@ -933,6 +1052,7 @@ export type TrailModuleUpdateWithoutTrailInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   progressRecords?: Prisma.ModuleProgressUpdateManyWithoutModuleNestedInput
   quizQuestions?: Prisma.QuizQuestionUpdateManyWithoutModuleNestedInput
+  trainingSteps?: Prisma.TrainingStepUpdateManyWithoutModuleNestedInput
 }
 
 export type TrailModuleUncheckedUpdateWithoutTrailInput = {
@@ -950,6 +1070,7 @@ export type TrailModuleUncheckedUpdateWithoutTrailInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   progressRecords?: Prisma.ModuleProgressUncheckedUpdateManyWithoutModuleNestedInput
   quizQuestions?: Prisma.QuizQuestionUncheckedUpdateManyWithoutModuleNestedInput
+  trainingSteps?: Prisma.TrainingStepUncheckedUpdateManyWithoutModuleNestedInput
 }
 
 export type TrailModuleUncheckedUpdateManyWithoutTrailInput = {
@@ -975,11 +1096,13 @@ export type TrailModuleUncheckedUpdateManyWithoutTrailInput = {
 export type TrailModuleCountOutputType = {
   progressRecords: number
   quizQuestions: number
+  trainingSteps: number
 }
 
 export type TrailModuleCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   progressRecords?: boolean | TrailModuleCountOutputTypeCountProgressRecordsArgs
   quizQuestions?: boolean | TrailModuleCountOutputTypeCountQuizQuestionsArgs
+  trainingSteps?: boolean | TrailModuleCountOutputTypeCountTrainingStepsArgs
 }
 
 /**
@@ -1006,6 +1129,13 @@ export type TrailModuleCountOutputTypeCountQuizQuestionsArgs<ExtArgs extends run
   where?: Prisma.QuizQuestionWhereInput
 }
 
+/**
+ * TrailModuleCountOutputType without action
+ */
+export type TrailModuleCountOutputTypeCountTrainingStepsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.TrainingStepWhereInput
+}
+
 
 export type TrailModuleSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   publicationStatus?: boolean
@@ -1024,6 +1154,7 @@ export type TrailModuleSelect<ExtArgs extends runtime.Types.Extensions.InternalA
   trail?: boolean | Prisma.TrailDefaultArgs<ExtArgs>
   progressRecords?: boolean | Prisma.TrailModule$progressRecordsArgs<ExtArgs>
   quizQuestions?: boolean | Prisma.TrailModule$quizQuestionsArgs<ExtArgs>
+  trainingSteps?: boolean | Prisma.TrailModule$trainingStepsArgs<ExtArgs>
   _count?: boolean | Prisma.TrailModuleCountOutputTypeDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["trailModule"]>
 
@@ -1082,6 +1213,7 @@ export type TrailModuleInclude<ExtArgs extends runtime.Types.Extensions.Internal
   trail?: boolean | Prisma.TrailDefaultArgs<ExtArgs>
   progressRecords?: boolean | Prisma.TrailModule$progressRecordsArgs<ExtArgs>
   quizQuestions?: boolean | Prisma.TrailModule$quizQuestionsArgs<ExtArgs>
+  trainingSteps?: boolean | Prisma.TrailModule$trainingStepsArgs<ExtArgs>
   _count?: boolean | Prisma.TrailModuleCountOutputTypeDefaultArgs<ExtArgs>
 }
 export type TrailModuleIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
@@ -1097,6 +1229,7 @@ export type $TrailModulePayload<ExtArgs extends runtime.Types.Extensions.Interna
     trail: Prisma.$TrailPayload<ExtArgs>
     progressRecords: Prisma.$ModuleProgressPayload<ExtArgs>[]
     quizQuestions: Prisma.$QuizQuestionPayload<ExtArgs>[]
+    trainingSteps: Prisma.$TrainingStepPayload<ExtArgs>[]
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     publicationStatus: $Enums.ContentStatus
@@ -1509,6 +1642,7 @@ export interface Prisma__TrailModuleClient<T, Null = never, ExtArgs extends runt
   trail<T extends Prisma.TrailDefaultArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.TrailDefaultArgs<ExtArgs>>): Prisma.Prisma__TrailClient<runtime.Types.Result.GetResult<Prisma.$TrailPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
   progressRecords<T extends Prisma.TrailModule$progressRecordsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.TrailModule$progressRecordsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$ModuleProgressPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   quizQuestions<T extends Prisma.TrailModule$quizQuestionsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.TrailModule$quizQuestionsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$QuizQuestionPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  trainingSteps<T extends Prisma.TrailModule$trainingStepsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.TrailModule$trainingStepsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$TrainingStepPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
    * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -1997,6 +2131,30 @@ export type TrailModule$quizQuestionsArgs<ExtArgs extends runtime.Types.Extensio
   take?: number
   skip?: number
   distinct?: Prisma.QuizQuestionScalarFieldEnum | Prisma.QuizQuestionScalarFieldEnum[]
+}
+
+/**
+ * TrailModule.trainingSteps
+ */
+export type TrailModule$trainingStepsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the TrainingStep
+   */
+  select?: Prisma.TrainingStepSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the TrainingStep
+   */
+  omit?: Prisma.TrainingStepOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.TrainingStepInclude<ExtArgs> | null
+  where?: Prisma.TrainingStepWhereInput
+  orderBy?: Prisma.TrainingStepOrderByWithRelationInput | Prisma.TrainingStepOrderByWithRelationInput[]
+  cursor?: Prisma.TrainingStepWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.TrainingStepScalarFieldEnum | Prisma.TrainingStepScalarFieldEnum[]
 }
 
 /**

@@ -1,7 +1,7 @@
 import type { FastifyReply, FastifyRequest } from 'fastify'
 import { AuthenticationError } from '../../lib/auth-user.js'
 import * as service from './admin.service.js'
-import type { AdminTrailParams, AdminModuleParams, CreateTrail, UpdateTrail, CreateModule, UpdateModule, ChangeStatus, Reorder } from './admin.schemas.js'
+import type { AdminTrailParams, AdminModuleParams, CreateTrail, UpdateTrail, CreateModule, UpdateModule, ChangeStatus, Reorder, ReplaceQuiz, ReplaceTraining } from './admin.schemas.js'
 
 function sendError(reply: FastifyReply, error: unknown) {
   if (error instanceof AuthenticationError) return reply.status(401).send({ code: 'UNAUTHENTICATED', message: error.message })
@@ -49,4 +49,20 @@ export async function changeModuleStatusController(request: FastifyRequest<{ Par
 }
 export async function reorderModulesController(request: FastifyRequest<{ Params: AdminTrailParams; Body: Reorder }>, reply: FastifyReply) {
   return respond(reply, () => service.reorderModules(request.params.trailId, request.body.ids))
+}
+
+export async function getModuleQuizController(request: FastifyRequest<{ Params: AdminModuleParams }>, reply: FastifyReply) {
+  return respond(reply, () => service.getModuleQuiz(request.params.trailId, request.params.moduleId))
+}
+
+export async function replaceModuleQuizController(request: FastifyRequest<{ Params: AdminModuleParams; Body: ReplaceQuiz }>, reply: FastifyReply) {
+  return respond(reply, () => service.replaceModuleQuiz(request.params.trailId, request.params.moduleId, request.body))
+}
+
+export async function getModuleTrainingController(request: FastifyRequest<{ Params: AdminModuleParams }>, reply: FastifyReply) {
+  return respond(reply, () => service.getModuleTraining(request.params.trailId, request.params.moduleId))
+}
+
+export async function replaceModuleTrainingController(request: FastifyRequest<{ Params: AdminModuleParams; Body: ReplaceTraining }>, reply: FastifyReply) {
+  return respond(reply, () => service.replaceModuleTraining(request.params.trailId, request.params.moduleId, request.body))
 }
