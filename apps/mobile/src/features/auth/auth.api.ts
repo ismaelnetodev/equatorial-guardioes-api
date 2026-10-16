@@ -1,0 +1,14 @@
+import type { paths } from '../../services/api.types'
+import { apiRequest } from '../../services/api'
+import { setAccessToken } from '../../services/session'
+
+type LoginOperation = paths['/api/v1/entrar']['post']
+type LoginBody = LoginOperation['requestBody']['content']['application/json']
+type LoginResponse = LoginOperation['responses'][200]['content']['application/json']
+
+export async function login(credentials: LoginBody): Promise<LoginResponse> {
+  const response = await apiRequest<LoginResponse>('/entrar', { method: 'POST', body: JSON.stringify(credentials) })
+  if (!response.accessToken) throw new Error('A API não retornou uma sessão. Tente novamente.')
+  await setAccessToken(response.accessToken)
+  return response
+}

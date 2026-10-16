@@ -5,7 +5,7 @@ Monorepo da plataforma Guardiões da Energia, com uma API para autenticação, a
 ## Tecnologias
 
 - **API:** Node.js, TypeScript, Fastify, TypeBox, Prisma e PostgreSQL.
-- **Aplicativo:** React Native, Expo, Expo Router e TypeScript.
+- **Aplicativo:** React Native 0.86.3, React 19.2.3, Expo SDK 57, Expo Router e TypeScript.
 - **Integração:** HTTP com contratos TypeScript gerados do OpenAPI.
 - **Organização:** npm workspaces, com um único package-lock.json na raiz.
 
@@ -68,7 +68,8 @@ Configure `apps/api/.env`:
 | `NODE_ENV` | Ambiente de execução. |
 | `HOST` | Interface de rede. `0.0.0.0` permite acesso pela rede local. |
 | `PORT` | Porta da API. Padrão: `3000`. |
-| `CORS_ORIGINS` | Origens web permitidas, separadas por vírgula. A prévia Expo usa `http://localhost:8081`. |
+| `CORS_ORIGINS` | Origens web permitidas, separadas por vírgula, sem caminhos. Obrigatória em produção, com origens HTTPS explícitas. |
+| `CORS_ALLOW_LOCAL_NETWORK` | Em `NODE_ENV=development` (ou ausente), permite localhost, loopback e IPv4 privados em qualquer porta. Padrão: habilitado. Use `false` para exigir somente a lista explícita. Não habilita rede local em produção ou outros ambientes. |
 | `DATABASE_URL` | Conexão PostgreSQL usada pelo Prisma e pela API. |
 | `AUTH_TOKEN_SECRET` | Segredo longo e aleatório para assinar os tokens. |
 
@@ -91,7 +92,25 @@ Use o endereço adequado ao ambiente:
 | Celular físico na mesma rede | `http://IP_DO_COMPUTADOR:3000/api/v1` |
 | Aplicativo distribuído | Endereço HTTPS da API hospedada. |
 
-No celular, localhost aponta para o próprio dispositivo. O computador precisa permitir conexões na porta da API. Para acessar a prévia web por outro endereço, inclua a origem correspondente em CORS_ORIGINS. Reinicie o Expo após alterar as variáveis.
+No celular, localhost aponta para o próprio dispositivo. Use o IP atual do computador (`ipconfig` no Windows), mantenha `HOST=0.0.0.0` e permita conexões na porta da API no firewall da rede privada. Reinicie o Expo após alterar as variáveis.
+
+### CORS local e produção
+
+Em desenvolvimento, são aceitas origens HTTP/HTTPS em `localhost`, `127.0.0.0/8`, `[::1]` e nas redes privadas `10.0.0.0/8`, `172.16.0.0/12` e `192.168.0.0/16`. Isso permite abrir o Expo web pelo IP sem atualizar a lista a cada troca de rede. Domínios externos precisam constar em `CORS_ORIGINS`. Para restringir também o ambiente local, configure `CORS_ALLOW_LOCAL_NETWORK=false` e liste cada origem exata (incluindo a porta).
+
+Em produção, configure por exemplo:
+
+```dotenv
+NODE_ENV=production
+HOST=0.0.0.0
+CORS_ORIGINS=https://app.seudominio.com,https://admin.seudominio.com
+```
+
+A API recusa iniciar em produção se a lista estiver vazia ou contiver origens inválidas, curingas ou HTTP. Informe a origem do **frontend**, não o endereço da API; não inclua `/api/v1` na lista. Subdomínios e portas não são liberados implicitamente. Publique a API em HTTPS e configure `EXPO_PUBLIC_API_URL` com sua URL HTTPS para evitar bloqueio de conteúdo misto.
+
+O preflight permite os métodos da API e os headers `Content-Type`, `Authorization` e `Accept`. A autenticação usa Bearer token, sem cookies cross-origin. Requisições sem `Origin` continuam funcionando para aplicativos nativos e clientes de servidor. CORS controla a leitura pelo navegador; a autenticação e a autorização continuam sendo exigidas pelas rotas protegidas. Referência: [documentação do @fastify/cors](https://github.com/fastify/fastify-cors#options).
+
+Se o navegador mostrar status `(null)`, verifique também a conectividade: abra `http://IP_DO_COMPUTADOR:3000/documentation/json` no dispositivo. IP incorreto, API parada, firewall e página HTTPS chamando API HTTP podem impedir qualquer resposta, mesmo com o CORS correto.
 
 Variáveis EXPO_PUBLIC_* são públicas e não devem conter credenciais do banco ou segredos.
 
@@ -119,13 +138,25 @@ Em outro, inicie o aplicativo:
 npm run dev:mobile
 ```
 
+Para testar no celular, use o Expo Go compatível com **SDK 57** (por exemplo, cliente 57.0.9). Mantenha o computador e o celular na mesma rede, configure `EXPO_PUBLIC_API_URL` com o IP atual do computador e escaneie o QR code do Expo. Após trocar a versão do SDK, encerre o Metro anterior e limpe seu cache:
+
+```sh
+npm run dev:mobile -- --clear --go
+```
+
+Valide as versões com `npm run check:mobile`. Ao trocar o SDK, alinhe também React, React Native e módulos Expo às versões indicadas pelo Expo; a versão do aplicativo em `app.json` não define a compatibilidade com Expo Go.
+
+Reanimated e Worklets estão fixados nas versões nativas do SDK 57 no mobile e nos `overrides` da raiz, pois também entram como dependências transitivas do Router. Atualize esses valores em conjunto ao migrar o SDK para evitar duplicações incompatíveis com o Expo Go.
+
 Para abrir a prévia web:
 
 ```sh
 npm run dev:web
 ```
 
-A tela inicial consulta o catálogo público de trilhas. Os fluxos de cadastro, login e navegação pelo conteúdo poderão ser desenvolvidos sobre a estrutura existente. O cliente HTTP centraliza o envio do Bearer token; o serviço de sessão oferece armazenamento seguro no Android e iOS. Na prévia web, o token é mantido apenas em memória.
+A tela inicial consulta o catálogo público de trilhas e oferece acesso à tela `/entrar`. O login envia e-mail ou celular e senha para `POST /api/v1/entrar`, armazena o token e retorna ao catálogo. O cliente HTTP centraliza o envio do Bearer token; o serviço de sessão oferece armazenamento seguro no Android e iOS. Na prévia web, o token é mantido apenas em memória.
+
+Para testar, inicie a API e o Expo, abra `/entrar` na prévia web ou toque em “Entrar na minha conta”. Crie previamente um usuário pelo endpoint `POST /api/v1/cadastrar` no Swagger. Use o mesmo celular cadastrado (incluindo código do país, se informado); o formulário remove espaços, parênteses e hífens, sem acrescentar prefixos. O login exibe erros de validação, credenciais, limite de tentativas e conexão. Cadastro pelo app, recuperação de senha e Google exibem avisos de indisponibilidade até que seus fluxos sejam implementados. O botão de emergência abre `tel:116` em dispositivos compatíveis.
 
 ## Documentação e contratos
 
@@ -151,6 +182,8 @@ O arquivo `apps/mobile/src/services/api.types.ts` é gerado automaticamente. Nã
 | `npm run db:studio` | Abre o Prisma Studio. |
 
 ## Verificação e build
+
+Os SVGs da marca ficam em `apps/mobile/assets`. Após atualizá-los, execute `node scripts/generate-mobile-assets.mjs` na raiz para gerar os PNGs da logo, ícone do app, ícone adaptativo Android e favicon. A conversão usa Sharp como dependência de desenvolvimento. Para visualizar alterações no ícone instalado, gere um novo build nativo; o Expo Go mantém seu próprio ícone.
 
 ```sh
 npm run typecheck
