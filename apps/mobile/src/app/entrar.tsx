@@ -34,7 +34,7 @@ export default function LoginScreen() {
     setLoading(true)
     try {
       await login({ ...(email ? { email: value.toLowerCase() } : { cellphone: phone }), password })
-      router.replace('/')
+      router.replace('/inicio')
     } catch (cause) {
       setError(cause instanceof ApiError ? cause.message : cause instanceof TypeError ? 'Não foi possível conectar à API. Verifique sua conexão e tente novamente.' : cause instanceof Error ? cause.message : 'Não foi possível entrar. Tente novamente.')
     } finally { pending.current = false; setLoading(false) }

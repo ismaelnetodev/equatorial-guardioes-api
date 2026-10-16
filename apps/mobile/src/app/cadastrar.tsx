@@ -6,7 +6,7 @@ import { SafeAreaView } from 'react-native-safe-area-context'
 import { Button, colors, InputField } from '../components/ui'
 import { NeighborhoodPicker, type NeighborhoodSelection } from '../components/neighborhood-picker'
 import { FormIcon } from '../components/form-icon'
-import { register } from '../features/auth/auth.api'
+import { login, register } from '../features/auth/auth.api'
 
 export default function RegistrationScreen() {
   const [name, setName] = useState('')
@@ -36,6 +36,12 @@ export default function RegistrationScreen() {
     try {
       await register({ name: name.trim(), ...(email ? { email: value.toLowerCase() } : { cellphone: phone }), password, neighborhood: neighborhood!.name, ...(neighborhood!.id ? { neighborhoodId: neighborhood!.id } : {}), ...(invite.trim() ? { inviteCode: invite.trim() } : {}), acceptedTerms: true })
       setSubmitted(false); setPassword(''); setSuccess(true)
+      try {
+        await login({ ...(email ? { email: value.toLowerCase() } : { cellphone: phone }), password })
+      } catch {
+        // The account already exists; finishing the introduction will open login.
+      }
+      router.replace('/introducao')
     } catch (cause) {
       setError(cause instanceof TypeError ? 'Não foi possível conectar à API. Verifique sua conexão e tente novamente.' : cause instanceof Error ? cause.message : 'Não foi possível criar sua conta. Tente novamente.')
     } finally { pending.current = false; setLoading(false) }
@@ -47,8 +53,8 @@ export default function RegistrationScreen() {
         <View style={styles.header}><Pressable accessibilityRole="button" accessibilityLabel="Voltar" onPress={() => router.canGoBack() ? router.back() : goLogin()} hitSlop={10}><Text style={styles.back}>‹</Text></Pressable><Text accessibilityRole="header" style={styles.title}>Criar conta</Text></View>
         {success ? <View style={styles.group}>
           <Text accessibilityRole="header" style={styles.title}>Conta criada com sucesso!</Text>
-          <Text accessibilityRole="alert" style={styles.description}>Entre com seu celular ou e-mail e a senha que você cadastrou.</Text>
-          <Button title="Entrar" onPress={goLogin} />
+          <Text accessibilityRole="alert" style={styles.description}>Vamos conhecer o Guardiões da Energia.</Text>
+          <Button title="Continuar" loading={loading} onPress={() => router.replace('/introducao')} />
         </View> : <>
         <Text style={styles.description}>Leva menos de 1 minuto. Sem CPF.</Text>
         <InputField label="Como quer ser chamado" value={name} onChangeText={setName} placeholder="Maria" maxLength={100} autoComplete="name" textContentType="name" editable={!loading && !success} error={submitted && name.trim().length < 2 ? 'Informe pelo menos 2 caracteres.' : undefined} />

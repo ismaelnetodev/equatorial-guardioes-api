@@ -154,9 +154,9 @@ Para abrir a prévia web:
 npm run dev:web
 ```
 
-A tela inicial consulta o catálogo público de trilhas e oferece acesso à tela `/entrar`. O login envia e-mail ou celular e senha para `POST /api/v1/entrar`, armazena o token e retorna ao catálogo. O cliente HTTP centraliza o envio do Bearer token; o serviço de sessão oferece armazenamento seguro no Android e iOS. Na prévia web, o token é mantido apenas em memória.
+A abertura do app (`/`) redireciona sempre para `/entrar`. A tela `/inicio` consulta o catálogo público de trilhas. O login envia e-mail ou celular e senha para `POST /api/v1/entrar`, armazena o token e abre o catálogo em `/inicio`. O cliente HTTP centraliza o envio do Bearer token; o serviço de sessão oferece armazenamento seguro no Android e iOS. Na prévia web, o token é mantido apenas em memória.
 
-Para testar, inicie a API e o Expo, abra `/entrar` na prévia web ou toque em “Entrar na minha conta”. Crie previamente um usuário pelo endpoint `POST /api/v1/cadastrar` no Swagger. Use o mesmo celular cadastrado (incluindo código do país, se informado); o formulário remove espaços, parênteses e hífens, sem acrescentar prefixos. O login exibe erros de validação, credenciais, limite de tentativas e conexão. Cadastro pelo app, recuperação de senha e Google exibem avisos de indisponibilidade até que seus fluxos sejam implementados. O botão de emergência abre `tel:116` em dispositivos compatíveis.
+Para testar, inicie a API e o Expo, abra `/entrar` na prévia web ou toque em “Entrar na minha conta”. Crie previamente um usuário pelo endpoint `POST /api/v1/cadastrar` no Swagger. Use o mesmo celular cadastrado (incluindo código do país, se informado); o formulário remove espaços, parênteses e hífens, sem acrescentar prefixos. O login exibe erros de validação, credenciais, limite de tentativas e conexão. Recuperação de senha e Google exibem avisos de indisponibilidade até que seus fluxos sejam implementados. O botão de emergência abre `tel:116` em dispositivos compatíveis.
 
 ## Documentação e contratos
 
@@ -176,7 +176,7 @@ O arquivo `apps/mobile/src/services/api.types.ts` é gerado automaticamente. Nã
 
 ## Banco de dados
 
-O cadastro está em `/cadastrar`, acessível por “Criar conta” em `/entrar`. Após cadastrar, use “Entrar” para autenticar. O seletor consulta `GET /api/v1/neighborhoods/?municipalityCode=2111300`, busca por nome sem diferenciar acentos e permite informar “Outro bairro”. Nomes livres ficam no usuário, sem contaminar o catálogo de origem oficial. O cadastro envia `neighborhoodId` quando a escolha vem do catálogo; a API valida o município e utiliza o nome armazenado no banco.
+O cadastro está em `/cadastrar`, acessível por “Criar conta” em `/entrar`. Após cadastrar, o app tenta autenticar e abre `/introducao`, com três etapas, sem o aviso de instalação na tela inicial. “Pular” e “Começar” abrem `/inicio` com sessão ou `/entrar` se a autenticação não foi concluída. O seletor consulta `GET /api/v1/neighborhoods/?municipalityCode=2111300`, busca por nome sem diferenciar acentos e permite informar “Outro bairro”. Nomes livres ficam no usuário, sem contaminar o catálogo de origem oficial. O cadastro envia `neighborhoodId` quando a escolha vem do catálogo; a API valida o município e utiliza o nome armazenado no banco.
 
 As migrations incluem a tabela `Neighborhood`, o vínculo opcional ao usuário e os dados do catálogo. `npm run db:deploy` recria tudo em um banco novo, sem depender de downloads nem de seed manual:
 
