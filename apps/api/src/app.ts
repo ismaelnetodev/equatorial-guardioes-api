@@ -1,4 +1,3 @@
-import process from 'node:process'
 import Fastify, { type FastifyServerOptions } from 'fastify'
 import cors from '@fastify/cors'
 import rateLimit from '@fastify/rate-limit'
@@ -10,15 +9,15 @@ import { adminRoutes } from './modules/admin/admin.routes.js'
 import { authRoutes } from './modules/auth/auth.routes.js'
 import { trailsRoutes } from './modules/trails/trails.routes.js'
 import { progressRoutes } from './modules/progress/progress.routes.js'
+import { buildCorsOptions } from './lib/cors.js'
 
 export async function buildApp(options: FastifyServerOptions = {}) {
+  const corsOptions = buildCorsOptions()
   const app = Fastify({ logger: true, ...options }).withTypeProvider<TypeBoxTypeProvider>()
-
-  const corsOrigins = process.env['CORS_ORIGINS']?.split(',').map((origin) => origin.trim()).filter((origin) => origin.length > 0)
 
   // CSP desabilitada porque a página do Swagger UI depende de scripts inline.
   await app.register(helmet, { contentSecurityPolicy: false })
-  await app.register(cors, { origin: corsOrigins && corsOrigins.length > 0 ? corsOrigins : true })
+  await app.register(cors, corsOptions)
   await app.register(rateLimit, {
     global: false,
     errorResponseBuilder: () => ({ statusCode: 429, code: 'RATE_LIMIT_EXCEEDED', message: 'Muitas tentativas. Aguarde antes de tentar novamente.' }),

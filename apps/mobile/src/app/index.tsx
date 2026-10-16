@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { Link } from 'expo-router'
 import { ActivityIndicator, FlatList, Pressable, StyleSheet, Text, View } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { TrailCard } from '../components/trail-card'
@@ -32,6 +33,7 @@ export default function HomeScreen() {
         ListHeaderComponent={
           <View style={styles.header}>
             <Text style={styles.brand}>Guardiões</Text>
+            <Link href="/entrar" style={{ color: '#176b4a', fontWeight: '700', paddingVertical: 12 }}>Entrar na minha conta →</Link>
             <Text style={styles.headline}>Aprender para transformar.</Text>
             <Text style={styles.description}>Conhecimento e ação para cuidar da nossa comunidade.</Text>
             <Text style={styles.section}>Trilhas de capacitação</Text>
