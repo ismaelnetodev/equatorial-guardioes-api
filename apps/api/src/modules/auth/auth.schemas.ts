@@ -7,6 +7,7 @@ export const credentialsSchema = Type.Object(
     cellphone: Type.Optional(Type.String({ pattern: '^\\+?[1-9]\\d{7,14}$', description: 'Celular no formato internacional, apenas números e + opcional' })),
     password: Type.String({ minLength: 8, maxLength: 128, description: 'Senha do usuário' }),
     neighborhood: Type.String({ minLength: 2, maxLength: 100, description: 'Bairro onde o usuário reside' }),
+    neighborhoodId: Type.Optional(Type.String({ minLength: 1, maxLength: 50, description: 'ID do catálogo. Omitir para Outro bairro.' })),
     inviteCode: Type.Optional(Type.String({ minLength: 3, maxLength: 50, description: 'Código de convite, se houver' })),
     acceptedTerms: Type.Literal(true, { description: 'Confirma o aceite dos Termos de Uso e da Política de Privacidade' }),
   },

@@ -62,3 +62,12 @@ export const ReportUrgency = {
 } as const
 
 export type ReportUrgency = (typeof ReportUrgency)[keyof typeof ReportUrgency]
+
+
+export const ProgramConfigurationKind = {
+  RULE: 'RULE',
+  REWARD: 'REWARD',
+  LIMIT: 'LIMIT'
+} as const
+
+export type ProgramConfigurationKind = (typeof ProgramConfigurationKind)[keyof typeof ProgramConfigurationKind]

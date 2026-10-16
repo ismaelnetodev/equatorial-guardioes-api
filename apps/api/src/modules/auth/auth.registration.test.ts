@@ -13,6 +13,18 @@ let app: FastifyInstance
 beforeEach(async () => { vi.resetAllMocks(); app = await buildApp({ logger: false }) })
 afterEach(async () => { await app.close() })
 
+it('aceita uma senha de exatamente 8 caracteres no cadastro e no login', async () => {
+  db.user.findFirst.mockResolvedValue(null)
+  db.user.create.mockImplementation(async ({ data }) => ({ id: '11111111-1111-4111-8111-111111111111', ...data }))
+  const registration = await app.inject({ method: 'POST', url: '/api/v1/cadastrar', payload: { ...credentials, email: 'teste@example.com', password: '12345678' } })
+  expect(registration.statusCode).toBe(201)
+  const stored = db.user.create.mock.results[0]!
+  db.user.findFirst.mockResolvedValue(await stored.value)
+  const login = await app.inject({ method: 'POST', url: '/api/v1/entrar', payload: { email: 'teste@example.com', password: '12345678' } })
+  expect(login.statusCode).toBe(200)
+  expect(login.json().accessToken).toBeTruthy()
+})
+
 describe('conflitos no cadastro', () => {
   for (const contact of [{ email: 'teste@example.com' }, { cellphone: '+5585999999999' }]) {
     it('retorna 201 e 409 para cadastros concorrentes com o mesmo contato ' + Object.keys(contact)[0], async () => {

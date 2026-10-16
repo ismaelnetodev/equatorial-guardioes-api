@@ -4,7 +4,7 @@ import { createSessionToken } from '../../lib/auth-session.js'
 import type { Credentials, LoginCredentials } from './auth.schemas.js'
 
 function sendAuthError(reply: FastifyReply, error: AuthError) {
-  const statusCode = error.code === 'CONTACT_ALREADY_REGISTERED' ? 409 : error.code === 'CONTACT_REQUIRED' ? 400 : 401
+  const statusCode = error.code === 'CONTACT_ALREADY_REGISTERED' ? 409 : error.code === 'CONTACT_REQUIRED' || error.code === 'INVALID_NEIGHBORHOOD' ? 400 : 401
   return reply.status(statusCode).send({ code: error.code, message: error.message })
 }
 

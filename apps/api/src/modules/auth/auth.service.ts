@@ -5,7 +5,7 @@ import type { Credentials, LoginCredentials } from './auth.schemas.js'
 
 export class AuthError extends Error {
   constructor(
-    public readonly code: 'CONTACT_REQUIRED' | 'CONTACT_ALREADY_REGISTERED' | 'INVALID_CREDENTIALS',
+    public readonly code: 'CONTACT_REQUIRED' | 'CONTACT_ALREADY_REGISTERED' | 'INVALID_CREDENTIALS' | 'INVALID_NEIGHBORHOOD',
     message: string,
   ) {
     super(message)
@@ -73,6 +73,16 @@ export async function registerUser(credentials: Credentials): Promise<PublicUser
   const cellphone = normalizedCellphone(credentials.cellphone)
   validateContact(email, cellphone)
 
+  const neighborhood = credentials.neighborhoodId
+    ? await getPrisma().neighborhood.findUnique({ where: { id: credentials.neighborhoodId } })
+    : null
+  if (credentials.neighborhoodId && (!neighborhood || neighborhood.municipalityCode !== '2111300')) {
+    throw new AuthError('INVALID_NEIGHBORHOOD', 'Selecione um bairro de São Luís ou informe Outro bairro.')
+  }
+  if (credentials.name.trim().length < 2 || credentials.neighborhood.trim().length < 2) {
+    throw new AuthError('INVALID_NEIGHBORHOOD', 'Informe seu nome e bairro com pelo menos 2 caracteres.')
+  }
+
   const existingUser = await getPrisma().user.findFirst({
     where: { OR: [...(email ? [{ email }] : []), ...(cellphone ? [{ cellphone }] : [])] },
     select: { id: true },
@@ -86,7 +96,8 @@ export async function registerUser(credentials: Credentials): Promise<PublicUser
       name: credentials.name.trim(),
       email: email ?? null,
       cellphone: cellphone ?? null,
-      neighborhood: credentials.neighborhood.trim(),
+      neighborhood: neighborhood?.name ?? credentials.neighborhood.trim(),
+      neighborhoodId: neighborhood?.id ?? null,
       inviteCode: credentials.inviteCode?.trim() || null,
       termsAcceptedAt: new Date(),
       passwordHash: await hashPassword(credentials.password),

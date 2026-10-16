@@ -9,6 +9,7 @@
  * 🟢 You can import this file directly.
  */
 export type * from './models/User.js'
+export type * from './models/Neighborhood.js'
 export type * from './models/Trail.js'
 export type * from './models/TrailModule.js'
 export type * from './models/ModuleProgress.js'
@@ -20,4 +21,6 @@ export type * from './models/TrainingStep.js'
 export type * from './models/TrainingCard.js'
 export type * from './models/Report.js'
 export type * from './models/ReportTimelineEvent.js'
+export type * from './models/ProgramConfiguration.js'
+export type * from './models/ProgramConfigurationChange.js'
 export type * from './commonInputTypes.js'

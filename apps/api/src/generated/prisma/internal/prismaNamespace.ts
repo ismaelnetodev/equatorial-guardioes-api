@@ -398,6 +398,7 @@ type FieldRefInputType<Model, FieldType> = Model extends never ? never : FieldRe
 
 export const ModelName = {
   User: 'User',
+  Neighborhood: 'Neighborhood',
   Trail: 'Trail',
   TrailModule: 'TrailModule',
   ModuleProgress: 'ModuleProgress',
@@ -408,7 +409,9 @@ export const ModelName = {
   TrainingStep: 'TrainingStep',
   TrainingCard: 'TrainingCard',
   Report: 'Report',
-  ReportTimelineEvent: 'ReportTimelineEvent'
+  ReportTimelineEvent: 'ReportTimelineEvent',
+  ProgramConfiguration: 'ProgramConfiguration',
+  ProgramConfigurationChange: 'ProgramConfigurationChange'
 } as const
 
 export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -424,7 +427,7 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
     omit: GlobalOmitOptions
   }
   meta: {
-    modelProps: "user" | "trail" | "trailModule" | "moduleProgress" | "quizQuestion" | "quizOption" | "quizAttempt" | "quizAnswer" | "trainingStep" | "trainingCard" | "report" | "reportTimelineEvent"
+    modelProps: "user" | "neighborhood" | "trail" | "trailModule" | "moduleProgress" | "quizQuestion" | "quizOption" | "quizAttempt" | "quizAnswer" | "trainingStep" | "trainingCard" | "report" | "reportTimelineEvent" | "programConfiguration" | "programConfigurationChange"
     txIsolationLevel: TransactionIsolationLevel
   }
   model: {
@@ -499,6 +502,80 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
         count: {
           args: Prisma.UserCountArgs<ExtArgs>
           result: runtime.Types.Utils.Optional<Prisma.UserCountAggregateOutputType> | number
+        }
+      }
+    }
+    Neighborhood: {
+      payload: Prisma.$NeighborhoodPayload<ExtArgs>
+      fields: Prisma.NeighborhoodFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.NeighborhoodFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$NeighborhoodPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.NeighborhoodFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$NeighborhoodPayload>
+        }
+        findFirst: {
+          args: Prisma.NeighborhoodFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$NeighborhoodPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.NeighborhoodFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$NeighborhoodPayload>
+        }
+        findMany: {
+          args: Prisma.NeighborhoodFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$NeighborhoodPayload>[]
+        }
+        create: {
+          args: Prisma.NeighborhoodCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$NeighborhoodPayload>
+        }
+        createMany: {
+          args: Prisma.NeighborhoodCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.NeighborhoodCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$NeighborhoodPayload>[]
+        }
+        delete: {
+          args: Prisma.NeighborhoodDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$NeighborhoodPayload>
+        }
+        update: {
+          args: Prisma.NeighborhoodUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$NeighborhoodPayload>
+        }
+        deleteMany: {
+          args: Prisma.NeighborhoodDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.NeighborhoodUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.NeighborhoodUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$NeighborhoodPayload>[]
+        }
+        upsert: {
+          args: Prisma.NeighborhoodUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$NeighborhoodPayload>
+        }
+        aggregate: {
+          args: Prisma.NeighborhoodAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateNeighborhood>
+        }
+        groupBy: {
+          args: Prisma.NeighborhoodGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.NeighborhoodGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.NeighborhoodCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.NeighborhoodCountAggregateOutputType> | number
         }
       }
     }
@@ -1316,6 +1393,154 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
         }
       }
     }
+    ProgramConfiguration: {
+      payload: Prisma.$ProgramConfigurationPayload<ExtArgs>
+      fields: Prisma.ProgramConfigurationFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.ProgramConfigurationFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ProgramConfigurationPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.ProgramConfigurationFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ProgramConfigurationPayload>
+        }
+        findFirst: {
+          args: Prisma.ProgramConfigurationFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ProgramConfigurationPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.ProgramConfigurationFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ProgramConfigurationPayload>
+        }
+        findMany: {
+          args: Prisma.ProgramConfigurationFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ProgramConfigurationPayload>[]
+        }
+        create: {
+          args: Prisma.ProgramConfigurationCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ProgramConfigurationPayload>
+        }
+        createMany: {
+          args: Prisma.ProgramConfigurationCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.ProgramConfigurationCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ProgramConfigurationPayload>[]
+        }
+        delete: {
+          args: Prisma.ProgramConfigurationDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ProgramConfigurationPayload>
+        }
+        update: {
+          args: Prisma.ProgramConfigurationUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ProgramConfigurationPayload>
+        }
+        deleteMany: {
+          args: Prisma.ProgramConfigurationDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.ProgramConfigurationUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.ProgramConfigurationUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ProgramConfigurationPayload>[]
+        }
+        upsert: {
+          args: Prisma.ProgramConfigurationUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ProgramConfigurationPayload>
+        }
+        aggregate: {
+          args: Prisma.ProgramConfigurationAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateProgramConfiguration>
+        }
+        groupBy: {
+          args: Prisma.ProgramConfigurationGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.ProgramConfigurationGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.ProgramConfigurationCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.ProgramConfigurationCountAggregateOutputType> | number
+        }
+      }
+    }
+    ProgramConfigurationChange: {
+      payload: Prisma.$ProgramConfigurationChangePayload<ExtArgs>
+      fields: Prisma.ProgramConfigurationChangeFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.ProgramConfigurationChangeFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ProgramConfigurationChangePayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.ProgramConfigurationChangeFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ProgramConfigurationChangePayload>
+        }
+        findFirst: {
+          args: Prisma.ProgramConfigurationChangeFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ProgramConfigurationChangePayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.ProgramConfigurationChangeFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ProgramConfigurationChangePayload>
+        }
+        findMany: {
+          args: Prisma.ProgramConfigurationChangeFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ProgramConfigurationChangePayload>[]
+        }
+        create: {
+          args: Prisma.ProgramConfigurationChangeCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ProgramConfigurationChangePayload>
+        }
+        createMany: {
+          args: Prisma.ProgramConfigurationChangeCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.ProgramConfigurationChangeCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ProgramConfigurationChangePayload>[]
+        }
+        delete: {
+          args: Prisma.ProgramConfigurationChangeDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ProgramConfigurationChangePayload>
+        }
+        update: {
+          args: Prisma.ProgramConfigurationChangeUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ProgramConfigurationChangePayload>
+        }
+        deleteMany: {
+          args: Prisma.ProgramConfigurationChangeDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.ProgramConfigurationChangeUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.ProgramConfigurationChangeUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ProgramConfigurationChangePayload>[]
+        }
+        upsert: {
+          args: Prisma.ProgramConfigurationChangeUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ProgramConfigurationChangePayload>
+        }
+        aggregate: {
+          args: Prisma.ProgramConfigurationChangeAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateProgramConfigurationChange>
+        }
+        groupBy: {
+          args: Prisma.ProgramConfigurationChangeGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.ProgramConfigurationChangeGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.ProgramConfigurationChangeCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.ProgramConfigurationChangeCountAggregateOutputType> | number
+        }
+      }
+    }
   }
 } & {
   other: {
@@ -1363,6 +1588,7 @@ export const UserScalarFieldEnum = {
   cellphone: 'cellphone',
   passwordHash: 'passwordHash',
   neighborhood: 'neighborhood',
+  neighborhoodId: 'neighborhoodId',
   inviteCode: 'inviteCode',
   termsAcceptedAt: 'termsAcceptedAt',
   createdAt: 'createdAt',
@@ -1370,6 +1596,18 @@ export const UserScalarFieldEnum = {
 } as const
 
 export type UserScalarFieldEnum = (typeof UserScalarFieldEnum)[keyof typeof UserScalarFieldEnum]
+
+
+export const NeighborhoodScalarFieldEnum = {
+  id: 'id',
+  name: 'name',
+  municipalityCode: 'municipalityCode',
+  municipalityName: 'municipalityName',
+  state: 'state',
+  source: 'source'
+} as const
+
+export type NeighborhoodScalarFieldEnum = (typeof NeighborhoodScalarFieldEnum)[keyof typeof NeighborhoodScalarFieldEnum]
 
 
 export const TrailScalarFieldEnum = {
@@ -1535,12 +1773,55 @@ export const ReportTimelineEventScalarFieldEnum = {
 export type ReportTimelineEventScalarFieldEnum = (typeof ReportTimelineEventScalarFieldEnum)[keyof typeof ReportTimelineEventScalarFieldEnum]
 
 
+export const ProgramConfigurationScalarFieldEnum = {
+  key: 'key',
+  kind: 'kind',
+  name: 'name',
+  description: 'description',
+  value: 'value',
+  unit: 'unit',
+  isActive: 'isActive',
+  updatedAt: 'updatedAt'
+} as const
+
+export type ProgramConfigurationScalarFieldEnum = (typeof ProgramConfigurationScalarFieldEnum)[keyof typeof ProgramConfigurationScalarFieldEnum]
+
+
+export const ProgramConfigurationChangeScalarFieldEnum = {
+  id: 'id',
+  key: 'key',
+  kind: 'kind',
+  before: 'before',
+  after: 'after',
+  actorId: 'actorId',
+  reason: 'reason',
+  createdAt: 'createdAt'
+} as const
+
+export type ProgramConfigurationChangeScalarFieldEnum = (typeof ProgramConfigurationChangeScalarFieldEnum)[keyof typeof ProgramConfigurationChangeScalarFieldEnum]
+
+
 export const SortOrder = {
   asc: 'asc',
   desc: 'desc'
 } as const
 
 export type SortOrder = (typeof SortOrder)[keyof typeof SortOrder]
+
+
+export const NullableJsonNullValueInput = {
+  DbNull: DbNull,
+  JsonNull: JsonNull
+} as const
+
+export type NullableJsonNullValueInput = (typeof NullableJsonNullValueInput)[keyof typeof NullableJsonNullValueInput]
+
+
+export const JsonNullValueInput = {
+  JsonNull: JsonNull
+} as const
+
+export type JsonNullValueInput = (typeof JsonNullValueInput)[keyof typeof JsonNullValueInput]
 
 
 export const QueryMode = {
@@ -1557,6 +1838,15 @@ export const NullsOrder = {
 } as const
 
 export type NullsOrder = (typeof NullsOrder)[keyof typeof NullsOrder]
+
+
+export const JsonNullValueFilter = {
+  DbNull: DbNull,
+  JsonNull: JsonNull,
+  AnyNull: AnyNull
+} as const
+
+export type JsonNullValueFilter = (typeof JsonNullValueFilter)[keyof typeof JsonNullValueFilter]
 
 
 
@@ -1711,6 +2001,34 @@ export type EnumReportUrgencyFieldRefInput<$PrismaModel> = FieldRefInputType<$Pr
 export type ListEnumReportUrgencyFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'ReportUrgency[]'>
     
 
+
+/**
+ * Reference to a field of type 'ProgramConfigurationKind'
+ */
+export type EnumProgramConfigurationKindFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'ProgramConfigurationKind'>
+    
+
+
+/**
+ * Reference to a field of type 'ProgramConfigurationKind[]'
+ */
+export type ListEnumProgramConfigurationKindFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'ProgramConfigurationKind[]'>
+    
+
+
+/**
+ * Reference to a field of type 'Json'
+ */
+export type JsonFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Json'>
+    
+
+
+/**
+ * Reference to a field of type 'QueryMode'
+ */
+export type EnumQueryModeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'QueryMode'>
+    
+
 /**
  * Batch Payload for updateMany & deleteMany & createMany
  */
@@ -1863,6 +2181,7 @@ export interface PrismaClientOptionsWithAdapter extends PrismaClientBaseOptions 
 export type PrismaClientOptions = PrismaClientOptionsWithAccelerateUrl | PrismaClientOptionsWithAdapter
 export type GlobalOmitConfig = {
   user?: Prisma.UserOmit
+  neighborhood?: Prisma.NeighborhoodOmit
   trail?: Prisma.TrailOmit
   trailModule?: Prisma.TrailModuleOmit
   moduleProgress?: Prisma.ModuleProgressOmit
@@ -1874,6 +2193,8 @@ export type GlobalOmitConfig = {
   trainingCard?: Prisma.TrainingCardOmit
   report?: Prisma.ReportOmit
   reportTimelineEvent?: Prisma.ReportTimelineEventOmit
+  programConfiguration?: Prisma.ProgramConfigurationOmit
+  programConfigurationChange?: Prisma.ProgramConfigurationChangeOmit
 }
 
 /* Types for Logging */

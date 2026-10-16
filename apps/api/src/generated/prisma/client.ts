@@ -47,6 +47,11 @@ export { Prisma }
  */
 export type User = Prisma.UserModel
 /**
+ * Model Neighborhood
+ * 
+ */
+export type Neighborhood = Prisma.NeighborhoodModel
+/**
  * Model Trail
  * 
  */
@@ -101,3 +106,13 @@ export type Report = Prisma.ReportModel
  * 
  */
 export type ReportTimelineEvent = Prisma.ReportTimelineEventModel
+/**
+ * Model ProgramConfiguration
+ * 
+ */
+export type ProgramConfiguration = Prisma.ProgramConfigurationModel
+/**
+ * Model ProgramConfigurationChange
+ * 
+ */
+export type ProgramConfigurationChange = Prisma.ProgramConfigurationChangeModel

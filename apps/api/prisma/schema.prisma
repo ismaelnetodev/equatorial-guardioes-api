@@ -57,12 +57,26 @@ model User {
   cellphone        String?          @unique
   passwordHash     String
   neighborhood     String
+  neighborhoodId   String?
+  neighborhoodRecord Neighborhood? @relation(fields: [neighborhoodId], references: [id])
   inviteCode       String?
   termsAcceptedAt  DateTime
   moduleProgresses ModuleProgress[]
   reports          Report[]
   createdAt        DateTime         @default(now())
   updatedAt        DateTime         @updatedAt
+}
+
+model Neighborhood {
+  id               String @id
+  name             String
+  municipalityCode String
+  municipalityName String
+  state            String
+  source           String
+  users            User[]
+
+  @@index([municipalityCode, name])
 }
 
 model Trail {
@@ -242,4 +256,39 @@ model ReportTimelineEvent {
   occurredAt DateTime     @default(now())
 
   @@index([reportId, occurredAt])
+}
+
+enum ProgramConfigurationKind {
+  RULE
+  REWARD
+  LIMIT
+}
+
+// Valores operacionais do programa; não representa saldo ou lançamento de pontos.
+model ProgramConfiguration {
+  key         String @id
+  kind        ProgramConfigurationKind
+  name        String
+  description String @db.Text
+  value       Int?
+  unit        String
+  isActive    Boolean @default(true)
+  updatedAt   DateTime @updatedAt
+
+  @@index([kind, key])
+}
+
+// Snapshots sem FK ao usuário/configuração para preservar a auditoria após exclusões.
+model ProgramConfigurationChange {
+  id        String @id @default(uuid()) @db.Uuid
+  key       String
+  kind      ProgramConfigurationKind
+  before    Json?
+  after     Json
+  actorId   String? @db.Uuid
+  reason    String? @db.Text
+  createdAt DateTime @default(now())
+
+  @@index([kind, key, createdAt])
+  @@index([createdAt, id])
 }
