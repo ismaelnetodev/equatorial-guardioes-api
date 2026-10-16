@@ -25,3 +25,12 @@ export const ContentStatus = {
 } as const
 
 export type ContentStatus = (typeof ContentStatus)[keyof typeof ContentStatus]
+
+
+export const ProgramConfigurationKind = {
+  RULE: 'RULE',
+  REWARD: 'REWARD',
+  LIMIT: 'LIMIT'
+} as const
+
+export type ProgramConfigurationKind = (typeof ProgramConfigurationKind)[keyof typeof ProgramConfigurationKind]

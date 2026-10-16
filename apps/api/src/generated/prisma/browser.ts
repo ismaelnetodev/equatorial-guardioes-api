@@ -23,6 +23,11 @@ export * from './enums.js';
  */
 export type User = Prisma.UserModel
 /**
+ * Model Neighborhood
+ * 
+ */
+export type Neighborhood = Prisma.NeighborhoodModel
+/**
  * Model Trail
  * 
  */
@@ -52,3 +57,13 @@ export type QuizOption = Prisma.QuizOptionModel
  * 
  */
 export type QuizAttempt = Prisma.QuizAttemptModel
+/**
+ * Model ProgramConfiguration
+ * 
+ */
+export type ProgramConfiguration = Prisma.ProgramConfigurationModel
+/**
+ * Model ProgramConfigurationChange
+ * 
+ */
+export type ProgramConfigurationChange = Prisma.ProgramConfigurationChangeModel

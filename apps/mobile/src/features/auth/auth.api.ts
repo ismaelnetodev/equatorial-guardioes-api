@@ -12,3 +12,8 @@ export async function login(credentials: LoginBody): Promise<LoginResponse> {
   await setAccessToken(response.accessToken)
   return response
 }
+
+type Registration = paths['/api/v1/cadastrar']['post']
+export async function register(credentials: Registration['requestBody']['content']['application/json']) {
+  return apiRequest<Registration['responses'][201]['content']['application/json']>('/cadastrar', { method: 'POST', body: JSON.stringify(credentials) })
+}
