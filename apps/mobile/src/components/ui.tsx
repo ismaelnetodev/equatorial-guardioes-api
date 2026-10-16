@@ -3,21 +3,22 @@ import { ActivityIndicator, Platform, Pressable, StyleSheet, Text, TextInput, Vi
 
 export const colors = { background: '#0d123d', field: '#181e53', border: '#303c9b', primary: '#ffbb12', text: '#ffffff', muted: '#b6bad3', danger: '#ed1c2b' }
 
-export function Button({ title, onPress, outline = false, loading = false, icon }: { title: string; onPress: () => void; outline?: boolean; loading?: boolean; icon?: ReactNode }) {
-  return <Pressable accessibilityRole="button" accessibilityState={{ disabled: loading, busy: loading }} disabled={loading} onPress={onPress} style={({ pressed }) => [styles.button, outline ? styles.outline : styles.primary, { opacity: loading || pressed ? 0.7 : 1 }]}>
-    {loading ? <ActivityIndicator color={colors.background} accessibilityLabel="Entrando" /> : <>{icon}<Text style={[styles.buttonText, { color: outline ? colors.text : colors.background }]}>{title}</Text></>}
+export function Button({ title, onPress, outline = false, loading = false, disabled = false, icon }: { title: string; onPress: () => void; outline?: boolean; loading?: boolean; disabled?: boolean; icon?: ReactNode }) {
+  return <Pressable accessibilityRole="button" accessibilityState={{ disabled: loading || disabled, busy: loading }} disabled={loading || disabled} onPress={onPress} style={({ pressed }) => [styles.button, outline ? styles.outline : styles.primary, disabled && { backgroundColor: '#222c70' }, { opacity: loading || pressed ? 0.7 : 1 }]}>
+    {loading ? <ActivityIndicator color={colors.background} accessibilityLabel="Aguarde" /> : <>{icon}<Text style={[styles.buttonText, { color: disabled ? '#858bad' : outline ? colors.text : colors.background }]}>{title}</Text></>}
   </Pressable>
 }
 
-export function InputField({ label, icon, trailing, error, ...props }: TextInputProps & { label: string; icon: 'user' | 'lock'; trailing?: ReactNode; error?: string }) {
+export function InputField({ label, icon, leading, trailing, error, ...props }: TextInputProps & { label: string; icon?: 'user' | 'lock'; leading?: ReactNode; trailing?: ReactNode; error?: string }) {
   const [focused, setFocused] = useState(false)
   return <View style={styles.fieldGroup}>
     <Text style={styles.label}>{label}</Text>
     <View style={[styles.field, { borderColor: error ? '#ff8a20' : focused ? colors.primary : colors.border }]}>
-      <View style={styles.icon} accessible={false}>
+      {leading}
+      {icon ? <View style={styles.icon} accessible={false}>
         <View style={icon === 'user' ? styles.head : styles.shackle} />
         <View style={icon === 'user' ? styles.shoulders : styles.lockBody} />
-      </View>
+      </View> : null}
       <TextInput {...props} accessibilityLabel={label} placeholderTextColor="#858bad" selectionColor={colors.primary} onFocus={() => setFocused(true)} onBlur={() => setFocused(false)} style={[styles.input, Platform.OS === 'web' && styles.webInput]} />
       {trailing}
     </View>

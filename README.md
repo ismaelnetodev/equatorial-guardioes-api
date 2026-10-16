@@ -164,6 +164,8 @@ Com a API em execução, consulte o [Swagger UI](http://localhost:3000/documenta
 
 As operações administrativas e as regras de publicação estão no [guia de administração de conteúdo](docs/content-administration.md).
 
+A administração de pontos, recompensas, limites e auditoria está no [guia de pontos e recompensas](docs/points-rewards-administration.md). As rotas `/api/v1/admin/points-rewards` exigem Bearer token e papel `ADMIN`. A configuração inicial é instalada pela migration `20261016210000_program_configuration`, com `npm run db:deploy`; atualizações posteriores ficam no banco.
+
 Após alterar os contratos da API, regenere os tipos usados pelo aplicativo:
 
 ```sh
@@ -173,6 +175,22 @@ npm run api:types
 O arquivo `apps/mobile/src/services/api.types.ts` é gerado automaticamente. Não o edite manualmente nem importe models do Prisma no aplicativo.
 
 ## Banco de dados
+
+O cadastro está em `/cadastrar`, acessível por “Criar conta” em `/entrar`. Após cadastrar, use “Entrar” para autenticar. O seletor consulta `GET /api/v1/neighborhoods/?municipalityCode=2111300`, busca por nome sem diferenciar acentos e permite informar “Outro bairro”. Nomes livres ficam no usuário, sem contaminar o catálogo de origem oficial. O cadastro envia `neighborhoodId` quando a escolha vem do catálogo; a API valida o município e utiliza o nome armazenado no banco.
+
+As migrations incluem a tabela `Neighborhood`, o vínculo opcional ao usuário e os dados do catálogo. `npm run db:deploy` recria tudo em um banco novo, sem depender de downloads nem de seed manual:
+
+- `20261016200000_neighborhood_catalog`: 173 bairros do ZIP `MA_bairros_CD2022.zip` do IBGE, preservando códigos e municípios. O arquivo **não contém São Luís (2111300)**; São José de Ribamar não é tratado como São Luís.
+- `20261016201000_saoluis_neighborhoods`: 287 nomes únicos da [relação municipal publicada pela Prefeitura em 28/04/2022](https://www.saoluis.ma.gov.br/portal/noticias/0/3/2172/ludovicenses-com-16-anos-ou-mais-poderao-votar-para-eleger-conselho-municipal-do-orcamento-participativo). A [Prefeitura explica a ausência no IBGE](https://www.saoluis.ma.gov.br/sao-luis-em-dados---2010-e-2022/). Os IDs `slz-…` são internos, não códigos IBGE. Nomes repetidos entre microrregiões foram unificados; a grafia da fonte foi preservada. A lista é uma referência administrativa de 2022 e pode não refletir subdivisões atuais.
+
+Os SQLs versionados registram fonte e SHA256. Os scripts abaixo permitem conferir a extração a partir dos arquivos originais, sem executar SQL no banco. Gere arquivos temporários para revisão; para atualizar dados já aplicados, crie uma **nova** migration:
+
+```sh
+node scripts/import-ibge-neighborhoods.mjs caminho/MA_bairros_CD2022.zip ibge-review.sql
+node scripts/import-saoluis-neighborhoods.mjs caminho/pagina-prefeitura.html saoluis-review.sql
+```
+
+O primeiro SQL contém somente os INSERTs; a migration inclui também a criação da tabela. O segundo extrai as 50 microrregionais da página municipal e preserva “Sol e Mar” como nome próprio.
 
 | Comando na raiz | Uso |
 | --- | --- |

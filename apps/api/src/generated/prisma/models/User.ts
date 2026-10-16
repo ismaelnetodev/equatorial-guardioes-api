@@ -32,6 +32,7 @@ export type UserMinAggregateOutputType = {
   cellphone: string | null
   passwordHash: string | null
   neighborhood: string | null
+  neighborhoodId: string | null
   inviteCode: string | null
   termsAcceptedAt: Date | null
   createdAt: Date | null
@@ -46,6 +47,7 @@ export type UserMaxAggregateOutputType = {
   cellphone: string | null
   passwordHash: string | null
   neighborhood: string | null
+  neighborhoodId: string | null
   inviteCode: string | null
   termsAcceptedAt: Date | null
   createdAt: Date | null
@@ -60,6 +62,7 @@ export type UserCountAggregateOutputType = {
   cellphone: number
   passwordHash: number
   neighborhood: number
+  neighborhoodId: number
   inviteCode: number
   termsAcceptedAt: number
   createdAt: number
@@ -76,6 +79,7 @@ export type UserMinAggregateInputType = {
   cellphone?: true
   passwordHash?: true
   neighborhood?: true
+  neighborhoodId?: true
   inviteCode?: true
   termsAcceptedAt?: true
   createdAt?: true
@@ -90,6 +94,7 @@ export type UserMaxAggregateInputType = {
   cellphone?: true
   passwordHash?: true
   neighborhood?: true
+  neighborhoodId?: true
   inviteCode?: true
   termsAcceptedAt?: true
   createdAt?: true
@@ -104,6 +109,7 @@ export type UserCountAggregateInputType = {
   cellphone?: true
   passwordHash?: true
   neighborhood?: true
+  neighborhoodId?: true
   inviteCode?: true
   termsAcceptedAt?: true
   createdAt?: true
@@ -191,6 +197,7 @@ export type UserGroupByOutputType = {
   cellphone: string | null
   passwordHash: string
   neighborhood: string
+  neighborhoodId: string | null
   inviteCode: string | null
   termsAcceptedAt: Date
   createdAt: Date
@@ -226,10 +233,12 @@ export type UserWhereInput = {
   cellphone?: Prisma.StringNullableFilter<"User"> | string | null
   passwordHash?: Prisma.StringFilter<"User"> | string
   neighborhood?: Prisma.StringFilter<"User"> | string
+  neighborhoodId?: Prisma.StringNullableFilter<"User"> | string | null
   inviteCode?: Prisma.StringNullableFilter<"User"> | string | null
   termsAcceptedAt?: Prisma.DateTimeFilter<"User"> | Date | string
   createdAt?: Prisma.DateTimeFilter<"User"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"User"> | Date | string
+  neighborhoodRecord?: Prisma.XOR<Prisma.NeighborhoodNullableScalarRelationFilter, Prisma.NeighborhoodWhereInput> | null
   moduleProgresses?: Prisma.ModuleProgressListRelationFilter
 }
 
@@ -241,10 +250,12 @@ export type UserOrderByWithRelationInput = {
   cellphone?: Prisma.SortOrderInput | Prisma.SortOrder
   passwordHash?: Prisma.SortOrder
   neighborhood?: Prisma.SortOrder
+  neighborhoodId?: Prisma.SortOrderInput | Prisma.SortOrder
   inviteCode?: Prisma.SortOrderInput | Prisma.SortOrder
   termsAcceptedAt?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
+  neighborhoodRecord?: Prisma.NeighborhoodOrderByWithRelationInput
   moduleProgresses?: Prisma.ModuleProgressOrderByRelationAggregateInput
 }
 
@@ -259,10 +270,12 @@ export type UserWhereUniqueInput = Prisma.AtLeast<{
   name?: Prisma.StringFilter<"User"> | string
   passwordHash?: Prisma.StringFilter<"User"> | string
   neighborhood?: Prisma.StringFilter<"User"> | string
+  neighborhoodId?: Prisma.StringNullableFilter<"User"> | string | null
   inviteCode?: Prisma.StringNullableFilter<"User"> | string | null
   termsAcceptedAt?: Prisma.DateTimeFilter<"User"> | Date | string
   createdAt?: Prisma.DateTimeFilter<"User"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"User"> | Date | string
+  neighborhoodRecord?: Prisma.XOR<Prisma.NeighborhoodNullableScalarRelationFilter, Prisma.NeighborhoodWhereInput> | null
   moduleProgresses?: Prisma.ModuleProgressListRelationFilter
 }, "id" | "email" | "cellphone">
 
@@ -274,6 +287,7 @@ export type UserOrderByWithAggregationInput = {
   cellphone?: Prisma.SortOrderInput | Prisma.SortOrder
   passwordHash?: Prisma.SortOrder
   neighborhood?: Prisma.SortOrder
+  neighborhoodId?: Prisma.SortOrderInput | Prisma.SortOrder
   inviteCode?: Prisma.SortOrderInput | Prisma.SortOrder
   termsAcceptedAt?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
@@ -294,6 +308,7 @@ export type UserScalarWhereWithAggregatesInput = {
   cellphone?: Prisma.StringNullableWithAggregatesFilter<"User"> | string | null
   passwordHash?: Prisma.StringWithAggregatesFilter<"User"> | string
   neighborhood?: Prisma.StringWithAggregatesFilter<"User"> | string
+  neighborhoodId?: Prisma.StringNullableWithAggregatesFilter<"User"> | string | null
   inviteCode?: Prisma.StringNullableWithAggregatesFilter<"User"> | string | null
   termsAcceptedAt?: Prisma.DateTimeWithAggregatesFilter<"User"> | Date | string
   createdAt?: Prisma.DateTimeWithAggregatesFilter<"User"> | Date | string
@@ -312,6 +327,7 @@ export type UserCreateInput = {
   termsAcceptedAt: Date | string
   createdAt?: Date | string
   updatedAt?: Date | string
+  neighborhoodRecord?: Prisma.NeighborhoodCreateNestedOneWithoutUsersInput
   moduleProgresses?: Prisma.ModuleProgressCreateNestedManyWithoutUserInput
 }
 
@@ -323,6 +339,7 @@ export type UserUncheckedCreateInput = {
   cellphone?: string | null
   passwordHash: string
   neighborhood: string
+  neighborhoodId?: string | null
   inviteCode?: string | null
   termsAcceptedAt: Date | string
   createdAt?: Date | string
@@ -342,6 +359,7 @@ export type UserUpdateInput = {
   termsAcceptedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  neighborhoodRecord?: Prisma.NeighborhoodUpdateOneWithoutUsersNestedInput
   moduleProgresses?: Prisma.ModuleProgressUpdateManyWithoutUserNestedInput
 }
 
@@ -353,6 +371,7 @@ export type UserUncheckedUpdateInput = {
   cellphone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   passwordHash?: Prisma.StringFieldUpdateOperationsInput | string
   neighborhood?: Prisma.StringFieldUpdateOperationsInput | string
+  neighborhoodId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   inviteCode?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   termsAcceptedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -368,6 +387,7 @@ export type UserCreateManyInput = {
   cellphone?: string | null
   passwordHash: string
   neighborhood: string
+  neighborhoodId?: string | null
   inviteCode?: string | null
   termsAcceptedAt: Date | string
   createdAt?: Date | string
@@ -396,6 +416,7 @@ export type UserUncheckedUpdateManyInput = {
   cellphone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   passwordHash?: Prisma.StringFieldUpdateOperationsInput | string
   neighborhood?: Prisma.StringFieldUpdateOperationsInput | string
+  neighborhoodId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   inviteCode?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   termsAcceptedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -410,6 +431,7 @@ export type UserCountOrderByAggregateInput = {
   cellphone?: Prisma.SortOrder
   passwordHash?: Prisma.SortOrder
   neighborhood?: Prisma.SortOrder
+  neighborhoodId?: Prisma.SortOrder
   inviteCode?: Prisma.SortOrder
   termsAcceptedAt?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
@@ -424,6 +446,7 @@ export type UserMaxOrderByAggregateInput = {
   cellphone?: Prisma.SortOrder
   passwordHash?: Prisma.SortOrder
   neighborhood?: Prisma.SortOrder
+  neighborhoodId?: Prisma.SortOrder
   inviteCode?: Prisma.SortOrder
   termsAcceptedAt?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
@@ -438,10 +461,21 @@ export type UserMinOrderByAggregateInput = {
   cellphone?: Prisma.SortOrder
   passwordHash?: Prisma.SortOrder
   neighborhood?: Prisma.SortOrder
+  neighborhoodId?: Prisma.SortOrder
   inviteCode?: Prisma.SortOrder
   termsAcceptedAt?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
+}
+
+export type UserListRelationFilter = {
+  every?: Prisma.UserWhereInput
+  some?: Prisma.UserWhereInput
+  none?: Prisma.UserWhereInput
+}
+
+export type UserOrderByRelationAggregateInput = {
+  _count?: Prisma.SortOrder
 }
 
 export type UserScalarRelationFilter = {
@@ -465,6 +499,48 @@ export type DateTimeFieldUpdateOperationsInput = {
   set?: Date | string
 }
 
+export type UserCreateNestedManyWithoutNeighborhoodRecordInput = {
+  create?: Prisma.XOR<Prisma.UserCreateWithoutNeighborhoodRecordInput, Prisma.UserUncheckedCreateWithoutNeighborhoodRecordInput> | Prisma.UserCreateWithoutNeighborhoodRecordInput[] | Prisma.UserUncheckedCreateWithoutNeighborhoodRecordInput[]
+  connectOrCreate?: Prisma.UserCreateOrConnectWithoutNeighborhoodRecordInput | Prisma.UserCreateOrConnectWithoutNeighborhoodRecordInput[]
+  createMany?: Prisma.UserCreateManyNeighborhoodRecordInputEnvelope
+  connect?: Prisma.UserWhereUniqueInput | Prisma.UserWhereUniqueInput[]
+}
+
+export type UserUncheckedCreateNestedManyWithoutNeighborhoodRecordInput = {
+  create?: Prisma.XOR<Prisma.UserCreateWithoutNeighborhoodRecordInput, Prisma.UserUncheckedCreateWithoutNeighborhoodRecordInput> | Prisma.UserCreateWithoutNeighborhoodRecordInput[] | Prisma.UserUncheckedCreateWithoutNeighborhoodRecordInput[]
+  connectOrCreate?: Prisma.UserCreateOrConnectWithoutNeighborhoodRecordInput | Prisma.UserCreateOrConnectWithoutNeighborhoodRecordInput[]
+  createMany?: Prisma.UserCreateManyNeighborhoodRecordInputEnvelope
+  connect?: Prisma.UserWhereUniqueInput | Prisma.UserWhereUniqueInput[]
+}
+
+export type UserUpdateManyWithoutNeighborhoodRecordNestedInput = {
+  create?: Prisma.XOR<Prisma.UserCreateWithoutNeighborhoodRecordInput, Prisma.UserUncheckedCreateWithoutNeighborhoodRecordInput> | Prisma.UserCreateWithoutNeighborhoodRecordInput[] | Prisma.UserUncheckedCreateWithoutNeighborhoodRecordInput[]
+  connectOrCreate?: Prisma.UserCreateOrConnectWithoutNeighborhoodRecordInput | Prisma.UserCreateOrConnectWithoutNeighborhoodRecordInput[]
+  upsert?: Prisma.UserUpsertWithWhereUniqueWithoutNeighborhoodRecordInput | Prisma.UserUpsertWithWhereUniqueWithoutNeighborhoodRecordInput[]
+  createMany?: Prisma.UserCreateManyNeighborhoodRecordInputEnvelope
+  set?: Prisma.UserWhereUniqueInput | Prisma.UserWhereUniqueInput[]
+  disconnect?: Prisma.UserWhereUniqueInput | Prisma.UserWhereUniqueInput[]
+  delete?: Prisma.UserWhereUniqueInput | Prisma.UserWhereUniqueInput[]
+  connect?: Prisma.UserWhereUniqueInput | Prisma.UserWhereUniqueInput[]
+  update?: Prisma.UserUpdateWithWhereUniqueWithoutNeighborhoodRecordInput | Prisma.UserUpdateWithWhereUniqueWithoutNeighborhoodRecordInput[]
+  updateMany?: Prisma.UserUpdateManyWithWhereWithoutNeighborhoodRecordInput | Prisma.UserUpdateManyWithWhereWithoutNeighborhoodRecordInput[]
+  deleteMany?: Prisma.UserScalarWhereInput | Prisma.UserScalarWhereInput[]
+}
+
+export type UserUncheckedUpdateManyWithoutNeighborhoodRecordNestedInput = {
+  create?: Prisma.XOR<Prisma.UserCreateWithoutNeighborhoodRecordInput, Prisma.UserUncheckedCreateWithoutNeighborhoodRecordInput> | Prisma.UserCreateWithoutNeighborhoodRecordInput[] | Prisma.UserUncheckedCreateWithoutNeighborhoodRecordInput[]
+  connectOrCreate?: Prisma.UserCreateOrConnectWithoutNeighborhoodRecordInput | Prisma.UserCreateOrConnectWithoutNeighborhoodRecordInput[]
+  upsert?: Prisma.UserUpsertWithWhereUniqueWithoutNeighborhoodRecordInput | Prisma.UserUpsertWithWhereUniqueWithoutNeighborhoodRecordInput[]
+  createMany?: Prisma.UserCreateManyNeighborhoodRecordInputEnvelope
+  set?: Prisma.UserWhereUniqueInput | Prisma.UserWhereUniqueInput[]
+  disconnect?: Prisma.UserWhereUniqueInput | Prisma.UserWhereUniqueInput[]
+  delete?: Prisma.UserWhereUniqueInput | Prisma.UserWhereUniqueInput[]
+  connect?: Prisma.UserWhereUniqueInput | Prisma.UserWhereUniqueInput[]
+  update?: Prisma.UserUpdateWithWhereUniqueWithoutNeighborhoodRecordInput | Prisma.UserUpdateWithWhereUniqueWithoutNeighborhoodRecordInput[]
+  updateMany?: Prisma.UserUpdateManyWithWhereWithoutNeighborhoodRecordInput | Prisma.UserUpdateManyWithWhereWithoutNeighborhoodRecordInput[]
+  deleteMany?: Prisma.UserScalarWhereInput | Prisma.UserScalarWhereInput[]
+}
+
 export type UserCreateNestedOneWithoutModuleProgressesInput = {
   create?: Prisma.XOR<Prisma.UserCreateWithoutModuleProgressesInput, Prisma.UserUncheckedCreateWithoutModuleProgressesInput>
   connectOrCreate?: Prisma.UserCreateOrConnectWithoutModuleProgressesInput
@@ -479,6 +555,80 @@ export type UserUpdateOneRequiredWithoutModuleProgressesNestedInput = {
   update?: Prisma.XOR<Prisma.XOR<Prisma.UserUpdateToOneWithWhereWithoutModuleProgressesInput, Prisma.UserUpdateWithoutModuleProgressesInput>, Prisma.UserUncheckedUpdateWithoutModuleProgressesInput>
 }
 
+export type UserCreateWithoutNeighborhoodRecordInput = {
+  id?: string
+  role?: $Enums.UserRole
+  name: string
+  email?: string | null
+  cellphone?: string | null
+  passwordHash: string
+  neighborhood: string
+  inviteCode?: string | null
+  termsAcceptedAt: Date | string
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  moduleProgresses?: Prisma.ModuleProgressCreateNestedManyWithoutUserInput
+}
+
+export type UserUncheckedCreateWithoutNeighborhoodRecordInput = {
+  id?: string
+  role?: $Enums.UserRole
+  name: string
+  email?: string | null
+  cellphone?: string | null
+  passwordHash: string
+  neighborhood: string
+  inviteCode?: string | null
+  termsAcceptedAt: Date | string
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  moduleProgresses?: Prisma.ModuleProgressUncheckedCreateNestedManyWithoutUserInput
+}
+
+export type UserCreateOrConnectWithoutNeighborhoodRecordInput = {
+  where: Prisma.UserWhereUniqueInput
+  create: Prisma.XOR<Prisma.UserCreateWithoutNeighborhoodRecordInput, Prisma.UserUncheckedCreateWithoutNeighborhoodRecordInput>
+}
+
+export type UserCreateManyNeighborhoodRecordInputEnvelope = {
+  data: Prisma.UserCreateManyNeighborhoodRecordInput | Prisma.UserCreateManyNeighborhoodRecordInput[]
+  skipDuplicates?: boolean
+}
+
+export type UserUpsertWithWhereUniqueWithoutNeighborhoodRecordInput = {
+  where: Prisma.UserWhereUniqueInput
+  update: Prisma.XOR<Prisma.UserUpdateWithoutNeighborhoodRecordInput, Prisma.UserUncheckedUpdateWithoutNeighborhoodRecordInput>
+  create: Prisma.XOR<Prisma.UserCreateWithoutNeighborhoodRecordInput, Prisma.UserUncheckedCreateWithoutNeighborhoodRecordInput>
+}
+
+export type UserUpdateWithWhereUniqueWithoutNeighborhoodRecordInput = {
+  where: Prisma.UserWhereUniqueInput
+  data: Prisma.XOR<Prisma.UserUpdateWithoutNeighborhoodRecordInput, Prisma.UserUncheckedUpdateWithoutNeighborhoodRecordInput>
+}
+
+export type UserUpdateManyWithWhereWithoutNeighborhoodRecordInput = {
+  where: Prisma.UserScalarWhereInput
+  data: Prisma.XOR<Prisma.UserUpdateManyMutationInput, Prisma.UserUncheckedUpdateManyWithoutNeighborhoodRecordInput>
+}
+
+export type UserScalarWhereInput = {
+  AND?: Prisma.UserScalarWhereInput | Prisma.UserScalarWhereInput[]
+  OR?: Prisma.UserScalarWhereInput[]
+  NOT?: Prisma.UserScalarWhereInput | Prisma.UserScalarWhereInput[]
+  id?: Prisma.UuidFilter<"User"> | string
+  role?: Prisma.EnumUserRoleFilter<"User"> | $Enums.UserRole
+  name?: Prisma.StringFilter<"User"> | string
+  email?: Prisma.StringNullableFilter<"User"> | string | null
+  cellphone?: Prisma.StringNullableFilter<"User"> | string | null
+  passwordHash?: Prisma.StringFilter<"User"> | string
+  neighborhood?: Prisma.StringFilter<"User"> | string
+  neighborhoodId?: Prisma.StringNullableFilter<"User"> | string | null
+  inviteCode?: Prisma.StringNullableFilter<"User"> | string | null
+  termsAcceptedAt?: Prisma.DateTimeFilter<"User"> | Date | string
+  createdAt?: Prisma.DateTimeFilter<"User"> | Date | string
+  updatedAt?: Prisma.DateTimeFilter<"User"> | Date | string
+}
+
 export type UserCreateWithoutModuleProgressesInput = {
   id?: string
   role?: $Enums.UserRole
@@ -491,6 +641,7 @@ export type UserCreateWithoutModuleProgressesInput = {
   termsAcceptedAt: Date | string
   createdAt?: Date | string
   updatedAt?: Date | string
+  neighborhoodRecord?: Prisma.NeighborhoodCreateNestedOneWithoutUsersInput
 }
 
 export type UserUncheckedCreateWithoutModuleProgressesInput = {
@@ -501,6 +652,7 @@ export type UserUncheckedCreateWithoutModuleProgressesInput = {
   cellphone?: string | null
   passwordHash: string
   neighborhood: string
+  neighborhoodId?: string | null
   inviteCode?: string | null
   termsAcceptedAt: Date | string
   createdAt?: Date | string
@@ -535,9 +687,69 @@ export type UserUpdateWithoutModuleProgressesInput = {
   termsAcceptedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  neighborhoodRecord?: Prisma.NeighborhoodUpdateOneWithoutUsersNestedInput
 }
 
 export type UserUncheckedUpdateWithoutModuleProgressesInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  role?: Prisma.EnumUserRoleFieldUpdateOperationsInput | $Enums.UserRole
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  email?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  cellphone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  passwordHash?: Prisma.StringFieldUpdateOperationsInput | string
+  neighborhood?: Prisma.StringFieldUpdateOperationsInput | string
+  neighborhoodId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  inviteCode?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  termsAcceptedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+}
+
+export type UserCreateManyNeighborhoodRecordInput = {
+  id?: string
+  role?: $Enums.UserRole
+  name: string
+  email?: string | null
+  cellphone?: string | null
+  passwordHash: string
+  neighborhood: string
+  inviteCode?: string | null
+  termsAcceptedAt: Date | string
+  createdAt?: Date | string
+  updatedAt?: Date | string
+}
+
+export type UserUpdateWithoutNeighborhoodRecordInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  role?: Prisma.EnumUserRoleFieldUpdateOperationsInput | $Enums.UserRole
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  email?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  cellphone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  passwordHash?: Prisma.StringFieldUpdateOperationsInput | string
+  neighborhood?: Prisma.StringFieldUpdateOperationsInput | string
+  inviteCode?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  termsAcceptedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  moduleProgresses?: Prisma.ModuleProgressUpdateManyWithoutUserNestedInput
+}
+
+export type UserUncheckedUpdateWithoutNeighborhoodRecordInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  role?: Prisma.EnumUserRoleFieldUpdateOperationsInput | $Enums.UserRole
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  email?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  cellphone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  passwordHash?: Prisma.StringFieldUpdateOperationsInput | string
+  neighborhood?: Prisma.StringFieldUpdateOperationsInput | string
+  inviteCode?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  termsAcceptedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  moduleProgresses?: Prisma.ModuleProgressUncheckedUpdateManyWithoutUserNestedInput
+}
+
+export type UserUncheckedUpdateManyWithoutNeighborhoodRecordInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   role?: Prisma.EnumUserRoleFieldUpdateOperationsInput | $Enums.UserRole
   name?: Prisma.StringFieldUpdateOperationsInput | string
@@ -590,10 +802,12 @@ export type UserSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = r
   cellphone?: boolean
   passwordHash?: boolean
   neighborhood?: boolean
+  neighborhoodId?: boolean
   inviteCode?: boolean
   termsAcceptedAt?: boolean
   createdAt?: boolean
   updatedAt?: boolean
+  neighborhoodRecord?: boolean | Prisma.User$neighborhoodRecordArgs<ExtArgs>
   moduleProgresses?: boolean | Prisma.User$moduleProgressesArgs<ExtArgs>
   _count?: boolean | Prisma.UserCountOutputTypeDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["user"]>
@@ -606,10 +820,12 @@ export type UserSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Extensio
   cellphone?: boolean
   passwordHash?: boolean
   neighborhood?: boolean
+  neighborhoodId?: boolean
   inviteCode?: boolean
   termsAcceptedAt?: boolean
   createdAt?: boolean
   updatedAt?: boolean
+  neighborhoodRecord?: boolean | Prisma.User$neighborhoodRecordArgs<ExtArgs>
 }, ExtArgs["result"]["user"]>
 
 export type UserSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
@@ -620,10 +836,12 @@ export type UserSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensio
   cellphone?: boolean
   passwordHash?: boolean
   neighborhood?: boolean
+  neighborhoodId?: boolean
   inviteCode?: boolean
   termsAcceptedAt?: boolean
   createdAt?: boolean
   updatedAt?: boolean
+  neighborhoodRecord?: boolean | Prisma.User$neighborhoodRecordArgs<ExtArgs>
 }, ExtArgs["result"]["user"]>
 
 export type UserSelectScalar = {
@@ -634,23 +852,30 @@ export type UserSelectScalar = {
   cellphone?: boolean
   passwordHash?: boolean
   neighborhood?: boolean
+  neighborhoodId?: boolean
   inviteCode?: boolean
   termsAcceptedAt?: boolean
   createdAt?: boolean
   updatedAt?: boolean
 }
 
-export type UserOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "role" | "name" | "email" | "cellphone" | "passwordHash" | "neighborhood" | "inviteCode" | "termsAcceptedAt" | "createdAt" | "updatedAt", ExtArgs["result"]["user"]>
+export type UserOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "role" | "name" | "email" | "cellphone" | "passwordHash" | "neighborhood" | "neighborhoodId" | "inviteCode" | "termsAcceptedAt" | "createdAt" | "updatedAt", ExtArgs["result"]["user"]>
 export type UserInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  neighborhoodRecord?: boolean | Prisma.User$neighborhoodRecordArgs<ExtArgs>
   moduleProgresses?: boolean | Prisma.User$moduleProgressesArgs<ExtArgs>
   _count?: boolean | Prisma.UserCountOutputTypeDefaultArgs<ExtArgs>
 }
-export type UserIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {}
-export type UserIncludeUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {}
+export type UserIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  neighborhoodRecord?: boolean | Prisma.User$neighborhoodRecordArgs<ExtArgs>
+}
+export type UserIncludeUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  neighborhoodRecord?: boolean | Prisma.User$neighborhoodRecordArgs<ExtArgs>
+}
 
 export type $UserPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   name: "User"
   objects: {
+    neighborhoodRecord: Prisma.$NeighborhoodPayload<ExtArgs> | null
     moduleProgresses: Prisma.$ModuleProgressPayload<ExtArgs>[]
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
@@ -661,6 +886,7 @@ export type $UserPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs =
     cellphone: string | null
     passwordHash: string
     neighborhood: string
+    neighborhoodId: string | null
     inviteCode: string | null
     termsAcceptedAt: Date
     createdAt: Date
@@ -1059,6 +1285,7 @@ readonly fields: UserFieldRefs;
  */
 export interface Prisma__UserClient<T, Null = never, ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
   readonly [Symbol.toStringTag]: "PrismaPromise"
+  neighborhoodRecord<T extends Prisma.User$neighborhoodRecordArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$neighborhoodRecordArgs<ExtArgs>>): Prisma.Prisma__NeighborhoodClient<runtime.Types.Result.GetResult<Prisma.$NeighborhoodPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
   moduleProgresses<T extends Prisma.User$moduleProgressesArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$moduleProgressesArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$ModuleProgressPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
@@ -1096,6 +1323,7 @@ export interface UserFieldRefs {
   readonly cellphone: Prisma.FieldRef<"User", 'String'>
   readonly passwordHash: Prisma.FieldRef<"User", 'String'>
   readonly neighborhood: Prisma.FieldRef<"User", 'String'>
+  readonly neighborhoodId: Prisma.FieldRef<"User", 'String'>
   readonly inviteCode: Prisma.FieldRef<"User", 'String'>
   readonly termsAcceptedAt: Prisma.FieldRef<"User", 'DateTime'>
   readonly createdAt: Prisma.FieldRef<"User", 'DateTime'>
@@ -1354,6 +1582,10 @@ export type UserCreateManyAndReturnArgs<ExtArgs extends runtime.Types.Extensions
    */
   data: Prisma.UserCreateManyInput | Prisma.UserCreateManyInput[]
   skipDuplicates?: boolean
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.UserIncludeCreateManyAndReturn<ExtArgs> | null
 }
 
 /**
@@ -1424,6 +1656,10 @@ export type UserUpdateManyAndReturnArgs<ExtArgs extends runtime.Types.Extensions
    * Limit how many Users to update.
    */
   limit?: number
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.UserIncludeUpdateManyAndReturn<ExtArgs> | null
 }
 
 /**
@@ -1490,6 +1726,25 @@ export type UserDeleteManyArgs<ExtArgs extends runtime.Types.Extensions.Internal
    * Limit how many Users to delete.
    */
   limit?: number
+}
+
+/**
+ * User.neighborhoodRecord
+ */
+export type User$neighborhoodRecordArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the Neighborhood
+   */
+  select?: Prisma.NeighborhoodSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the Neighborhood
+   */
+  omit?: Prisma.NeighborhoodOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.NeighborhoodInclude<ExtArgs> | null
+  where?: Prisma.NeighborhoodWhereInput
 }
 
 /**

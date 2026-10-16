@@ -51,7 +51,7 @@ export default function LoginScreen() {
           <Pressable accessibilityRole="button" onPress={() => setNotice('A recuperação de senha ainda não está disponível.')} style={styles.forgot}><Text style={styles.link}>Esqueci minha senha</Text></Pressable>
           {error ? <Text accessibilityRole="alert" style={styles.error}>{error}</Text> : null}
           <Button title="Entrar" loading={loading} onPress={() => { void submit() }} />
-          <Pressable accessibilityRole="button" onPress={() => setNotice('O cadastro pelo aplicativo estará disponível em breve. Para testar, crie sua conta pela API em /api/v1/cadastrar.')} style={styles.signup}><Text style={styles.muted}>Ainda não é Guardião? <Text style={styles.link}>Criar conta</Text></Text></Pressable>
+          <Pressable accessibilityRole="button" onPress={() => router.push('/cadastrar')} style={styles.signup}><Text style={styles.muted}>Ainda não é Guardião? <Text style={styles.link}>Criar conta</Text></Text></Pressable>
           <Text style={styles.or}>ou</Text>
           <Button title="Entrar com Google" outline icon={<Image source={require('../../assets/google.png')} style={{ width: 20, height: 20 }} accessible={false} />} onPress={() => setNotice('O login com Google ainda não está disponível. Use seu celular ou e-mail e senha.')} />
           {notice ? <Text accessibilityLiveRegion="polite" style={styles.notice}>{notice}</Text> : null}

@@ -52,12 +52,15 @@ export const AnyNull = runtime.AnyNull
 
 export const ModelName = {
   User: 'User',
+  Neighborhood: 'Neighborhood',
   Trail: 'Trail',
   TrailModule: 'TrailModule',
   ModuleProgress: 'ModuleProgress',
   QuizQuestion: 'QuizQuestion',
   QuizOption: 'QuizOption',
-  QuizAttempt: 'QuizAttempt'
+  QuizAttempt: 'QuizAttempt',
+  ProgramConfiguration: 'ProgramConfiguration',
+  ProgramConfigurationChange: 'ProgramConfigurationChange'
 } as const
 
 export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -84,6 +87,7 @@ export const UserScalarFieldEnum = {
   cellphone: 'cellphone',
   passwordHash: 'passwordHash',
   neighborhood: 'neighborhood',
+  neighborhoodId: 'neighborhoodId',
   inviteCode: 'inviteCode',
   termsAcceptedAt: 'termsAcceptedAt',
   createdAt: 'createdAt',
@@ -91,6 +95,18 @@ export const UserScalarFieldEnum = {
 } as const
 
 export type UserScalarFieldEnum = (typeof UserScalarFieldEnum)[keyof typeof UserScalarFieldEnum]
+
+
+export const NeighborhoodScalarFieldEnum = {
+  id: 'id',
+  name: 'name',
+  municipalityCode: 'municipalityCode',
+  municipalityName: 'municipalityName',
+  state: 'state',
+  source: 'source'
+} as const
+
+export type NeighborhoodScalarFieldEnum = (typeof NeighborhoodScalarFieldEnum)[keyof typeof NeighborhoodScalarFieldEnum]
 
 
 export const TrailScalarFieldEnum = {
@@ -173,12 +189,55 @@ export const QuizAttemptScalarFieldEnum = {
 export type QuizAttemptScalarFieldEnum = (typeof QuizAttemptScalarFieldEnum)[keyof typeof QuizAttemptScalarFieldEnum]
 
 
+export const ProgramConfigurationScalarFieldEnum = {
+  key: 'key',
+  kind: 'kind',
+  name: 'name',
+  description: 'description',
+  value: 'value',
+  unit: 'unit',
+  isActive: 'isActive',
+  updatedAt: 'updatedAt'
+} as const
+
+export type ProgramConfigurationScalarFieldEnum = (typeof ProgramConfigurationScalarFieldEnum)[keyof typeof ProgramConfigurationScalarFieldEnum]
+
+
+export const ProgramConfigurationChangeScalarFieldEnum = {
+  id: 'id',
+  key: 'key',
+  kind: 'kind',
+  before: 'before',
+  after: 'after',
+  actorId: 'actorId',
+  reason: 'reason',
+  createdAt: 'createdAt'
+} as const
+
+export type ProgramConfigurationChangeScalarFieldEnum = (typeof ProgramConfigurationChangeScalarFieldEnum)[keyof typeof ProgramConfigurationChangeScalarFieldEnum]
+
+
 export const SortOrder = {
   asc: 'asc',
   desc: 'desc'
 } as const
 
 export type SortOrder = (typeof SortOrder)[keyof typeof SortOrder]
+
+
+export const NullableJsonNullValueInput = {
+  DbNull: DbNull,
+  JsonNull: JsonNull
+} as const
+
+export type NullableJsonNullValueInput = (typeof NullableJsonNullValueInput)[keyof typeof NullableJsonNullValueInput]
+
+
+export const JsonNullValueInput = {
+  JsonNull: JsonNull
+} as const
+
+export type JsonNullValueInput = (typeof JsonNullValueInput)[keyof typeof JsonNullValueInput]
 
 
 export const QueryMode = {
@@ -195,4 +254,13 @@ export const NullsOrder = {
 } as const
 
 export type NullsOrder = (typeof NullsOrder)[keyof typeof NullsOrder]
+
+
+export const JsonNullValueFilter = {
+  DbNull: DbNull,
+  JsonNull: JsonNull,
+  AnyNull: AnyNull
+} as const
+
+export type JsonNullValueFilter = (typeof JsonNullValueFilter)[keyof typeof JsonNullValueFilter]
 
