@@ -8,6 +8,11 @@
  *
  * 🟢 You can import this file directly.
  */
+export type * from './models/User.js'
 export type * from './models/Trail.js'
 export type * from './models/TrailModule.js'
+export type * from './models/ModuleProgress.js'
+export type * from './models/QuizQuestion.js'
+export type * from './models/QuizOption.js'
+export type * from './models/QuizAttempt.js'
 export type * from './commonInputTypes.js'

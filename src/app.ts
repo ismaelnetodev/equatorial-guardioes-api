@@ -7,6 +7,7 @@ import swaggerUi from '@fastify/swagger-ui'
 import { type TypeBoxTypeProvider } from '@fastify/type-provider-typebox'
 import { authRoutes } from './modules/auth/auth.routes.js'
 import { trailsRoutes } from './modules/trails/trails.routes.js'
+import { progressRoutes } from './modules/progress/progress.routes.js'
 
 export async function buildApp(options: FastifyServerOptions = {}) {
   const app = Fastify({ logger: true, ...options }).withTypeProvider<TypeBoxTypeProvider>()
@@ -26,6 +27,7 @@ export async function buildApp(options: FastifyServerOptions = {}) {
       tags: [
         { name: 'Auth', description: 'Cadastro e autenticação de usuários' },
         { name: 'Trails', description: 'Trilhas e módulos de capacitação' },
+        { name: 'Progress', description: 'Progresso e desbloqueio de módulos' },
       ],
     },
   })
@@ -33,6 +35,7 @@ export async function buildApp(options: FastifyServerOptions = {}) {
 
   await app.register(authRoutes, { prefix: '/api/v1' })
   await app.register(trailsRoutes, { prefix: '/api/v1/trails' })
+  await app.register(progressRoutes, { prefix: '/api/v1/progress' })
 
   return app
 }

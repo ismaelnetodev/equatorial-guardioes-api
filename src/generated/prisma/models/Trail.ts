@@ -317,14 +317,6 @@ export type TrailScalarRelationFilter = {
   isNot?: Prisma.TrailWhereInput
 }
 
-export type StringFieldUpdateOperationsInput = {
-  set?: string
-}
-
-export type DateTimeFieldUpdateOperationsInput = {
-  set?: Date | string
-}
-
 export type TrailCreateNestedOneWithoutModulesInput = {
   create?: Prisma.XOR<Prisma.TrailCreateWithoutModulesInput, Prisma.TrailUncheckedCreateWithoutModulesInput>
   connectOrCreate?: Prisma.TrailCreateOrConnectWithoutModulesInput

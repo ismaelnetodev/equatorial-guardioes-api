@@ -41,6 +41,7 @@ export const authResponseSchema = Type.Object(
   {
     message: Type.String(),
     user: authenticatedUserSchema,
+    accessToken: Type.Optional(Type.String({ description: 'Token Bearer para rotas autenticadas' })),
   },
   { additionalProperties: false },
 )

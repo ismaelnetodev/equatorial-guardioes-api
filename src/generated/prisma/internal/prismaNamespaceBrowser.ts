@@ -51,8 +51,13 @@ export const AnyNull = runtime.AnyNull
 
 
 export const ModelName = {
+  User: 'User',
   Trail: 'Trail',
-  TrailModule: 'TrailModule'
+  TrailModule: 'TrailModule',
+  ModuleProgress: 'ModuleProgress',
+  QuizQuestion: 'QuizQuestion',
+  QuizOption: 'QuizOption',
+  QuizAttempt: 'QuizAttempt'
 } as const
 
 export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -69,6 +74,22 @@ export const TransactionIsolationLevel = runtime.makeStrictEnum({
 } as const)
 
 export type TransactionIsolationLevel = (typeof TransactionIsolationLevel)[keyof typeof TransactionIsolationLevel]
+
+
+export const UserScalarFieldEnum = {
+  id: 'id',
+  name: 'name',
+  email: 'email',
+  cellphone: 'cellphone',
+  passwordHash: 'passwordHash',
+  neighborhood: 'neighborhood',
+  inviteCode: 'inviteCode',
+  termsAcceptedAt: 'termsAcceptedAt',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type UserScalarFieldEnum = (typeof UserScalarFieldEnum)[keyof typeof UserScalarFieldEnum]
 
 
 export const TrailScalarFieldEnum = {
@@ -91,11 +112,61 @@ export const TrailModuleScalarFieldEnum = {
   order: 'order',
   durationMinutes: 'durationMinutes',
   isActive: 'isActive',
+  requiresQuiz: 'requiresQuiz',
+  quizMinimumScore: 'quizMinimumScore',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
 } as const
 
 export type TrailModuleScalarFieldEnum = (typeof TrailModuleScalarFieldEnum)[keyof typeof TrailModuleScalarFieldEnum]
+
+
+export const ModuleProgressScalarFieldEnum = {
+  id: 'id',
+  userId: 'userId',
+  moduleId: 'moduleId',
+  startedAt: 'startedAt',
+  completedAt: 'completedAt',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type ModuleProgressScalarFieldEnum = (typeof ModuleProgressScalarFieldEnum)[keyof typeof ModuleProgressScalarFieldEnum]
+
+
+export const QuizQuestionScalarFieldEnum = {
+  id: 'id',
+  moduleId: 'moduleId',
+  statement: 'statement',
+  order: 'order',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type QuizQuestionScalarFieldEnum = (typeof QuizQuestionScalarFieldEnum)[keyof typeof QuizQuestionScalarFieldEnum]
+
+
+export const QuizOptionScalarFieldEnum = {
+  id: 'id',
+  questionId: 'questionId',
+  text: 'text',
+  isCorrect: 'isCorrect',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type QuizOptionScalarFieldEnum = (typeof QuizOptionScalarFieldEnum)[keyof typeof QuizOptionScalarFieldEnum]
+
+
+export const QuizAttemptScalarFieldEnum = {
+  id: 'id',
+  progressId: 'progressId',
+  score: 'score',
+  isApproved: 'isApproved',
+  submittedAt: 'submittedAt'
+} as const
+
+export type QuizAttemptScalarFieldEnum = (typeof QuizAttemptScalarFieldEnum)[keyof typeof QuizAttemptScalarFieldEnum]
 
 
 export const SortOrder = {

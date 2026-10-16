@@ -1,5 +1,5 @@
-import { randomBytes, randomUUID, scrypt, timingSafeEqual } from 'node:crypto'
-import { usersMock, type MockUser } from './auth.mock.js'
+import { randomBytes, scrypt, timingSafeEqual } from 'node:crypto'
+import { getPrisma } from '../../lib/prisma.js'
 import type { Credentials, LoginCredentials } from './auth.schemas.js'
 
 export class AuthError extends Error {
@@ -19,7 +19,7 @@ export interface PublicUser {
   neighborhood: string
 }
 
-function toPublicUser(user: MockUser): PublicUser {
+function toPublicUser(user: { id: string; name: string; email: string | null; cellphone: string | null; neighborhood: string }): PublicUser {
   return {
     id: user.id,
     name: user.name,
@@ -72,21 +72,23 @@ export async function registerUser(credentials: Credentials): Promise<PublicUser
   const cellphone = normalizedCellphone(credentials.cellphone)
   validateContact(email, cellphone)
 
-  if (usersMock.some((user) => (email !== undefined && user.email === email) || (cellphone !== undefined && user.cellphone === cellphone))) {
+  const existingUser = await getPrisma().user.findFirst({
+    where: { OR: [...(email ? [{ email }] : []), ...(cellphone ? [{ cellphone }] : [])] },
+    select: { id: true },
+  })
+  if (existingUser) {
     throw new AuthError('CONTACT_ALREADY_REGISTERED', 'Este e-mail ou celular já está cadastrado.')
   }
 
-  const user: MockUser = {
-    id: randomUUID(),
+  const user = await getPrisma().user.create({ data: {
     name: credentials.name.trim(),
-    ...(email ? { email } : {}),
-    ...(cellphone ? { cellphone } : {}),
+    email: email ?? null,
+    cellphone: cellphone ?? null,
     neighborhood: credentials.neighborhood.trim(),
-    ...(credentials.inviteCode?.trim() ? { inviteCode: credentials.inviteCode.trim() } : {}),
-    termsAcceptedAt: new Date().toISOString(),
+    inviteCode: credentials.inviteCode?.trim() || null,
+    termsAcceptedAt: new Date(),
     passwordHash: await hashPassword(credentials.password),
-  }
-  usersMock.push(user)
+  } })
   return toPublicUser(user)
 }
 
@@ -94,7 +96,9 @@ export async function loginUser(credentials: LoginCredentials): Promise<PublicUs
   const email = normalizedEmail(credentials.email)
   const cellphone = normalizedCellphone(credentials.cellphone)
   validateContact(email, cellphone)
-  const user = usersMock.find((candidate) => (email !== undefined && candidate.email === email) || (cellphone !== undefined && candidate.cellphone === cellphone))
+  const user = await getPrisma().user.findFirst({
+    where: { OR: [...(email ? [{ email }] : []), ...(cellphone ? [{ cellphone }] : [])] },
+  })
 
   if (!user || !(await passwordsMatch(credentials.password, user.passwordHash))) {
     throw new AuthError('INVALID_CREDENTIALS', 'E-mail ou senha inválidos.')

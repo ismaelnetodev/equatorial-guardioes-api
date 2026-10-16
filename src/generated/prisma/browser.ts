@@ -18,6 +18,11 @@ export { Prisma }
 export * as $Enums from './enums.js'
 export * from './enums.js';
 /**
+ * Model User
+ * 
+ */
+export type User = Prisma.UserModel
+/**
  * Model Trail
  * 
  */
@@ -27,3 +32,23 @@ export type Trail = Prisma.TrailModel
  * 
  */
 export type TrailModule = Prisma.TrailModuleModel
+/**
+ * Model ModuleProgress
+ * 
+ */
+export type ModuleProgress = Prisma.ModuleProgressModel
+/**
+ * Model QuizQuestion
+ * 
+ */
+export type QuizQuestion = Prisma.QuizQuestionModel
+/**
+ * Model QuizOption
+ * 
+ */
+export type QuizOption = Prisma.QuizOptionModel
+/**
+ * Model QuizAttempt
+ * 
+ */
+export type QuizAttempt = Prisma.QuizAttemptModel

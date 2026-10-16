@@ -31,8 +31,8 @@ export * from "./enums.js"
  * const prisma = new PrismaClient({
  *   adapter: new PrismaPg({ connectionString: process.env.DATABASE_URL })
  * })
- * // Fetch zero or more Trails
- * const trails = await prisma.trail.findMany()
+ * // Fetch zero or more Users
+ * const users = await prisma.user.findMany()
  * ```
  * 
  * Read more in our [docs](https://pris.ly/d/client).
@@ -41,6 +41,11 @@ export const PrismaClient = $Class.getPrismaClientClass()
 export type PrismaClient<LogOpts extends Prisma.LogLevel = never, OmitOpts extends Prisma.PrismaClientOptions["omit"] = Prisma.PrismaClientOptions["omit"], ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = $Class.PrismaClient<LogOpts, OmitOpts, ExtArgs>
 export { Prisma }
 
+/**
+ * Model User
+ * 
+ */
+export type User = Prisma.UserModel
 /**
  * Model Trail
  * 
@@ -51,3 +56,23 @@ export type Trail = Prisma.TrailModel
  * 
  */
 export type TrailModule = Prisma.TrailModuleModel
+/**
+ * Model ModuleProgress
+ * 
+ */
+export type ModuleProgress = Prisma.ModuleProgressModel
+/**
+ * Model QuizQuestion
+ * 
+ */
+export type QuizQuestion = Prisma.QuizQuestionModel
+/**
+ * Model QuizOption
+ * 
+ */
+export type QuizOption = Prisma.QuizOptionModel
+/**
+ * Model QuizAttempt
+ * 
+ */
+export type QuizAttempt = Prisma.QuizAttemptModel

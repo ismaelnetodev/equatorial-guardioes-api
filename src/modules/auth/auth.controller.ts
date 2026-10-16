@@ -1,5 +1,6 @@
 import type { FastifyReply, FastifyRequest } from 'fastify'
 import { AuthError, loginUser, registerUser } from './auth.service.js'
+import { createSessionToken } from '../../lib/auth-session.js'
 import type { Credentials, LoginCredentials } from './auth.schemas.js'
 
 function sendAuthError(reply: FastifyReply, error: AuthError) {
@@ -20,7 +21,7 @@ export async function registerController(request: FastifyRequest<{ Body: Credent
 export async function loginController(request: FastifyRequest<{ Body: LoginCredentials }>, reply: FastifyReply) {
   try {
     const user = await loginUser(request.body)
-    return reply.send({ message: 'Login realizado com sucesso.', user })
+    return reply.send({ message: 'Login realizado com sucesso.', user, accessToken: createSessionToken(user.id) })
   } catch (error) {
     if (error instanceof AuthError) return sendAuthError(reply, error)
     throw error
