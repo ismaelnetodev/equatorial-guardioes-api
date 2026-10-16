@@ -18,6 +18,12 @@ A documentação dos campos e respostas está no Swagger UI em `/documentation`,
 | PATCH | `/trails/:trailId/modules/:moduleId` | Editar título, descrição, conteúdo, duração e exigência de quiz. |
 | PUT | `/trails/:trailId/modules/order` | Ordenar todos os módulos da trilha. |
 | PATCH | `/trails/:trailId/modules/:moduleId/status` | Publicar, arquivar, desativar ou retornar a rascunho. |
+| GET | `/trails/:trailId/modules/:moduleId/quiz` | Listar perguntas, alternativas e explicações do quiz. |
+| PUT | `/trails/:trailId/modules/:moduleId/quiz` | Substituir todas as perguntas do quiz do módulo. |
+| GET | `/trails/:trailId/modules/:moduleId/training` | Listar etapas e cards do treinamento. |
+| PUT | `/trails/:trailId/modules/:moduleId/training` | Substituir todas as etapas do treinamento do módulo. |
+| GET | `/relatos` | Listar relatos (filtro opcional por `status`). |
+| PATCH | `/relatos/:reportId/status` | Atualizar status do relato, timeline e pontos de confirmação. |
 
 ## Publicação
 
@@ -64,4 +70,36 @@ Aplique as migrations com `npm run db:deploy` após configurar o PostgreSQL. A m
 
 Títulos, descrições, conteúdo, estados e posições são armazenados no banco. Alterações nesses dados não exigem modificar o código. Ao editar diretamente pelo banco, mantenha as mesmas regras de publicação da API. O banco protege referências, posições únicas e positivas, duração positiva e a exigência de que módulos publicados estejam ativos.
 
-O perfil `ADMIN` deve ser atribuído por uma operação confiável no banco; o cadastro público não permite conceder essa permissão. A integração do quiz permanece pendente: módulos com `requiresQuiz: true` continuam dependendo dela para concluir.
+O perfil `ADMIN` deve ser atribuído por uma operação confiável no banco; o cadastro público não permite conceder essa permissão.
+
+## Aprendizado (pré-teste, treinamento e pós-teste)
+
+Módulos com `requiresQuiz: true` usam o fluxo autenticado em `/api/v1/modules/:moduleId`:
+
+| Método | Caminho | Uso |
+| --- | --- | --- |
+| GET | `/learn` | Estado das etapas e pontuação parcial. |
+| GET/POST | `/quiz/pre` | Perguntas sem gabarito e envio do pré-teste (só registra acertos). |
+| GET | `/quiz/pre/resultado` | Resultado do pré-teste. |
+| GET | `/training` | Etapas do treinamento. |
+| POST | `/training/complete` | Marca o treinamento como concluído. |
+| GET | `/quiz/pos` | Perguntas do pós-teste sem gabarito. |
+| POST | `/quiz/pos/answers` | Uma resposta por vez, com explicação e `feedbackKind` semântico (`correct` / `incorrect`). |
+| POST | `/quiz/pos/finish` | Fecha a tentativa, compara antes/depois e aplica a nota mínima. |
+| GET | `/quiz/pos/resultado` | Último resultado do pós-teste. |
+
+Cada pergunta do quiz exige exatamente uma alternativa correta e textos de explicação (`explanationTitle`, `explanationBody`) usados só no pós-teste. A nota mínima padrão é 70% (`quizMinimumScore` no módulo). A conclusão em `/api/v1/progress/modules/:moduleId/complete` consulta a aprovação do pós-teste no servidor; o cliente não pode enviar a própria nota.
+
+## Relatos (Meus relatos)
+
+Os relatos do Guardião usam o prefixo autenticado `/api/v1/relatos`. A criação só é liberada após a conclusão do primeiro módulo publicado da primeira trilha publicada (módulo 0).
+
+| Método | Caminho | Uso |
+| --- | --- | --- |
+| POST | `/` | Criar relato (`SENT`, +10 pts, evento na timeline). |
+| GET | `/` | Listar relatos do usuário com resumo (`sentCount`, `resolvedCount`, `totalPoints`). |
+| GET | `/:reportId` | Detalhe com urgência, pontos e linha do tempo. |
+| GET | `/impacto` | Próximo relato `RESOLVED` ainda sem impacto visto (`204` se não houver). |
+| POST | `/:reportId/impacto/visto` | Marca a mensagem de impacto como vista. |
+
+Status semânticos na API: `SENT`, `RECEIVED`, `IN_ANALYSIS`, `RESOLVED`, `NOT_CONFIRMED`, cada um com `label` e `iconHint` (o app aplica ícone/cor). Ao confirmar (`RESOLVED`) pela administração, somam-se +40 pts uma vez e a mensagem de impacto fica disponível.

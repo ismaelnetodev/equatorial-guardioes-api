@@ -27,68 +27,110 @@ export type AggregateQuizAttempt = {
 }
 
 export type QuizAttemptAvgAggregateOutputType = {
+  correctCount: number | null
+  totalCount: number | null
   score: number | null
+  pointsAwarded: number | null
 }
 
 export type QuizAttemptSumAggregateOutputType = {
+  correctCount: number | null
+  totalCount: number | null
   score: number | null
+  pointsAwarded: number | null
 }
 
 export type QuizAttemptMinAggregateOutputType = {
   id: string | null
   progressId: string | null
+  phase: $Enums.QuizPhase | null
+  correctCount: number | null
+  totalCount: number | null
   score: number | null
   isApproved: boolean | null
+  pointsAwarded: number | null
+  finishedAt: Date | null
   submittedAt: Date | null
 }
 
 export type QuizAttemptMaxAggregateOutputType = {
   id: string | null
   progressId: string | null
+  phase: $Enums.QuizPhase | null
+  correctCount: number | null
+  totalCount: number | null
   score: number | null
   isApproved: boolean | null
+  pointsAwarded: number | null
+  finishedAt: Date | null
   submittedAt: Date | null
 }
 
 export type QuizAttemptCountAggregateOutputType = {
   id: number
   progressId: number
+  phase: number
+  correctCount: number
+  totalCount: number
   score: number
   isApproved: number
+  pointsAwarded: number
+  finishedAt: number
   submittedAt: number
   _all: number
 }
 
 
 export type QuizAttemptAvgAggregateInputType = {
+  correctCount?: true
+  totalCount?: true
   score?: true
+  pointsAwarded?: true
 }
 
 export type QuizAttemptSumAggregateInputType = {
+  correctCount?: true
+  totalCount?: true
   score?: true
+  pointsAwarded?: true
 }
 
 export type QuizAttemptMinAggregateInputType = {
   id?: true
   progressId?: true
+  phase?: true
+  correctCount?: true
+  totalCount?: true
   score?: true
   isApproved?: true
+  pointsAwarded?: true
+  finishedAt?: true
   submittedAt?: true
 }
 
 export type QuizAttemptMaxAggregateInputType = {
   id?: true
   progressId?: true
+  phase?: true
+  correctCount?: true
+  totalCount?: true
   score?: true
   isApproved?: true
+  pointsAwarded?: true
+  finishedAt?: true
   submittedAt?: true
 }
 
 export type QuizAttemptCountAggregateInputType = {
   id?: true
   progressId?: true
+  phase?: true
+  correctCount?: true
+  totalCount?: true
   score?: true
   isApproved?: true
+  pointsAwarded?: true
+  finishedAt?: true
   submittedAt?: true
   _all?: true
 }
@@ -182,8 +224,13 @@ export type QuizAttemptGroupByArgs<ExtArgs extends runtime.Types.Extensions.Inte
 export type QuizAttemptGroupByOutputType = {
   id: string
   progressId: string
+  phase: $Enums.QuizPhase
+  correctCount: number
+  totalCount: number
   score: number
   isApproved: boolean
+  pointsAwarded: number
+  finishedAt: Date | null
   submittedAt: Date
   _count: QuizAttemptCountAggregateOutputType | null
   _avg: QuizAttemptAvgAggregateOutputType | null
@@ -213,19 +260,31 @@ export type QuizAttemptWhereInput = {
   NOT?: Prisma.QuizAttemptWhereInput | Prisma.QuizAttemptWhereInput[]
   id?: Prisma.UuidFilter<"QuizAttempt"> | string
   progressId?: Prisma.UuidFilter<"QuizAttempt"> | string
+  phase?: Prisma.EnumQuizPhaseFilter<"QuizAttempt"> | $Enums.QuizPhase
+  correctCount?: Prisma.IntFilter<"QuizAttempt"> | number
+  totalCount?: Prisma.IntFilter<"QuizAttempt"> | number
   score?: Prisma.FloatFilter<"QuizAttempt"> | number
   isApproved?: Prisma.BoolFilter<"QuizAttempt"> | boolean
+  pointsAwarded?: Prisma.IntFilter<"QuizAttempt"> | number
+  finishedAt?: Prisma.DateTimeNullableFilter<"QuizAttempt"> | Date | string | null
   submittedAt?: Prisma.DateTimeFilter<"QuizAttempt"> | Date | string
   progress?: Prisma.XOR<Prisma.ModuleProgressScalarRelationFilter, Prisma.ModuleProgressWhereInput>
+  answers?: Prisma.QuizAnswerListRelationFilter
 }
 
 export type QuizAttemptOrderByWithRelationInput = {
   id?: Prisma.SortOrder
   progressId?: Prisma.SortOrder
+  phase?: Prisma.SortOrder
+  correctCount?: Prisma.SortOrder
+  totalCount?: Prisma.SortOrder
   score?: Prisma.SortOrder
   isApproved?: Prisma.SortOrder
+  pointsAwarded?: Prisma.SortOrder
+  finishedAt?: Prisma.SortOrderInput | Prisma.SortOrder
   submittedAt?: Prisma.SortOrder
   progress?: Prisma.ModuleProgressOrderByWithRelationInput
+  answers?: Prisma.QuizAnswerOrderByRelationAggregateInput
 }
 
 export type QuizAttemptWhereUniqueInput = Prisma.AtLeast<{
@@ -234,17 +293,28 @@ export type QuizAttemptWhereUniqueInput = Prisma.AtLeast<{
   OR?: Prisma.QuizAttemptWhereInput[]
   NOT?: Prisma.QuizAttemptWhereInput | Prisma.QuizAttemptWhereInput[]
   progressId?: Prisma.UuidFilter<"QuizAttempt"> | string
+  phase?: Prisma.EnumQuizPhaseFilter<"QuizAttempt"> | $Enums.QuizPhase
+  correctCount?: Prisma.IntFilter<"QuizAttempt"> | number
+  totalCount?: Prisma.IntFilter<"QuizAttempt"> | number
   score?: Prisma.FloatFilter<"QuizAttempt"> | number
   isApproved?: Prisma.BoolFilter<"QuizAttempt"> | boolean
+  pointsAwarded?: Prisma.IntFilter<"QuizAttempt"> | number
+  finishedAt?: Prisma.DateTimeNullableFilter<"QuizAttempt"> | Date | string | null
   submittedAt?: Prisma.DateTimeFilter<"QuizAttempt"> | Date | string
   progress?: Prisma.XOR<Prisma.ModuleProgressScalarRelationFilter, Prisma.ModuleProgressWhereInput>
+  answers?: Prisma.QuizAnswerListRelationFilter
 }, "id">
 
 export type QuizAttemptOrderByWithAggregationInput = {
   id?: Prisma.SortOrder
   progressId?: Prisma.SortOrder
+  phase?: Prisma.SortOrder
+  correctCount?: Prisma.SortOrder
+  totalCount?: Prisma.SortOrder
   score?: Prisma.SortOrder
   isApproved?: Prisma.SortOrder
+  pointsAwarded?: Prisma.SortOrder
+  finishedAt?: Prisma.SortOrderInput | Prisma.SortOrder
   submittedAt?: Prisma.SortOrder
   _count?: Prisma.QuizAttemptCountOrderByAggregateInput
   _avg?: Prisma.QuizAttemptAvgOrderByAggregateInput
@@ -259,63 +329,107 @@ export type QuizAttemptScalarWhereWithAggregatesInput = {
   NOT?: Prisma.QuizAttemptScalarWhereWithAggregatesInput | Prisma.QuizAttemptScalarWhereWithAggregatesInput[]
   id?: Prisma.UuidWithAggregatesFilter<"QuizAttempt"> | string
   progressId?: Prisma.UuidWithAggregatesFilter<"QuizAttempt"> | string
+  phase?: Prisma.EnumQuizPhaseWithAggregatesFilter<"QuizAttempt"> | $Enums.QuizPhase
+  correctCount?: Prisma.IntWithAggregatesFilter<"QuizAttempt"> | number
+  totalCount?: Prisma.IntWithAggregatesFilter<"QuizAttempt"> | number
   score?: Prisma.FloatWithAggregatesFilter<"QuizAttempt"> | number
   isApproved?: Prisma.BoolWithAggregatesFilter<"QuizAttempt"> | boolean
+  pointsAwarded?: Prisma.IntWithAggregatesFilter<"QuizAttempt"> | number
+  finishedAt?: Prisma.DateTimeNullableWithAggregatesFilter<"QuizAttempt"> | Date | string | null
   submittedAt?: Prisma.DateTimeWithAggregatesFilter<"QuizAttempt"> | Date | string
 }
 
 export type QuizAttemptCreateInput = {
   id?: string
+  phase: $Enums.QuizPhase
+  correctCount: number
+  totalCount: number
   score: number
   isApproved: boolean
+  pointsAwarded?: number
+  finishedAt?: Date | string | null
   submittedAt?: Date | string
   progress: Prisma.ModuleProgressCreateNestedOneWithoutAttemptsInput
+  answers?: Prisma.QuizAnswerCreateNestedManyWithoutAttemptInput
 }
 
 export type QuizAttemptUncheckedCreateInput = {
   id?: string
   progressId: string
+  phase: $Enums.QuizPhase
+  correctCount: number
+  totalCount: number
   score: number
   isApproved: boolean
+  pointsAwarded?: number
+  finishedAt?: Date | string | null
   submittedAt?: Date | string
+  answers?: Prisma.QuizAnswerUncheckedCreateNestedManyWithoutAttemptInput
 }
 
 export type QuizAttemptUpdateInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
+  phase?: Prisma.EnumQuizPhaseFieldUpdateOperationsInput | $Enums.QuizPhase
+  correctCount?: Prisma.IntFieldUpdateOperationsInput | number
+  totalCount?: Prisma.IntFieldUpdateOperationsInput | number
   score?: Prisma.FloatFieldUpdateOperationsInput | number
   isApproved?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  pointsAwarded?: Prisma.IntFieldUpdateOperationsInput | number
+  finishedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   submittedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   progress?: Prisma.ModuleProgressUpdateOneRequiredWithoutAttemptsNestedInput
+  answers?: Prisma.QuizAnswerUpdateManyWithoutAttemptNestedInput
 }
 
 export type QuizAttemptUncheckedUpdateInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   progressId?: Prisma.StringFieldUpdateOperationsInput | string
+  phase?: Prisma.EnumQuizPhaseFieldUpdateOperationsInput | $Enums.QuizPhase
+  correctCount?: Prisma.IntFieldUpdateOperationsInput | number
+  totalCount?: Prisma.IntFieldUpdateOperationsInput | number
   score?: Prisma.FloatFieldUpdateOperationsInput | number
   isApproved?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  pointsAwarded?: Prisma.IntFieldUpdateOperationsInput | number
+  finishedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   submittedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  answers?: Prisma.QuizAnswerUncheckedUpdateManyWithoutAttemptNestedInput
 }
 
 export type QuizAttemptCreateManyInput = {
   id?: string
   progressId: string
+  phase: $Enums.QuizPhase
+  correctCount: number
+  totalCount: number
   score: number
   isApproved: boolean
+  pointsAwarded?: number
+  finishedAt?: Date | string | null
   submittedAt?: Date | string
 }
 
 export type QuizAttemptUpdateManyMutationInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
+  phase?: Prisma.EnumQuizPhaseFieldUpdateOperationsInput | $Enums.QuizPhase
+  correctCount?: Prisma.IntFieldUpdateOperationsInput | number
+  totalCount?: Prisma.IntFieldUpdateOperationsInput | number
   score?: Prisma.FloatFieldUpdateOperationsInput | number
   isApproved?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  pointsAwarded?: Prisma.IntFieldUpdateOperationsInput | number
+  finishedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   submittedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
 
 export type QuizAttemptUncheckedUpdateManyInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   progressId?: Prisma.StringFieldUpdateOperationsInput | string
+  phase?: Prisma.EnumQuizPhaseFieldUpdateOperationsInput | $Enums.QuizPhase
+  correctCount?: Prisma.IntFieldUpdateOperationsInput | number
+  totalCount?: Prisma.IntFieldUpdateOperationsInput | number
   score?: Prisma.FloatFieldUpdateOperationsInput | number
   isApproved?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  pointsAwarded?: Prisma.IntFieldUpdateOperationsInput | number
+  finishedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   submittedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
 
@@ -332,33 +446,59 @@ export type QuizAttemptOrderByRelationAggregateInput = {
 export type QuizAttemptCountOrderByAggregateInput = {
   id?: Prisma.SortOrder
   progressId?: Prisma.SortOrder
+  phase?: Prisma.SortOrder
+  correctCount?: Prisma.SortOrder
+  totalCount?: Prisma.SortOrder
   score?: Prisma.SortOrder
   isApproved?: Prisma.SortOrder
+  pointsAwarded?: Prisma.SortOrder
+  finishedAt?: Prisma.SortOrder
   submittedAt?: Prisma.SortOrder
 }
 
 export type QuizAttemptAvgOrderByAggregateInput = {
+  correctCount?: Prisma.SortOrder
+  totalCount?: Prisma.SortOrder
   score?: Prisma.SortOrder
+  pointsAwarded?: Prisma.SortOrder
 }
 
 export type QuizAttemptMaxOrderByAggregateInput = {
   id?: Prisma.SortOrder
   progressId?: Prisma.SortOrder
+  phase?: Prisma.SortOrder
+  correctCount?: Prisma.SortOrder
+  totalCount?: Prisma.SortOrder
   score?: Prisma.SortOrder
   isApproved?: Prisma.SortOrder
+  pointsAwarded?: Prisma.SortOrder
+  finishedAt?: Prisma.SortOrder
   submittedAt?: Prisma.SortOrder
 }
 
 export type QuizAttemptMinOrderByAggregateInput = {
   id?: Prisma.SortOrder
   progressId?: Prisma.SortOrder
+  phase?: Prisma.SortOrder
+  correctCount?: Prisma.SortOrder
+  totalCount?: Prisma.SortOrder
   score?: Prisma.SortOrder
   isApproved?: Prisma.SortOrder
+  pointsAwarded?: Prisma.SortOrder
+  finishedAt?: Prisma.SortOrder
   submittedAt?: Prisma.SortOrder
 }
 
 export type QuizAttemptSumOrderByAggregateInput = {
+  correctCount?: Prisma.SortOrder
+  totalCount?: Prisma.SortOrder
   score?: Prisma.SortOrder
+  pointsAwarded?: Prisma.SortOrder
+}
+
+export type QuizAttemptScalarRelationFilter = {
+  is?: Prisma.QuizAttemptWhereInput
+  isNot?: Prisma.QuizAttemptWhereInput
 }
 
 export type QuizAttemptCreateNestedManyWithoutProgressInput = {
@@ -403,6 +543,10 @@ export type QuizAttemptUncheckedUpdateManyWithoutProgressNestedInput = {
   deleteMany?: Prisma.QuizAttemptScalarWhereInput | Prisma.QuizAttemptScalarWhereInput[]
 }
 
+export type EnumQuizPhaseFieldUpdateOperationsInput = {
+  set?: $Enums.QuizPhase
+}
+
 export type FloatFieldUpdateOperationsInput = {
   set?: number
   increment?: number
@@ -411,18 +555,44 @@ export type FloatFieldUpdateOperationsInput = {
   divide?: number
 }
 
+export type QuizAttemptCreateNestedOneWithoutAnswersInput = {
+  create?: Prisma.XOR<Prisma.QuizAttemptCreateWithoutAnswersInput, Prisma.QuizAttemptUncheckedCreateWithoutAnswersInput>
+  connectOrCreate?: Prisma.QuizAttemptCreateOrConnectWithoutAnswersInput
+  connect?: Prisma.QuizAttemptWhereUniqueInput
+}
+
+export type QuizAttemptUpdateOneRequiredWithoutAnswersNestedInput = {
+  create?: Prisma.XOR<Prisma.QuizAttemptCreateWithoutAnswersInput, Prisma.QuizAttemptUncheckedCreateWithoutAnswersInput>
+  connectOrCreate?: Prisma.QuizAttemptCreateOrConnectWithoutAnswersInput
+  upsert?: Prisma.QuizAttemptUpsertWithoutAnswersInput
+  connect?: Prisma.QuizAttemptWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.QuizAttemptUpdateToOneWithWhereWithoutAnswersInput, Prisma.QuizAttemptUpdateWithoutAnswersInput>, Prisma.QuizAttemptUncheckedUpdateWithoutAnswersInput>
+}
+
 export type QuizAttemptCreateWithoutProgressInput = {
   id?: string
+  phase: $Enums.QuizPhase
+  correctCount: number
+  totalCount: number
   score: number
   isApproved: boolean
+  pointsAwarded?: number
+  finishedAt?: Date | string | null
   submittedAt?: Date | string
+  answers?: Prisma.QuizAnswerCreateNestedManyWithoutAttemptInput
 }
 
 export type QuizAttemptUncheckedCreateWithoutProgressInput = {
   id?: string
+  phase: $Enums.QuizPhase
+  correctCount: number
+  totalCount: number
   score: number
   isApproved: boolean
+  pointsAwarded?: number
+  finishedAt?: Date | string | null
   submittedAt?: Date | string
+  answers?: Prisma.QuizAnswerUncheckedCreateNestedManyWithoutAttemptInput
 }
 
 export type QuizAttemptCreateOrConnectWithoutProgressInput = {
@@ -457,55 +627,191 @@ export type QuizAttemptScalarWhereInput = {
   NOT?: Prisma.QuizAttemptScalarWhereInput | Prisma.QuizAttemptScalarWhereInput[]
   id?: Prisma.UuidFilter<"QuizAttempt"> | string
   progressId?: Prisma.UuidFilter<"QuizAttempt"> | string
+  phase?: Prisma.EnumQuizPhaseFilter<"QuizAttempt"> | $Enums.QuizPhase
+  correctCount?: Prisma.IntFilter<"QuizAttempt"> | number
+  totalCount?: Prisma.IntFilter<"QuizAttempt"> | number
   score?: Prisma.FloatFilter<"QuizAttempt"> | number
   isApproved?: Prisma.BoolFilter<"QuizAttempt"> | boolean
+  pointsAwarded?: Prisma.IntFilter<"QuizAttempt"> | number
+  finishedAt?: Prisma.DateTimeNullableFilter<"QuizAttempt"> | Date | string | null
   submittedAt?: Prisma.DateTimeFilter<"QuizAttempt"> | Date | string
+}
+
+export type QuizAttemptCreateWithoutAnswersInput = {
+  id?: string
+  phase: $Enums.QuizPhase
+  correctCount: number
+  totalCount: number
+  score: number
+  isApproved: boolean
+  pointsAwarded?: number
+  finishedAt?: Date | string | null
+  submittedAt?: Date | string
+  progress: Prisma.ModuleProgressCreateNestedOneWithoutAttemptsInput
+}
+
+export type QuizAttemptUncheckedCreateWithoutAnswersInput = {
+  id?: string
+  progressId: string
+  phase: $Enums.QuizPhase
+  correctCount: number
+  totalCount: number
+  score: number
+  isApproved: boolean
+  pointsAwarded?: number
+  finishedAt?: Date | string | null
+  submittedAt?: Date | string
+}
+
+export type QuizAttemptCreateOrConnectWithoutAnswersInput = {
+  where: Prisma.QuizAttemptWhereUniqueInput
+  create: Prisma.XOR<Prisma.QuizAttemptCreateWithoutAnswersInput, Prisma.QuizAttemptUncheckedCreateWithoutAnswersInput>
+}
+
+export type QuizAttemptUpsertWithoutAnswersInput = {
+  update: Prisma.XOR<Prisma.QuizAttemptUpdateWithoutAnswersInput, Prisma.QuizAttemptUncheckedUpdateWithoutAnswersInput>
+  create: Prisma.XOR<Prisma.QuizAttemptCreateWithoutAnswersInput, Prisma.QuizAttemptUncheckedCreateWithoutAnswersInput>
+  where?: Prisma.QuizAttemptWhereInput
+}
+
+export type QuizAttemptUpdateToOneWithWhereWithoutAnswersInput = {
+  where?: Prisma.QuizAttemptWhereInput
+  data: Prisma.XOR<Prisma.QuizAttemptUpdateWithoutAnswersInput, Prisma.QuizAttemptUncheckedUpdateWithoutAnswersInput>
+}
+
+export type QuizAttemptUpdateWithoutAnswersInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  phase?: Prisma.EnumQuizPhaseFieldUpdateOperationsInput | $Enums.QuizPhase
+  correctCount?: Prisma.IntFieldUpdateOperationsInput | number
+  totalCount?: Prisma.IntFieldUpdateOperationsInput | number
+  score?: Prisma.FloatFieldUpdateOperationsInput | number
+  isApproved?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  pointsAwarded?: Prisma.IntFieldUpdateOperationsInput | number
+  finishedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  submittedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  progress?: Prisma.ModuleProgressUpdateOneRequiredWithoutAttemptsNestedInput
+}
+
+export type QuizAttemptUncheckedUpdateWithoutAnswersInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  progressId?: Prisma.StringFieldUpdateOperationsInput | string
+  phase?: Prisma.EnumQuizPhaseFieldUpdateOperationsInput | $Enums.QuizPhase
+  correctCount?: Prisma.IntFieldUpdateOperationsInput | number
+  totalCount?: Prisma.IntFieldUpdateOperationsInput | number
+  score?: Prisma.FloatFieldUpdateOperationsInput | number
+  isApproved?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  pointsAwarded?: Prisma.IntFieldUpdateOperationsInput | number
+  finishedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  submittedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
 
 export type QuizAttemptCreateManyProgressInput = {
   id?: string
+  phase: $Enums.QuizPhase
+  correctCount: number
+  totalCount: number
   score: number
   isApproved: boolean
+  pointsAwarded?: number
+  finishedAt?: Date | string | null
   submittedAt?: Date | string
 }
 
 export type QuizAttemptUpdateWithoutProgressInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
+  phase?: Prisma.EnumQuizPhaseFieldUpdateOperationsInput | $Enums.QuizPhase
+  correctCount?: Prisma.IntFieldUpdateOperationsInput | number
+  totalCount?: Prisma.IntFieldUpdateOperationsInput | number
   score?: Prisma.FloatFieldUpdateOperationsInput | number
   isApproved?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  pointsAwarded?: Prisma.IntFieldUpdateOperationsInput | number
+  finishedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   submittedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  answers?: Prisma.QuizAnswerUpdateManyWithoutAttemptNestedInput
 }
 
 export type QuizAttemptUncheckedUpdateWithoutProgressInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
+  phase?: Prisma.EnumQuizPhaseFieldUpdateOperationsInput | $Enums.QuizPhase
+  correctCount?: Prisma.IntFieldUpdateOperationsInput | number
+  totalCount?: Prisma.IntFieldUpdateOperationsInput | number
   score?: Prisma.FloatFieldUpdateOperationsInput | number
   isApproved?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  pointsAwarded?: Prisma.IntFieldUpdateOperationsInput | number
+  finishedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   submittedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  answers?: Prisma.QuizAnswerUncheckedUpdateManyWithoutAttemptNestedInput
 }
 
 export type QuizAttemptUncheckedUpdateManyWithoutProgressInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
+  phase?: Prisma.EnumQuizPhaseFieldUpdateOperationsInput | $Enums.QuizPhase
+  correctCount?: Prisma.IntFieldUpdateOperationsInput | number
+  totalCount?: Prisma.IntFieldUpdateOperationsInput | number
   score?: Prisma.FloatFieldUpdateOperationsInput | number
   isApproved?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  pointsAwarded?: Prisma.IntFieldUpdateOperationsInput | number
+  finishedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   submittedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
 
+
+/**
+ * Count Type QuizAttemptCountOutputType
+ */
+
+export type QuizAttemptCountOutputType = {
+  answers: number
+}
+
+export type QuizAttemptCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  answers?: boolean | QuizAttemptCountOutputTypeCountAnswersArgs
+}
+
+/**
+ * QuizAttemptCountOutputType without action
+ */
+export type QuizAttemptCountOutputTypeDefaultArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the QuizAttemptCountOutputType
+   */
+  select?: Prisma.QuizAttemptCountOutputTypeSelect<ExtArgs> | null
+}
+
+/**
+ * QuizAttemptCountOutputType without action
+ */
+export type QuizAttemptCountOutputTypeCountAnswersArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.QuizAnswerWhereInput
+}
 
 
 export type QuizAttemptSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
   progressId?: boolean
+  phase?: boolean
+  correctCount?: boolean
+  totalCount?: boolean
   score?: boolean
   isApproved?: boolean
+  pointsAwarded?: boolean
+  finishedAt?: boolean
   submittedAt?: boolean
   progress?: boolean | Prisma.ModuleProgressDefaultArgs<ExtArgs>
+  answers?: boolean | Prisma.QuizAttempt$answersArgs<ExtArgs>
+  _count?: boolean | Prisma.QuizAttemptCountOutputTypeDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["quizAttempt"]>
 
 export type QuizAttemptSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
   progressId?: boolean
+  phase?: boolean
+  correctCount?: boolean
+  totalCount?: boolean
   score?: boolean
   isApproved?: boolean
+  pointsAwarded?: boolean
+  finishedAt?: boolean
   submittedAt?: boolean
   progress?: boolean | Prisma.ModuleProgressDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["quizAttempt"]>
@@ -513,8 +819,13 @@ export type QuizAttemptSelectCreateManyAndReturn<ExtArgs extends runtime.Types.E
 export type QuizAttemptSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
   progressId?: boolean
+  phase?: boolean
+  correctCount?: boolean
+  totalCount?: boolean
   score?: boolean
   isApproved?: boolean
+  pointsAwarded?: boolean
+  finishedAt?: boolean
   submittedAt?: boolean
   progress?: boolean | Prisma.ModuleProgressDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["quizAttempt"]>
@@ -522,14 +833,21 @@ export type QuizAttemptSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.E
 export type QuizAttemptSelectScalar = {
   id?: boolean
   progressId?: boolean
+  phase?: boolean
+  correctCount?: boolean
+  totalCount?: boolean
   score?: boolean
   isApproved?: boolean
+  pointsAwarded?: boolean
+  finishedAt?: boolean
   submittedAt?: boolean
 }
 
-export type QuizAttemptOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "progressId" | "score" | "isApproved" | "submittedAt", ExtArgs["result"]["quizAttempt"]>
+export type QuizAttemptOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "progressId" | "phase" | "correctCount" | "totalCount" | "score" | "isApproved" | "pointsAwarded" | "finishedAt" | "submittedAt", ExtArgs["result"]["quizAttempt"]>
 export type QuizAttemptInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   progress?: boolean | Prisma.ModuleProgressDefaultArgs<ExtArgs>
+  answers?: boolean | Prisma.QuizAttempt$answersArgs<ExtArgs>
+  _count?: boolean | Prisma.QuizAttemptCountOutputTypeDefaultArgs<ExtArgs>
 }
 export type QuizAttemptIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   progress?: boolean | Prisma.ModuleProgressDefaultArgs<ExtArgs>
@@ -542,12 +860,18 @@ export type $QuizAttemptPayload<ExtArgs extends runtime.Types.Extensions.Interna
   name: "QuizAttempt"
   objects: {
     progress: Prisma.$ModuleProgressPayload<ExtArgs>
+    answers: Prisma.$QuizAnswerPayload<ExtArgs>[]
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: string
     progressId: string
+    phase: $Enums.QuizPhase
+    correctCount: number
+    totalCount: number
     score: number
     isApproved: boolean
+    pointsAwarded: number
+    finishedAt: Date | null
     submittedAt: Date
   }, ExtArgs["result"]["quizAttempt"]>
   composites: {}
@@ -944,6 +1268,7 @@ readonly fields: QuizAttemptFieldRefs;
 export interface Prisma__QuizAttemptClient<T, Null = never, ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
   readonly [Symbol.toStringTag]: "PrismaPromise"
   progress<T extends Prisma.ModuleProgressDefaultArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.ModuleProgressDefaultArgs<ExtArgs>>): Prisma.Prisma__ModuleProgressClient<runtime.Types.Result.GetResult<Prisma.$ModuleProgressPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
+  answers<T extends Prisma.QuizAttempt$answersArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.QuizAttempt$answersArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$QuizAnswerPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
    * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -975,8 +1300,13 @@ export interface Prisma__QuizAttemptClient<T, Null = never, ExtArgs extends runt
 export interface QuizAttemptFieldRefs {
   readonly id: Prisma.FieldRef<"QuizAttempt", 'String'>
   readonly progressId: Prisma.FieldRef<"QuizAttempt", 'String'>
+  readonly phase: Prisma.FieldRef<"QuizAttempt", 'QuizPhase'>
+  readonly correctCount: Prisma.FieldRef<"QuizAttempt", 'Int'>
+  readonly totalCount: Prisma.FieldRef<"QuizAttempt", 'Int'>
   readonly score: Prisma.FieldRef<"QuizAttempt", 'Float'>
   readonly isApproved: Prisma.FieldRef<"QuizAttempt", 'Boolean'>
+  readonly pointsAwarded: Prisma.FieldRef<"QuizAttempt", 'Int'>
+  readonly finishedAt: Prisma.FieldRef<"QuizAttempt", 'DateTime'>
   readonly submittedAt: Prisma.FieldRef<"QuizAttempt", 'DateTime'>
 }
     
@@ -1376,6 +1706,30 @@ export type QuizAttemptDeleteManyArgs<ExtArgs extends runtime.Types.Extensions.I
    * Limit how many QuizAttempts to delete.
    */
   limit?: number
+}
+
+/**
+ * QuizAttempt.answers
+ */
+export type QuizAttempt$answersArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the QuizAnswer
+   */
+  select?: Prisma.QuizAnswerSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the QuizAnswer
+   */
+  omit?: Prisma.QuizAnswerOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.QuizAnswerInclude<ExtArgs> | null
+  where?: Prisma.QuizAnswerWhereInput
+  orderBy?: Prisma.QuizAnswerOrderByWithRelationInput | Prisma.QuizAnswerOrderByWithRelationInput[]
+  cursor?: Prisma.QuizAnswerWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.QuizAnswerScalarFieldEnum | Prisma.QuizAnswerScalarFieldEnum[]
 }
 
 /**

@@ -240,6 +240,7 @@ export type UserWhereInput = {
   updatedAt?: Prisma.DateTimeFilter<"User"> | Date | string
   neighborhoodRecord?: Prisma.XOR<Prisma.NeighborhoodNullableScalarRelationFilter, Prisma.NeighborhoodWhereInput> | null
   moduleProgresses?: Prisma.ModuleProgressListRelationFilter
+  reports?: Prisma.ReportListRelationFilter
 }
 
 export type UserOrderByWithRelationInput = {
@@ -257,6 +258,7 @@ export type UserOrderByWithRelationInput = {
   updatedAt?: Prisma.SortOrder
   neighborhoodRecord?: Prisma.NeighborhoodOrderByWithRelationInput
   moduleProgresses?: Prisma.ModuleProgressOrderByRelationAggregateInput
+  reports?: Prisma.ReportOrderByRelationAggregateInput
 }
 
 export type UserWhereUniqueInput = Prisma.AtLeast<{
@@ -277,6 +279,7 @@ export type UserWhereUniqueInput = Prisma.AtLeast<{
   updatedAt?: Prisma.DateTimeFilter<"User"> | Date | string
   neighborhoodRecord?: Prisma.XOR<Prisma.NeighborhoodNullableScalarRelationFilter, Prisma.NeighborhoodWhereInput> | null
   moduleProgresses?: Prisma.ModuleProgressListRelationFilter
+  reports?: Prisma.ReportListRelationFilter
 }, "id" | "email" | "cellphone">
 
 export type UserOrderByWithAggregationInput = {
@@ -329,6 +332,7 @@ export type UserCreateInput = {
   updatedAt?: Date | string
   neighborhoodRecord?: Prisma.NeighborhoodCreateNestedOneWithoutUsersInput
   moduleProgresses?: Prisma.ModuleProgressCreateNestedManyWithoutUserInput
+  reports?: Prisma.ReportCreateNestedManyWithoutUserInput
 }
 
 export type UserUncheckedCreateInput = {
@@ -345,6 +349,7 @@ export type UserUncheckedCreateInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   moduleProgresses?: Prisma.ModuleProgressUncheckedCreateNestedManyWithoutUserInput
+  reports?: Prisma.ReportUncheckedCreateNestedManyWithoutUserInput
 }
 
 export type UserUpdateInput = {
@@ -361,6 +366,7 @@ export type UserUpdateInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   neighborhoodRecord?: Prisma.NeighborhoodUpdateOneWithoutUsersNestedInput
   moduleProgresses?: Prisma.ModuleProgressUpdateManyWithoutUserNestedInput
+  reports?: Prisma.ReportUpdateManyWithoutUserNestedInput
 }
 
 export type UserUncheckedUpdateInput = {
@@ -377,6 +383,7 @@ export type UserUncheckedUpdateInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   moduleProgresses?: Prisma.ModuleProgressUncheckedUpdateManyWithoutUserNestedInput
+  reports?: Prisma.ReportUncheckedUpdateManyWithoutUserNestedInput
 }
 
 export type UserCreateManyInput = {
@@ -555,6 +562,20 @@ export type UserUpdateOneRequiredWithoutModuleProgressesNestedInput = {
   update?: Prisma.XOR<Prisma.XOR<Prisma.UserUpdateToOneWithWhereWithoutModuleProgressesInput, Prisma.UserUpdateWithoutModuleProgressesInput>, Prisma.UserUncheckedUpdateWithoutModuleProgressesInput>
 }
 
+export type UserCreateNestedOneWithoutReportsInput = {
+  create?: Prisma.XOR<Prisma.UserCreateWithoutReportsInput, Prisma.UserUncheckedCreateWithoutReportsInput>
+  connectOrCreate?: Prisma.UserCreateOrConnectWithoutReportsInput
+  connect?: Prisma.UserWhereUniqueInput
+}
+
+export type UserUpdateOneRequiredWithoutReportsNestedInput = {
+  create?: Prisma.XOR<Prisma.UserCreateWithoutReportsInput, Prisma.UserUncheckedCreateWithoutReportsInput>
+  connectOrCreate?: Prisma.UserCreateOrConnectWithoutReportsInput
+  upsert?: Prisma.UserUpsertWithoutReportsInput
+  connect?: Prisma.UserWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.UserUpdateToOneWithWhereWithoutReportsInput, Prisma.UserUpdateWithoutReportsInput>, Prisma.UserUncheckedUpdateWithoutReportsInput>
+}
+
 export type UserCreateWithoutNeighborhoodRecordInput = {
   id?: string
   role?: $Enums.UserRole
@@ -568,6 +589,7 @@ export type UserCreateWithoutNeighborhoodRecordInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   moduleProgresses?: Prisma.ModuleProgressCreateNestedManyWithoutUserInput
+  reports?: Prisma.ReportCreateNestedManyWithoutUserInput
 }
 
 export type UserUncheckedCreateWithoutNeighborhoodRecordInput = {
@@ -583,6 +605,7 @@ export type UserUncheckedCreateWithoutNeighborhoodRecordInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   moduleProgresses?: Prisma.ModuleProgressUncheckedCreateNestedManyWithoutUserInput
+  reports?: Prisma.ReportUncheckedCreateNestedManyWithoutUserInput
 }
 
 export type UserCreateOrConnectWithoutNeighborhoodRecordInput = {
@@ -642,6 +665,7 @@ export type UserCreateWithoutModuleProgressesInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   neighborhoodRecord?: Prisma.NeighborhoodCreateNestedOneWithoutUsersInput
+  reports?: Prisma.ReportCreateNestedManyWithoutUserInput
 }
 
 export type UserUncheckedCreateWithoutModuleProgressesInput = {
@@ -657,6 +681,7 @@ export type UserUncheckedCreateWithoutModuleProgressesInput = {
   termsAcceptedAt: Date | string
   createdAt?: Date | string
   updatedAt?: Date | string
+  reports?: Prisma.ReportUncheckedCreateNestedManyWithoutUserInput
 }
 
 export type UserCreateOrConnectWithoutModuleProgressesInput = {
@@ -688,6 +713,7 @@ export type UserUpdateWithoutModuleProgressesInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   neighborhoodRecord?: Prisma.NeighborhoodUpdateOneWithoutUsersNestedInput
+  reports?: Prisma.ReportUpdateManyWithoutUserNestedInput
 }
 
 export type UserUncheckedUpdateWithoutModuleProgressesInput = {
@@ -703,6 +729,87 @@ export type UserUncheckedUpdateWithoutModuleProgressesInput = {
   termsAcceptedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  reports?: Prisma.ReportUncheckedUpdateManyWithoutUserNestedInput
+}
+
+export type UserCreateWithoutReportsInput = {
+  id?: string
+  role?: $Enums.UserRole
+  name: string
+  email?: string | null
+  cellphone?: string | null
+  passwordHash: string
+  neighborhood: string
+  inviteCode?: string | null
+  termsAcceptedAt: Date | string
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  neighborhoodRecord?: Prisma.NeighborhoodCreateNestedOneWithoutUsersInput
+  moduleProgresses?: Prisma.ModuleProgressCreateNestedManyWithoutUserInput
+}
+
+export type UserUncheckedCreateWithoutReportsInput = {
+  id?: string
+  role?: $Enums.UserRole
+  name: string
+  email?: string | null
+  cellphone?: string | null
+  passwordHash: string
+  neighborhood: string
+  neighborhoodId?: string | null
+  inviteCode?: string | null
+  termsAcceptedAt: Date | string
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  moduleProgresses?: Prisma.ModuleProgressUncheckedCreateNestedManyWithoutUserInput
+}
+
+export type UserCreateOrConnectWithoutReportsInput = {
+  where: Prisma.UserWhereUniqueInput
+  create: Prisma.XOR<Prisma.UserCreateWithoutReportsInput, Prisma.UserUncheckedCreateWithoutReportsInput>
+}
+
+export type UserUpsertWithoutReportsInput = {
+  update: Prisma.XOR<Prisma.UserUpdateWithoutReportsInput, Prisma.UserUncheckedUpdateWithoutReportsInput>
+  create: Prisma.XOR<Prisma.UserCreateWithoutReportsInput, Prisma.UserUncheckedCreateWithoutReportsInput>
+  where?: Prisma.UserWhereInput
+}
+
+export type UserUpdateToOneWithWhereWithoutReportsInput = {
+  where?: Prisma.UserWhereInput
+  data: Prisma.XOR<Prisma.UserUpdateWithoutReportsInput, Prisma.UserUncheckedUpdateWithoutReportsInput>
+}
+
+export type UserUpdateWithoutReportsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  role?: Prisma.EnumUserRoleFieldUpdateOperationsInput | $Enums.UserRole
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  email?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  cellphone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  passwordHash?: Prisma.StringFieldUpdateOperationsInput | string
+  neighborhood?: Prisma.StringFieldUpdateOperationsInput | string
+  inviteCode?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  termsAcceptedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  neighborhoodRecord?: Prisma.NeighborhoodUpdateOneWithoutUsersNestedInput
+  moduleProgresses?: Prisma.ModuleProgressUpdateManyWithoutUserNestedInput
+}
+
+export type UserUncheckedUpdateWithoutReportsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  role?: Prisma.EnumUserRoleFieldUpdateOperationsInput | $Enums.UserRole
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  email?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  cellphone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  passwordHash?: Prisma.StringFieldUpdateOperationsInput | string
+  neighborhood?: Prisma.StringFieldUpdateOperationsInput | string
+  neighborhoodId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  inviteCode?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  termsAcceptedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  moduleProgresses?: Prisma.ModuleProgressUncheckedUpdateManyWithoutUserNestedInput
 }
 
 export type UserCreateManyNeighborhoodRecordInput = {
@@ -732,6 +839,7 @@ export type UserUpdateWithoutNeighborhoodRecordInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   moduleProgresses?: Prisma.ModuleProgressUpdateManyWithoutUserNestedInput
+  reports?: Prisma.ReportUpdateManyWithoutUserNestedInput
 }
 
 export type UserUncheckedUpdateWithoutNeighborhoodRecordInput = {
@@ -747,6 +855,7 @@ export type UserUncheckedUpdateWithoutNeighborhoodRecordInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   moduleProgresses?: Prisma.ModuleProgressUncheckedUpdateManyWithoutUserNestedInput
+  reports?: Prisma.ReportUncheckedUpdateManyWithoutUserNestedInput
 }
 
 export type UserUncheckedUpdateManyWithoutNeighborhoodRecordInput = {
@@ -770,10 +879,12 @@ export type UserUncheckedUpdateManyWithoutNeighborhoodRecordInput = {
 
 export type UserCountOutputType = {
   moduleProgresses: number
+  reports: number
 }
 
 export type UserCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   moduleProgresses?: boolean | UserCountOutputTypeCountModuleProgressesArgs
+  reports?: boolean | UserCountOutputTypeCountReportsArgs
 }
 
 /**
@@ -793,6 +904,13 @@ export type UserCountOutputTypeCountModuleProgressesArgs<ExtArgs extends runtime
   where?: Prisma.ModuleProgressWhereInput
 }
 
+/**
+ * UserCountOutputType without action
+ */
+export type UserCountOutputTypeCountReportsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.ReportWhereInput
+}
+
 
 export type UserSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
@@ -809,6 +927,7 @@ export type UserSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = r
   updatedAt?: boolean
   neighborhoodRecord?: boolean | Prisma.User$neighborhoodRecordArgs<ExtArgs>
   moduleProgresses?: boolean | Prisma.User$moduleProgressesArgs<ExtArgs>
+  reports?: boolean | Prisma.User$reportsArgs<ExtArgs>
   _count?: boolean | Prisma.UserCountOutputTypeDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["user"]>
 
@@ -863,6 +982,7 @@ export type UserOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = run
 export type UserInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   neighborhoodRecord?: boolean | Prisma.User$neighborhoodRecordArgs<ExtArgs>
   moduleProgresses?: boolean | Prisma.User$moduleProgressesArgs<ExtArgs>
+  reports?: boolean | Prisma.User$reportsArgs<ExtArgs>
   _count?: boolean | Prisma.UserCountOutputTypeDefaultArgs<ExtArgs>
 }
 export type UserIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
@@ -877,6 +997,7 @@ export type $UserPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs =
   objects: {
     neighborhoodRecord: Prisma.$NeighborhoodPayload<ExtArgs> | null
     moduleProgresses: Prisma.$ModuleProgressPayload<ExtArgs>[]
+    reports: Prisma.$ReportPayload<ExtArgs>[]
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: string
@@ -1287,6 +1408,7 @@ export interface Prisma__UserClient<T, Null = never, ExtArgs extends runtime.Typ
   readonly [Symbol.toStringTag]: "PrismaPromise"
   neighborhoodRecord<T extends Prisma.User$neighborhoodRecordArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$neighborhoodRecordArgs<ExtArgs>>): Prisma.Prisma__NeighborhoodClient<runtime.Types.Result.GetResult<Prisma.$NeighborhoodPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
   moduleProgresses<T extends Prisma.User$moduleProgressesArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$moduleProgressesArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$ModuleProgressPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  reports<T extends Prisma.User$reportsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$reportsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$ReportPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
    * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -1769,6 +1891,30 @@ export type User$moduleProgressesArgs<ExtArgs extends runtime.Types.Extensions.I
   take?: number
   skip?: number
   distinct?: Prisma.ModuleProgressScalarFieldEnum | Prisma.ModuleProgressScalarFieldEnum[]
+}
+
+/**
+ * User.reports
+ */
+export type User$reportsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the Report
+   */
+  select?: Prisma.ReportSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the Report
+   */
+  omit?: Prisma.ReportOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.ReportInclude<ExtArgs> | null
+  where?: Prisma.ReportWhereInput
+  orderBy?: Prisma.ReportOrderByWithRelationInput | Prisma.ReportOrderByWithRelationInput[]
+  cursor?: Prisma.ReportWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.ReportScalarFieldEnum | Prisma.ReportScalarFieldEnum[]
 }
 
 /**

@@ -27,6 +27,43 @@ export const ContentStatus = {
 export type ContentStatus = (typeof ContentStatus)[keyof typeof ContentStatus]
 
 
+export const QuizPhase = {
+  PRE: 'PRE',
+  POST: 'POST'
+} as const
+
+export type QuizPhase = (typeof QuizPhase)[keyof typeof QuizPhase]
+
+
+export const TrainingStepKind = {
+  RECOGNIZE: 'RECOGNIZE',
+  DO_NOT: 'DO_NOT',
+  INFO: 'INFO'
+} as const
+
+export type TrainingStepKind = (typeof TrainingStepKind)[keyof typeof TrainingStepKind]
+
+
+export const ReportStatus = {
+  SENT: 'SENT',
+  RECEIVED: 'RECEIVED',
+  IN_ANALYSIS: 'IN_ANALYSIS',
+  RESOLVED: 'RESOLVED',
+  NOT_CONFIRMED: 'NOT_CONFIRMED'
+} as const
+
+export type ReportStatus = (typeof ReportStatus)[keyof typeof ReportStatus]
+
+
+export const ReportUrgency = {
+  LOW: 'LOW',
+  MEDIUM: 'MEDIUM',
+  HIGH: 'HIGH'
+} as const
+
+export type ReportUrgency = (typeof ReportUrgency)[keyof typeof ReportUrgency]
+
+
 export const ProgramConfigurationKind = {
   RULE: 'RULE',
   REWARD: 'REWARD',

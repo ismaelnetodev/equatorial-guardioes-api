@@ -58,6 +58,31 @@ export type QuizOption = Prisma.QuizOptionModel
  */
 export type QuizAttempt = Prisma.QuizAttemptModel
 /**
+ * Model QuizAnswer
+ * 
+ */
+export type QuizAnswer = Prisma.QuizAnswerModel
+/**
+ * Model TrainingStep
+ * 
+ */
+export type TrainingStep = Prisma.TrainingStepModel
+/**
+ * Model TrainingCard
+ * 
+ */
+export type TrainingCard = Prisma.TrainingCardModel
+/**
+ * Model Report
+ * 
+ */
+export type Report = Prisma.ReportModel
+/**
+ * Model ReportTimelineEvent
+ * 
+ */
+export type ReportTimelineEvent = Prisma.ReportTimelineEventModel
+/**
  * Model ProgramConfiguration
  * 
  */

@@ -10,6 +10,8 @@ import { rewardsAdminRoutes } from './modules/rewards-admin/rewards-admin.routes
 import { authRoutes } from './modules/auth/auth.routes.js'
 import { trailsRoutes } from './modules/trails/trails.routes.js'
 import { progressRoutes } from './modules/progress/progress.routes.js'
+import { quizRoutes } from './modules/quiz/quiz.routes.js'
+import { reportsRoutes } from './modules/reports/reports.routes.js'
 import { buildCorsOptions } from './lib/cors.js'
 import { neighborhoodsRoutes } from './modules/neighborhoods/neighborhoods.routes.js'
 
@@ -38,6 +40,8 @@ export async function buildApp(options: FastifyServerOptions = {}) {
         { name: 'Neighborhoods', description: 'Catálogo de bairros e sua fonte' },
         { name: 'Trails', description: 'Trilhas e módulos de capacitação' },
         { name: 'Progress', description: 'Progresso e desbloqueio de módulos' },
+        { name: 'Quiz', description: 'Pré-teste, treinamento e pós-teste dos módulos' },
+        { name: 'Reports', description: 'Relatos do Guardião e acompanhamento de status' },
       ],
     },
   })
@@ -49,6 +53,8 @@ export async function buildApp(options: FastifyServerOptions = {}) {
   await app.register(neighborhoodsRoutes, { prefix: '/api/v1/neighborhoods' })
   await app.register(trailsRoutes, { prefix: '/api/v1/trails' })
   await app.register(progressRoutes, { prefix: '/api/v1/progress' })
+  await app.register(quizRoutes, { prefix: '/api/v1/modules' })
+  await app.register(reportsRoutes, { prefix: '/api/v1/relatos' })
 
   return app
 }

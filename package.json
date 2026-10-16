@@ -35,5 +35,10 @@
     "openapi-typescript": "^7.13.0",
     "sharp": "^0.35.5",
     "tsx": "^4.23.15"
+  },
+  "allowScripts": {
+    "@prisma/engines@7.10.1": true,
+    "prisma@7.10.1": true,
+    "esbuild@0.28.2": true
   }
 }

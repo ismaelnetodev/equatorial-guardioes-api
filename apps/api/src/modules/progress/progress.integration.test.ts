@@ -63,22 +63,24 @@ for (const [method, url] of [
   })
 }
 
-describe('base de integração do quiz', () => {
-  it('não oferece mais o endpoint de respostas', async () => {
+describe('integração do quiz', () => {
+  it('não expõe mais o endpoint legado de respostas no progresso', async () => {
     const r = await app.inject({ method: 'POST', url: '/api/v1/progress/modules/' + moduleId + '/quiz-attempts', headers: headers(), payload: { answers: [] } })
     expect(r.statusCode).toBe(404)
   })
-  it('impede a conclusão enquanto a integração não está implementada', async () => {
+  it('impede a conclusão sem pós-teste aprovado no servidor', async () => {
     requiresQuiz = true
+    vi.spyOn(quiz, 'getQuizCompletionStatus').mockResolvedValue('not_approved')
     const r = await app.inject({ method: 'POST', url: completeUrl, headers: headers() })
-    expect(r.statusCode).toBe(501)
-    expect(r.json()).toMatchObject({ code: 'QUIZ_NOT_IMPLEMENTED' })
+    expect(r.statusCode).toBe(409)
+    expect(r.json()).toMatchObject({ code: 'QUIZ_REQUIRED' })
     expect(db.moduleProgress.update).not.toHaveBeenCalled()
   })
-  it('não permite que aprovação enviada pelo cliente substitua a integração', async () => {
+  it('não permite que aprovação enviada pelo cliente substitua a consulta no servidor', async () => {
     requiresQuiz = true
+    vi.spyOn(quiz, 'getQuizCompletionStatus').mockResolvedValue('not_approved')
     const r = await app.inject({ method: 'POST', url: completeUrl, headers: headers(), payload: { approved: true, score: 100 } })
-    expect(r.statusCode).toBe(501)
+    expect(r.statusCode).toBe(409)
     expect(db.moduleProgress.update).not.toHaveBeenCalled()
   })
   it('conclui sem consultar o quiz quando o módulo não exige aprovação', async () => {
@@ -86,14 +88,14 @@ describe('base de integração do quiz', () => {
     expect((await app.inject({ method: 'POST', url: completeUrl, headers: headers() })).statusCode).toBe(200)
     expect(integration).not.toHaveBeenCalled()
   })
-  it('permite a futura integração aprovar o usuário e módulo corretos', async () => {
+  it('conclui quando o pós-teste está aprovado para o usuário e módulo', async () => {
     requiresQuiz = true
     const integration = vi.spyOn(quiz, 'getQuizCompletionStatus').mockResolvedValue('approved')
     expect((await app.inject({ method: 'POST', url: completeUrl, headers: headers() })).statusCode).toBe(200)
     expect(integration).toHaveBeenCalledWith({ userId, moduleId })
     expect(db.moduleProgress.update).toHaveBeenCalledTimes(1)
   })
-  it('mantém o módulo em andamento quando a integração informa reprovação', async () => {
+  it('mantém o módulo em andamento quando o pós-teste não está aprovado', async () => {
     requiresQuiz = true
     vi.spyOn(quiz, 'getQuizCompletionStatus').mockResolvedValue('not_approved')
     const r = await app.inject({ method: 'POST', url: completeUrl, headers: headers() })
