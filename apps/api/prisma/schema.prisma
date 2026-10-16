@@ -1,0 +1,124 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Get a free hosted Postgres database in seconds: `npx create-db`
+
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum UserRole {
+  USER
+  ADMIN
+}
+
+enum ContentStatus {
+  DRAFT
+  PUBLISHED
+  ARCHIVED
+  DISABLED
+}
+
+model User {
+  id               String           @id @default(uuid()) @db.Uuid
+  role             UserRole         @default(USER)
+  name             String
+  email            String?          @unique
+  cellphone        String?          @unique
+  passwordHash     String
+  neighborhood     String
+  inviteCode       String?
+  termsAcceptedAt  DateTime
+  moduleProgresses ModuleProgress[]
+  createdAt        DateTime         @default(now())
+  updatedAt        DateTime         @updatedAt
+}
+
+model Trail {
+  publicationStatus ContentStatus @default(DRAFT)
+  order       Int           @unique
+  id          String        @id @default(uuid()) @db.Uuid
+  title       String
+  description String
+  modules     TrailModule[]
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+}
+
+model TrailModule {
+  publicationStatus ContentStatus @default(DRAFT)
+  id              String   @id @default(uuid()) @db.Uuid
+  trailId         String   @db.Uuid
+  trail           Trail    @relation(fields: [trailId], references: [id], onDelete: Cascade)
+  title           String
+  description     String
+  content         String   @db.Text
+  order           Int
+  durationMinutes Int?
+  isActive        Boolean  @default(true)
+  requiresQuiz    Boolean  @default(false)
+  quizMinimumScore Int?
+  progressRecords ModuleProgress[]
+  quizQuestions   QuizQuestion[]
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@unique([trailId, order])
+  @@index([trailId, order])
+}
+
+model ModuleProgress {
+  id          String   @id @default(uuid()) @db.Uuid
+  userId      String   @db.Uuid
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  moduleId    String   @db.Uuid
+  module      TrailModule @relation(fields: [moduleId], references: [id], onDelete: Cascade)
+  startedAt   DateTime @default(now())
+  completedAt DateTime?
+  attempts    QuizAttempt[]
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@unique([userId, moduleId])
+  @@index([userId])
+  @@index([moduleId])
+}
+
+model QuizQuestion {
+  id        String   @id @default(uuid()) @db.Uuid
+  moduleId  String   @db.Uuid
+  module    TrailModule @relation(fields: [moduleId], references: [id], onDelete: Cascade)
+  statement String   @db.Text
+  order     Int
+  options   QuizOption[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([moduleId, order])
+}
+
+model QuizOption {
+  id         String   @id @default(uuid()) @db.Uuid
+  questionId String   @db.Uuid
+  question   QuizQuestion @relation(fields: [questionId], references: [id], onDelete: Cascade)
+  text       String
+  isCorrect  Boolean  @default(false)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+}
+
+model QuizAttempt {
+  id         String   @id @default(uuid()) @db.Uuid
+  progressId String   @db.Uuid
+  progress   ModuleProgress @relation(fields: [progressId], references: [id], onDelete: Cascade)
+  score      Float
+  isApproved Boolean
+  submittedAt DateTime @default(now())
+
+  @@index([progressId, submittedAt])
+}

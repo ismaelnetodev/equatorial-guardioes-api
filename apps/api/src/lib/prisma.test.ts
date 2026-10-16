@@ -1,0 +1,48 @@
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
+const constructors = vi.hoisted(() => ({ client: vi.fn(class Client {}), adapter: vi.fn(class Adapter {}) }))
+vi.mock('../generated/prisma/client.js', () => ({ PrismaClient: constructors.client }))
+vi.mock('@prisma/adapter-pg', () => ({ PrismaPg: constructors.adapter }))
+beforeEach(() => {
+  vi.resetModules()
+  vi.clearAllMocks()
+  vi.stubGlobal('prisma', undefined)
+  vi.stubEnv('DATABASE_URL', 'postgresql://test:test@localhost:5432/test')
+})
+afterEach(() => { vi.unstubAllGlobals(); vi.unstubAllEnvs() })
+
+describe('ciclo de vida do cliente Prisma', () => {
+  it('reutiliza um único cliente e adaptador em produção', async () => {
+    vi.stubEnv('NODE_ENV', 'production')
+    const { getPrisma } = await import('./prisma.js')
+    const clients = await Promise.all(Array.from({ length: 20 }, async () => getPrisma()))
+    expect(clients.every(client => client === clients[0])).toBe(true)
+    expect(constructors.client).toHaveBeenCalledTimes(1)
+    expect(constructors.adapter).toHaveBeenCalledTimes(1)
+    expect(globalThis).not.toHaveProperty('prisma', clients[0])
+  })
+  it('preserva o cliente global entre recargas em desenvolvimento', async () => {
+    vi.stubEnv('NODE_ENV', 'development')
+    const firstModule = await import('./prisma.js')
+    const client = firstModule.getPrisma()
+    vi.resetModules()
+    const secondModule = await import('./prisma.js')
+    expect(secondModule.getPrisma()).toBe(client)
+    expect(constructors.client).toHaveBeenCalledTimes(1)
+    expect(constructors.adapter).toHaveBeenCalledTimes(1)
+  })
+  it('não cria o cliente antes de uma operação precisar dele', async () => {
+    await import('./prisma.js')
+    expect(constructors.client).not.toHaveBeenCalled()
+    expect(constructors.adapter).not.toHaveBeenCalled()
+  })
+  it('não guarda uma inicialização malsucedida no cache', async () => {
+    vi.stubEnv('NODE_ENV', 'production')
+    vi.stubEnv('DATABASE_URL', '')
+    const { getPrisma } = await import('./prisma.js')
+    expect(() => getPrisma()).toThrow('DATABASE_URL must be configured')
+    expect(constructors.client).not.toHaveBeenCalled()
+    vi.stubEnv('DATABASE_URL', 'postgresql://test:test@localhost:5432/test')
+    expect(getPrisma()).toBe(getPrisma())
+    expect(constructors.client).toHaveBeenCalledTimes(1)
+  })
+})

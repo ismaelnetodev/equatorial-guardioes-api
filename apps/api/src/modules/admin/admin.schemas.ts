@@ -1,0 +1,31 @@
+import { type Static, Type } from 'typebox'
+
+const uuid = Type.String({ format: 'uuid' })
+const title = Type.String({ minLength: 1, maxLength: 200, pattern: "\\S" })
+const description = Type.String({ minLength: 1, maxLength: 5000, pattern: "\\S" })
+const content = Type.String({ maxLength: 200000 })
+const duration = Type.Union([Type.Integer({ minimum: 1, maximum: 100000 }), Type.Null()])
+export const contentStatusSchema = Type.Union([Type.Literal('DRAFT'), Type.Literal('PUBLISHED'), Type.Literal('ARCHIVED'), Type.Literal('DISABLED')])
+export type ContentStatus = Static<typeof contentStatusSchema>
+export const adminTrailParamsSchema = Type.Object({ trailId: uuid }, { additionalProperties: false })
+export const adminModuleParamsSchema = Type.Object({ trailId: uuid, moduleId: uuid }, { additionalProperties: false })
+export type AdminTrailParams = Static<typeof adminTrailParamsSchema>
+export type AdminModuleParams = Static<typeof adminModuleParamsSchema>
+export const createTrailSchema = Type.Object({ title, description }, { additionalProperties: false })
+export const updateTrailSchema = Type.Partial(createTrailSchema, { additionalProperties: false, minProperties: 1 })
+export type CreateTrail = Static<typeof createTrailSchema>
+export type UpdateTrail = Static<typeof updateTrailSchema>
+export const createModuleSchema = Type.Object({ title, description, content: Type.Optional(content), durationMinutes: Type.Optional(duration), requiresQuiz: Type.Optional(Type.Boolean()) }, { additionalProperties: false })
+export const updateModuleSchema = Type.Partial(createModuleSchema, { additionalProperties: false, minProperties: 1 })
+export type CreateModule = Static<typeof createModuleSchema>
+export type UpdateModule = Static<typeof updateModuleSchema>
+export const changeStatusSchema = Type.Object({ status: contentStatusSchema }, { additionalProperties: false })
+export type ChangeStatus = Static<typeof changeStatusSchema>
+export const reorderSchema = Type.Object({ ids: Type.Array(uuid, { minItems: 1, maxItems: 10000, uniqueItems: true, description: 'Todos os IDs da coleção, incluindo conteúdos não publicados, na ordem desejada' }) }, { additionalProperties: false })
+export type Reorder = Static<typeof reorderSchema>
+export const adminTrailSchema = Type.Object({ id: uuid, title: Type.String(), description: Type.String(), order: Type.Integer({ minimum: 1 }), publicationStatus: contentStatusSchema }, { additionalProperties: false })
+export const adminModuleSchema = Type.Object({ id: uuid, trailId: uuid, title: Type.String(), description: Type.String(), content: Type.String(), order: Type.Integer({ minimum: 1 }), publicationStatus: contentStatusSchema, durationMinutes: duration, isActive: Type.Boolean(), requiresQuiz: Type.Boolean() }, { additionalProperties: false })
+export const adminTrailDetailsSchema = Type.Object({ ...adminTrailSchema.properties, modules: Type.Array(adminModuleSchema) }, { additionalProperties: false })
+export const adminTrailsSchema = Type.Array(adminTrailSchema)
+export const adminModulesSchema = Type.Array(adminModuleSchema)
+export const adminErrorSchema = Type.Object({ code: Type.String(), message: Type.String() }, { additionalProperties: false })
