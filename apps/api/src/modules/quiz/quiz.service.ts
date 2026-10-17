@@ -1,7 +1,6 @@
 import type { Prisma } from '../../generated/prisma/client.js'
 import { assertRetry, awardOnce, configuration, learningTransaction, minimumCorrect, moduleAwards } from './learning-rules.service.js'
 import { publishedModuleWhere, publishedTrailWhere } from '../../lib/content-visibility.js'
-import { creditPoints } from '../../lib/points-ledger.js'
 import { getPrisma } from '../../lib/prisma.js'
 import type {
   LearnState,
@@ -294,16 +293,6 @@ export async function submitPreTest(userId: string, moduleId: string, input: Sub
       where: { id: progress.id },
       data: { preTestCompletedAt: progress.preTestCompletedAt ?? new Date() },
     })
-    await creditPoints(
-      {
-        userId,
-        amount: PRE_TEST_POINTS,
-        reason: 'QUIZ_PRE',
-        sourceType: 'QuizAttempt',
-        sourceId: created.id,
-      },
-      tx,
-    )
     return created
   })
 

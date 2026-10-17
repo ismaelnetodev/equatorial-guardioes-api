@@ -17,7 +17,6 @@ const db = vi.hoisted(() => ({
   user: { findUnique: vi.fn() },
   trail: { findUnique: vi.fn(), findFirst: vi.fn() },
   trailModule: { findUnique: vi.fn() },
-  programConfiguration: { findUnique: vi.fn() },
   learningAward: { findUnique: vi.fn(), findMany: vi.fn(), create: vi.fn(), update: vi.fn(), count: vi.fn() },
   moduleProgress: { findUniqueOrThrow: vi.fn(), findUnique: vi.fn(), update: vi.fn() },
   quizAttempt: { findFirst: vi.fn(), create: vi.fn(), update: vi.fn() },
