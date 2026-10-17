@@ -1,5 +1,6 @@
 import 'dotenv/config'
 import { getPrisma } from '../lib/prisma.js'
+import { demoQuestions, demoTraining } from './demo-learning.js'
 
 const trailId = 'd3e00000-0000-4000-8000-000000000001'
 const modules = [
@@ -135,7 +136,23 @@ const db = getPrisma()
 try {
   const result = await db.$transaction(async tx => {
     const existing = await tx.trail.findUnique({ where: { id: trailId }, select: { id: true, title: true, _count: { select: { modules: true } } } })
-    if (existing) return { created: false, id: existing.id, title: existing.title, modules: existing._count.modules }
+    if (existing) {
+      let enriched = 0
+      for (const [index] of modules.entries()) {
+        const id = `d3e10000-0000-4000-8000-${String(index + 1).padStart(12, '0')}`
+        const module = await tx.trailModule.findUnique({ where: { id }, select: { trailId: true, content: true, _count: { select: { quizQuestions: true, trainingSteps: true } } } })
+        if (!module || module.trailId !== trailId) continue
+        // Preserva conteúdos estruturados já cadastrados no painel e todos os progressos.
+        if (module._count.quizQuestions !== 0 || module._count.trainingSteps !== 0) continue
+        await tx.trailModule.update({ where: { id }, data: {
+          requiresQuiz: true,
+          quizQuestions: { create: demoQuestions(index) },
+          trainingSteps: { create: demoTraining(module.content) },
+        } })
+        enriched++
+      }
+      return { created: false, id: existing.id, title: existing.title, modules: existing._count.modules, enriched }
+    }
 
     const aggregate = await tx.trail.aggregate({ _max: { order: true } })
     const trail = await tx.trail.create({
@@ -151,12 +168,14 @@ try {
           order: index + 1,
           publicationStatus: 'PUBLISHED' as const,
           isActive: true,
-          requiresQuiz: false,
+          requiresQuiz: true,
+          quizQuestions: { create: demoQuestions(index) },
+          trainingSteps: { create: demoTraining(module.content) },
         })) },
       },
       select: { id: true, title: true, _count: { select: { modules: true } } },
     })
     return { created: true, id: trail.id, title: trail.title, modules: trail._count.modules }
-  }, { isolationLevel: 'Serializable' })
+  }, { isolationLevel: 'Serializable', timeout: 60000 })
   console.log(JSON.stringify(result))
 } finally { await db.$disconnect() }

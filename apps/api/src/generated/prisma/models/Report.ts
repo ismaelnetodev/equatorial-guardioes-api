@@ -51,6 +51,8 @@ export type ReportMinAggregateOutputType = {
   status: $Enums.ReportStatus | null
   urgency: $Enums.ReportUrgency | null
   pointsAwarded: number | null
+  confirmedRisk: $Enums.ReportUrgency | null
+  validatedAt: Date | null
   impactSeenAt: Date | null
   submittedAt: Date | null
   createdAt: Date | null
@@ -70,6 +72,8 @@ export type ReportMaxAggregateOutputType = {
   status: $Enums.ReportStatus | null
   urgency: $Enums.ReportUrgency | null
   pointsAwarded: number | null
+  confirmedRisk: $Enums.ReportUrgency | null
+  validatedAt: Date | null
   impactSeenAt: Date | null
   submittedAt: Date | null
   createdAt: Date | null
@@ -89,6 +93,8 @@ export type ReportCountAggregateOutputType = {
   status: number
   urgency: number
   pointsAwarded: number
+  confirmedRisk: number
+  validatedAt: number
   impactSeenAt: number
   submittedAt: number
   createdAt: number
@@ -122,6 +128,8 @@ export type ReportMinAggregateInputType = {
   status?: true
   urgency?: true
   pointsAwarded?: true
+  confirmedRisk?: true
+  validatedAt?: true
   impactSeenAt?: true
   submittedAt?: true
   createdAt?: true
@@ -141,6 +149,8 @@ export type ReportMaxAggregateInputType = {
   status?: true
   urgency?: true
   pointsAwarded?: true
+  confirmedRisk?: true
+  validatedAt?: true
   impactSeenAt?: true
   submittedAt?: true
   createdAt?: true
@@ -160,6 +170,8 @@ export type ReportCountAggregateInputType = {
   status?: true
   urgency?: true
   pointsAwarded?: true
+  confirmedRisk?: true
+  validatedAt?: true
   impactSeenAt?: true
   submittedAt?: true
   createdAt?: true
@@ -266,6 +278,8 @@ export type ReportGroupByOutputType = {
   status: $Enums.ReportStatus
   urgency: $Enums.ReportUrgency
   pointsAwarded: number
+  confirmedRisk: $Enums.ReportUrgency | null
+  validatedAt: Date | null
   impactSeenAt: Date | null
   submittedAt: Date
   createdAt: Date
@@ -308,6 +322,8 @@ export type ReportWhereInput = {
   status?: Prisma.EnumReportStatusFilter<"Report"> | $Enums.ReportStatus
   urgency?: Prisma.EnumReportUrgencyFilter<"Report"> | $Enums.ReportUrgency
   pointsAwarded?: Prisma.IntFilter<"Report"> | number
+  confirmedRisk?: Prisma.EnumReportUrgencyNullableFilter<"Report"> | $Enums.ReportUrgency | null
+  validatedAt?: Prisma.DateTimeNullableFilter<"Report"> | Date | string | null
   impactSeenAt?: Prisma.DateTimeNullableFilter<"Report"> | Date | string | null
   submittedAt?: Prisma.DateTimeFilter<"Report"> | Date | string
   createdAt?: Prisma.DateTimeFilter<"Report"> | Date | string
@@ -329,6 +345,8 @@ export type ReportOrderByWithRelationInput = {
   status?: Prisma.SortOrder
   urgency?: Prisma.SortOrder
   pointsAwarded?: Prisma.SortOrder
+  confirmedRisk?: Prisma.SortOrderInput | Prisma.SortOrder
+  validatedAt?: Prisma.SortOrderInput | Prisma.SortOrder
   impactSeenAt?: Prisma.SortOrderInput | Prisma.SortOrder
   submittedAt?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
@@ -353,6 +371,8 @@ export type ReportWhereUniqueInput = Prisma.AtLeast<{
   status?: Prisma.EnumReportStatusFilter<"Report"> | $Enums.ReportStatus
   urgency?: Prisma.EnumReportUrgencyFilter<"Report"> | $Enums.ReportUrgency
   pointsAwarded?: Prisma.IntFilter<"Report"> | number
+  confirmedRisk?: Prisma.EnumReportUrgencyNullableFilter<"Report"> | $Enums.ReportUrgency | null
+  validatedAt?: Prisma.DateTimeNullableFilter<"Report"> | Date | string | null
   impactSeenAt?: Prisma.DateTimeNullableFilter<"Report"> | Date | string | null
   submittedAt?: Prisma.DateTimeFilter<"Report"> | Date | string
   createdAt?: Prisma.DateTimeFilter<"Report"> | Date | string
@@ -374,6 +394,8 @@ export type ReportOrderByWithAggregationInput = {
   status?: Prisma.SortOrder
   urgency?: Prisma.SortOrder
   pointsAwarded?: Prisma.SortOrder
+  confirmedRisk?: Prisma.SortOrderInput | Prisma.SortOrder
+  validatedAt?: Prisma.SortOrderInput | Prisma.SortOrder
   impactSeenAt?: Prisma.SortOrderInput | Prisma.SortOrder
   submittedAt?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
@@ -401,6 +423,8 @@ export type ReportScalarWhereWithAggregatesInput = {
   status?: Prisma.EnumReportStatusWithAggregatesFilter<"Report"> | $Enums.ReportStatus
   urgency?: Prisma.EnumReportUrgencyWithAggregatesFilter<"Report"> | $Enums.ReportUrgency
   pointsAwarded?: Prisma.IntWithAggregatesFilter<"Report"> | number
+  confirmedRisk?: Prisma.EnumReportUrgencyNullableWithAggregatesFilter<"Report"> | $Enums.ReportUrgency | null
+  validatedAt?: Prisma.DateTimeNullableWithAggregatesFilter<"Report"> | Date | string | null
   impactSeenAt?: Prisma.DateTimeNullableWithAggregatesFilter<"Report"> | Date | string | null
   submittedAt?: Prisma.DateTimeWithAggregatesFilter<"Report"> | Date | string
   createdAt?: Prisma.DateTimeWithAggregatesFilter<"Report"> | Date | string
@@ -419,6 +443,8 @@ export type ReportCreateInput = {
   status?: $Enums.ReportStatus
   urgency?: $Enums.ReportUrgency
   pointsAwarded?: number
+  confirmedRisk?: $Enums.ReportUrgency | null
+  validatedAt?: Date | string | null
   impactSeenAt?: Date | string | null
   submittedAt?: Date | string
   createdAt?: Date | string
@@ -440,6 +466,8 @@ export type ReportUncheckedCreateInput = {
   status?: $Enums.ReportStatus
   urgency?: $Enums.ReportUrgency
   pointsAwarded?: number
+  confirmedRisk?: $Enums.ReportUrgency | null
+  validatedAt?: Date | string | null
   impactSeenAt?: Date | string | null
   submittedAt?: Date | string
   createdAt?: Date | string
@@ -459,6 +487,8 @@ export type ReportUpdateInput = {
   status?: Prisma.EnumReportStatusFieldUpdateOperationsInput | $Enums.ReportStatus
   urgency?: Prisma.EnumReportUrgencyFieldUpdateOperationsInput | $Enums.ReportUrgency
   pointsAwarded?: Prisma.IntFieldUpdateOperationsInput | number
+  confirmedRisk?: Prisma.NullableEnumReportUrgencyFieldUpdateOperationsInput | $Enums.ReportUrgency | null
+  validatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   impactSeenAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   submittedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -480,6 +510,8 @@ export type ReportUncheckedUpdateInput = {
   status?: Prisma.EnumReportStatusFieldUpdateOperationsInput | $Enums.ReportStatus
   urgency?: Prisma.EnumReportUrgencyFieldUpdateOperationsInput | $Enums.ReportUrgency
   pointsAwarded?: Prisma.IntFieldUpdateOperationsInput | number
+  confirmedRisk?: Prisma.NullableEnumReportUrgencyFieldUpdateOperationsInput | $Enums.ReportUrgency | null
+  validatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   impactSeenAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   submittedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -500,6 +532,8 @@ export type ReportCreateManyInput = {
   status?: $Enums.ReportStatus
   urgency?: $Enums.ReportUrgency
   pointsAwarded?: number
+  confirmedRisk?: $Enums.ReportUrgency | null
+  validatedAt?: Date | string | null
   impactSeenAt?: Date | string | null
   submittedAt?: Date | string
   createdAt?: Date | string
@@ -518,6 +552,8 @@ export type ReportUpdateManyMutationInput = {
   status?: Prisma.EnumReportStatusFieldUpdateOperationsInput | $Enums.ReportStatus
   urgency?: Prisma.EnumReportUrgencyFieldUpdateOperationsInput | $Enums.ReportUrgency
   pointsAwarded?: Prisma.IntFieldUpdateOperationsInput | number
+  confirmedRisk?: Prisma.NullableEnumReportUrgencyFieldUpdateOperationsInput | $Enums.ReportUrgency | null
+  validatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   impactSeenAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   submittedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -537,6 +573,8 @@ export type ReportUncheckedUpdateManyInput = {
   status?: Prisma.EnumReportStatusFieldUpdateOperationsInput | $Enums.ReportStatus
   urgency?: Prisma.EnumReportUrgencyFieldUpdateOperationsInput | $Enums.ReportUrgency
   pointsAwarded?: Prisma.IntFieldUpdateOperationsInput | number
+  confirmedRisk?: Prisma.NullableEnumReportUrgencyFieldUpdateOperationsInput | $Enums.ReportUrgency | null
+  validatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   impactSeenAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   submittedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -566,6 +604,8 @@ export type ReportCountOrderByAggregateInput = {
   status?: Prisma.SortOrder
   urgency?: Prisma.SortOrder
   pointsAwarded?: Prisma.SortOrder
+  confirmedRisk?: Prisma.SortOrder
+  validatedAt?: Prisma.SortOrder
   impactSeenAt?: Prisma.SortOrder
   submittedAt?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
@@ -591,6 +631,8 @@ export type ReportMaxOrderByAggregateInput = {
   status?: Prisma.SortOrder
   urgency?: Prisma.SortOrder
   pointsAwarded?: Prisma.SortOrder
+  confirmedRisk?: Prisma.SortOrder
+  validatedAt?: Prisma.SortOrder
   impactSeenAt?: Prisma.SortOrder
   submittedAt?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
@@ -610,6 +652,8 @@ export type ReportMinOrderByAggregateInput = {
   status?: Prisma.SortOrder
   urgency?: Prisma.SortOrder
   pointsAwarded?: Prisma.SortOrder
+  confirmedRisk?: Prisma.SortOrder
+  validatedAt?: Prisma.SortOrder
   impactSeenAt?: Prisma.SortOrder
   submittedAt?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
@@ -685,6 +729,10 @@ export type EnumReportUrgencyFieldUpdateOperationsInput = {
   set?: $Enums.ReportUrgency
 }
 
+export type NullableEnumReportUrgencyFieldUpdateOperationsInput = {
+  set?: $Enums.ReportUrgency | null
+}
+
 export type ReportCreateNestedOneWithoutTimelineInput = {
   create?: Prisma.XOR<Prisma.ReportCreateWithoutTimelineInput, Prisma.ReportUncheckedCreateWithoutTimelineInput>
   connectOrCreate?: Prisma.ReportCreateOrConnectWithoutTimelineInput
@@ -711,6 +759,8 @@ export type ReportCreateWithoutUserInput = {
   status?: $Enums.ReportStatus
   urgency?: $Enums.ReportUrgency
   pointsAwarded?: number
+  confirmedRisk?: $Enums.ReportUrgency | null
+  validatedAt?: Date | string | null
   impactSeenAt?: Date | string | null
   submittedAt?: Date | string
   createdAt?: Date | string
@@ -730,6 +780,8 @@ export type ReportUncheckedCreateWithoutUserInput = {
   status?: $Enums.ReportStatus
   urgency?: $Enums.ReportUrgency
   pointsAwarded?: number
+  confirmedRisk?: $Enums.ReportUrgency | null
+  validatedAt?: Date | string | null
   impactSeenAt?: Date | string | null
   submittedAt?: Date | string
   createdAt?: Date | string
@@ -779,6 +831,8 @@ export type ReportScalarWhereInput = {
   status?: Prisma.EnumReportStatusFilter<"Report"> | $Enums.ReportStatus
   urgency?: Prisma.EnumReportUrgencyFilter<"Report"> | $Enums.ReportUrgency
   pointsAwarded?: Prisma.IntFilter<"Report"> | number
+  confirmedRisk?: Prisma.EnumReportUrgencyNullableFilter<"Report"> | $Enums.ReportUrgency | null
+  validatedAt?: Prisma.DateTimeNullableFilter<"Report"> | Date | string | null
   impactSeenAt?: Prisma.DateTimeNullableFilter<"Report"> | Date | string | null
   submittedAt?: Prisma.DateTimeFilter<"Report"> | Date | string
   createdAt?: Prisma.DateTimeFilter<"Report"> | Date | string
@@ -797,6 +851,8 @@ export type ReportCreateWithoutTimelineInput = {
   status?: $Enums.ReportStatus
   urgency?: $Enums.ReportUrgency
   pointsAwarded?: number
+  confirmedRisk?: $Enums.ReportUrgency | null
+  validatedAt?: Date | string | null
   impactSeenAt?: Date | string | null
   submittedAt?: Date | string
   createdAt?: Date | string
@@ -817,6 +873,8 @@ export type ReportUncheckedCreateWithoutTimelineInput = {
   status?: $Enums.ReportStatus
   urgency?: $Enums.ReportUrgency
   pointsAwarded?: number
+  confirmedRisk?: $Enums.ReportUrgency | null
+  validatedAt?: Date | string | null
   impactSeenAt?: Date | string | null
   submittedAt?: Date | string
   createdAt?: Date | string
@@ -851,6 +909,8 @@ export type ReportUpdateWithoutTimelineInput = {
   status?: Prisma.EnumReportStatusFieldUpdateOperationsInput | $Enums.ReportStatus
   urgency?: Prisma.EnumReportUrgencyFieldUpdateOperationsInput | $Enums.ReportUrgency
   pointsAwarded?: Prisma.IntFieldUpdateOperationsInput | number
+  confirmedRisk?: Prisma.NullableEnumReportUrgencyFieldUpdateOperationsInput | $Enums.ReportUrgency | null
+  validatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   impactSeenAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   submittedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -871,6 +931,8 @@ export type ReportUncheckedUpdateWithoutTimelineInput = {
   status?: Prisma.EnumReportStatusFieldUpdateOperationsInput | $Enums.ReportStatus
   urgency?: Prisma.EnumReportUrgencyFieldUpdateOperationsInput | $Enums.ReportUrgency
   pointsAwarded?: Prisma.IntFieldUpdateOperationsInput | number
+  confirmedRisk?: Prisma.NullableEnumReportUrgencyFieldUpdateOperationsInput | $Enums.ReportUrgency | null
+  validatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   impactSeenAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   submittedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -889,6 +951,8 @@ export type ReportCreateManyUserInput = {
   status?: $Enums.ReportStatus
   urgency?: $Enums.ReportUrgency
   pointsAwarded?: number
+  confirmedRisk?: $Enums.ReportUrgency | null
+  validatedAt?: Date | string | null
   impactSeenAt?: Date | string | null
   submittedAt?: Date | string
   createdAt?: Date | string
@@ -907,6 +971,8 @@ export type ReportUpdateWithoutUserInput = {
   status?: Prisma.EnumReportStatusFieldUpdateOperationsInput | $Enums.ReportStatus
   urgency?: Prisma.EnumReportUrgencyFieldUpdateOperationsInput | $Enums.ReportUrgency
   pointsAwarded?: Prisma.IntFieldUpdateOperationsInput | number
+  confirmedRisk?: Prisma.NullableEnumReportUrgencyFieldUpdateOperationsInput | $Enums.ReportUrgency | null
+  validatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   impactSeenAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   submittedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -926,6 +992,8 @@ export type ReportUncheckedUpdateWithoutUserInput = {
   status?: Prisma.EnumReportStatusFieldUpdateOperationsInput | $Enums.ReportStatus
   urgency?: Prisma.EnumReportUrgencyFieldUpdateOperationsInput | $Enums.ReportUrgency
   pointsAwarded?: Prisma.IntFieldUpdateOperationsInput | number
+  confirmedRisk?: Prisma.NullableEnumReportUrgencyFieldUpdateOperationsInput | $Enums.ReportUrgency | null
+  validatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   impactSeenAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   submittedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -945,6 +1013,8 @@ export type ReportUncheckedUpdateManyWithoutUserInput = {
   status?: Prisma.EnumReportStatusFieldUpdateOperationsInput | $Enums.ReportStatus
   urgency?: Prisma.EnumReportUrgencyFieldUpdateOperationsInput | $Enums.ReportUrgency
   pointsAwarded?: Prisma.IntFieldUpdateOperationsInput | number
+  confirmedRisk?: Prisma.NullableEnumReportUrgencyFieldUpdateOperationsInput | $Enums.ReportUrgency | null
+  validatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   impactSeenAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   submittedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -995,6 +1065,8 @@ export type ReportSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs =
   status?: boolean
   urgency?: boolean
   pointsAwarded?: boolean
+  confirmedRisk?: boolean
+  validatedAt?: boolean
   impactSeenAt?: boolean
   submittedAt?: boolean
   createdAt?: boolean
@@ -1017,6 +1089,8 @@ export type ReportSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Extens
   status?: boolean
   urgency?: boolean
   pointsAwarded?: boolean
+  confirmedRisk?: boolean
+  validatedAt?: boolean
   impactSeenAt?: boolean
   submittedAt?: boolean
   createdAt?: boolean
@@ -1037,6 +1111,8 @@ export type ReportSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extens
   status?: boolean
   urgency?: boolean
   pointsAwarded?: boolean
+  confirmedRisk?: boolean
+  validatedAt?: boolean
   impactSeenAt?: boolean
   submittedAt?: boolean
   createdAt?: boolean
@@ -1057,13 +1133,15 @@ export type ReportSelectScalar = {
   status?: boolean
   urgency?: boolean
   pointsAwarded?: boolean
+  confirmedRisk?: boolean
+  validatedAt?: boolean
   impactSeenAt?: boolean
   submittedAt?: boolean
   createdAt?: boolean
   updatedAt?: boolean
 }
 
-export type ReportOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "userId" | "title" | "description" | "address" | "neighborhood" | "photoUrl" | "latitude" | "longitude" | "status" | "urgency" | "pointsAwarded" | "impactSeenAt" | "submittedAt" | "createdAt" | "updatedAt", ExtArgs["result"]["report"]>
+export type ReportOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "userId" | "title" | "description" | "address" | "neighborhood" | "photoUrl" | "latitude" | "longitude" | "status" | "urgency" | "pointsAwarded" | "confirmedRisk" | "validatedAt" | "impactSeenAt" | "submittedAt" | "createdAt" | "updatedAt", ExtArgs["result"]["report"]>
 export type ReportInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   user?: boolean | Prisma.UserDefaultArgs<ExtArgs>
   timeline?: boolean | Prisma.Report$timelineArgs<ExtArgs>
@@ -1095,6 +1173,8 @@ export type $ReportPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs
     status: $Enums.ReportStatus
     urgency: $Enums.ReportUrgency
     pointsAwarded: number
+    confirmedRisk: $Enums.ReportUrgency | null
+    validatedAt: Date | null
     impactSeenAt: Date | null
     submittedAt: Date
     createdAt: Date
@@ -1536,6 +1616,8 @@ export interface ReportFieldRefs {
   readonly status: Prisma.FieldRef<"Report", 'ReportStatus'>
   readonly urgency: Prisma.FieldRef<"Report", 'ReportUrgency'>
   readonly pointsAwarded: Prisma.FieldRef<"Report", 'Int'>
+  readonly confirmedRisk: Prisma.FieldRef<"Report", 'ReportUrgency'>
+  readonly validatedAt: Prisma.FieldRef<"Report", 'DateTime'>
   readonly impactSeenAt: Prisma.FieldRef<"Report", 'DateTime'>
   readonly submittedAt: Prisma.FieldRef<"Report", 'DateTime'>
   readonly createdAt: Prisma.FieldRef<"Report", 'DateTime'>

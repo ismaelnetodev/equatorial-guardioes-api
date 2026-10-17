@@ -65,7 +65,12 @@ export const ModelName = {
   Report: 'Report',
   ReportTimelineEvent: 'ReportTimelineEvent',
   ProgramConfiguration: 'ProgramConfiguration',
-  ProgramConfigurationChange: 'ProgramConfigurationChange'
+  ProgramConfigurationChange: 'ProgramConfigurationChange',
+  ReportLegacyPointsAudit: 'ReportLegacyPointsAudit',
+  LearningAward: 'LearningAward',
+  FinalExamAttempt: 'FinalExamAttempt',
+  LearningLegacyPointsAudit: 'LearningLegacyPointsAudit',
+  QuizAttemptReconciliation: 'QuizAttemptReconciliation'
 } as const
 
 export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -198,6 +203,8 @@ export const QuizAttemptScalarFieldEnum = {
   score: 'score',
   isApproved: 'isApproved',
   pointsAwarded: 'pointsAwarded',
+  minimumCorrect: 'minimumCorrect',
+  supersededAt: 'supersededAt',
   finishedAt: 'finishedAt',
   submittedAt: 'submittedAt'
 } as const
@@ -258,6 +265,8 @@ export const ReportScalarFieldEnum = {
   status: 'status',
   urgency: 'urgency',
   pointsAwarded: 'pointsAwarded',
+  confirmedRisk: 'confirmedRisk',
+  validatedAt: 'validatedAt',
   impactSeenAt: 'impactSeenAt',
   submittedAt: 'submittedAt',
   createdAt: 'createdAt',
@@ -303,6 +312,68 @@ export const ProgramConfigurationChangeScalarFieldEnum = {
 } as const
 
 export type ProgramConfigurationChangeScalarFieldEnum = (typeof ProgramConfigurationChangeScalarFieldEnum)[keyof typeof ProgramConfigurationChangeScalarFieldEnum]
+
+
+export const ReportLegacyPointsAuditScalarFieldEnum = {
+  reportId: 'reportId',
+  userId: 'userId',
+  status: 'status',
+  urgency: 'urgency',
+  pointsAwarded: 'pointsAwarded',
+  reconciledAt: 'reconciledAt'
+} as const
+
+export type ReportLegacyPointsAuditScalarFieldEnum = (typeof ReportLegacyPointsAuditScalarFieldEnum)[keyof typeof ReportLegacyPointsAuditScalarFieldEnum]
+
+
+export const LearningAwardScalarFieldEnum = {
+  id: 'id',
+  userId: 'userId',
+  ruleKey: 'ruleKey',
+  sourceId: 'sourceId',
+  moduleId: 'moduleId',
+  trailId: 'trailId',
+  points: 'points',
+  grantedAt: 'grantedAt',
+  createdAt: 'createdAt'
+} as const
+
+export type LearningAwardScalarFieldEnum = (typeof LearningAwardScalarFieldEnum)[keyof typeof LearningAwardScalarFieldEnum]
+
+
+export const FinalExamAttemptScalarFieldEnum = {
+  id: 'id',
+  userId: 'userId',
+  trailId: 'trailId',
+  correctCount: 'correctCount',
+  totalCount: 'totalCount',
+  minimumCorrect: 'minimumCorrect',
+  isApproved: 'isApproved',
+  pointsAwarded: 'pointsAwarded',
+  submittedAt: 'submittedAt'
+} as const
+
+export type FinalExamAttemptScalarFieldEnum = (typeof FinalExamAttemptScalarFieldEnum)[keyof typeof FinalExamAttemptScalarFieldEnum]
+
+
+export const LearningLegacyPointsAuditScalarFieldEnum = {
+  sourceId: 'sourceId',
+  sourceType: 'sourceType',
+  points: 'points',
+  reconciledAt: 'reconciledAt'
+} as const
+
+export type LearningLegacyPointsAuditScalarFieldEnum = (typeof LearningLegacyPointsAuditScalarFieldEnum)[keyof typeof LearningLegacyPointsAuditScalarFieldEnum]
+
+
+export const QuizAttemptReconciliationScalarFieldEnum = {
+  attemptId: 'attemptId',
+  retainedAttemptId: 'retainedAttemptId',
+  previousState: 'previousState',
+  reconciledAt: 'reconciledAt'
+} as const
+
+export type QuizAttemptReconciliationScalarFieldEnum = (typeof QuizAttemptReconciliationScalarFieldEnum)[keyof typeof QuizAttemptReconciliationScalarFieldEnum]
 
 
 export const SortOrder = {

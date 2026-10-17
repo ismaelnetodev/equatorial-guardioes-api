@@ -178,7 +178,7 @@ O arquivo `apps/mobile/src/services/api.types.ts` é gerado automaticamente. Nã
 
 ## Banco de dados
 
-Para popular a tela de trilhas com conteúdo de demonstração, execute `npm run db:seed:demo` na raiz, usando o PostgreSQL configurado em `apps/api/.env`. O comando cria a trilha **Segurança no seu bairro**, com sete módulos ativos e publicados, textos para leitura e duração estimada. Os quizzes são opcionais nessa demonstração para permitir a conclusão pelo leitor atual. A carga é transacional e usa IDs fixos: novas execuções não duplicam a trilha nem sobrescrevem edições feitas no painel. Ela não cria progresso de usuários ou concede pontos. Após executar, atualize a tela `/trilha`; contas comuns começam com o primeiro módulo disponível e os seguintes bloqueados pela sequência existente. A conta `ADMIN` tem acesso de consulta a todos os módulos, conforme a regra já existente na API.
+Para popular a tela de trilhas com conteúdo de demonstração, execute `npm run db:seed:demo` na raiz, usando o PostgreSQL configurado em `apps/api/.env`. O comando cria a trilha **Segurança no seu bairro**, com sete módulos ativos e publicados, treinamento em duas etapas com cartões e três perguntas por módulo, usadas no pré-teste e no pós-teste. O fluxo é pré-teste → treinamento → pós-teste → conclusão, respeitando as regras de aprovação e pontuação configuradas. A carga é transacional e usa IDs fixos: novas execuções não duplicam a trilha nem sobrescrevem edições feitas no painel. Na demonstração antiga, complementa somente os módulos de IDs conhecidos que ainda não tenham perguntas nem etapas, ativando o quiz. Módulos com conteúdo estruturado são preservados. Progressos e conclusões existentes são mantidos; para testar desde o início, use uma conta nova. O conteúdo é demonstrativo para testar o aplicativo. Ela não cria progresso de usuários ou concede pontos. Após executar, atualize a tela `/trilha`; contas comuns começam com o primeiro módulo disponível e os seguintes bloqueados pela sequência existente. A conta `ADMIN` tem acesso de consulta a todos os módulos, conforme a regra já existente na API.
 
 O cadastro está em `/cadastrar`, acessível por “Criar conta” em `/entrar`. Após cadastrar, o app tenta autenticar e abre `/introducao`, com três etapas, sem o aviso de instalação na tela inicial. “Pular” e “Começar” abrem `/trilha` com sessão ou `/entrar` se a autenticação não foi concluída. O seletor consulta `GET /api/v1/neighborhoods/?municipalityCode=2111300`, busca por nome sem diferenciar acentos e permite informar “Outro bairro”. Nomes livres ficam no usuário, sem contaminar o catálogo de origem oficial. O cadastro envia `neighborhoodId` quando a escolha vem do catálogo; a API valida o município e utiliza o nome armazenado no banco.
 
@@ -231,6 +231,111 @@ A rota `/trilha` carrega `GET /api/v1/trails/` e os detalhes autenticados em `GE
 
 Toque em um módulo para abrir `/modulo/{moduleId}?trailId={trailId}`. O detalhe consulta a trilha e `GET /api/v1/progress/trails/{trailId}` para exibir o estado e a exigência de quiz. Iniciar treinamento envia `POST /api/v1/progress/modules/{moduleId}/start`; concluir envia `POST /api/v1/progress/modules/{moduleId}/complete`. Ao retornar à trilha, o progresso é consultado novamente e os próximos módulos refletem o desbloqueio feito pelo backend. O menu Perfil mostra a conta atual e permite sair. Ajuda e Reportar oferecem a ligação de emergência para 116.
 
-O detalhe apresenta resumo, objetivos extraídos das listas do conteúdo (ou a descrição quando não há lista), etapas e leitura do treinamento. O backend ainda não oferece pré-teste, pós-teste, resultados de quiz nem progresso por etapa: esses testes aparecem como “Em breve” quando exigidos ou “Não exigido” nos demais módulos. Módulos que exigem quiz mantêm a conclusão bloqueada, respeitando a regra existente da API. Não são simulados percentuais, notas nem recompensas. O card Continuar mostra o módulo atual e o número real de módulos concluídos na trilha. O aviso de Reportar bloqueado oferece “Fazer módulo 0”, “Agora não” e ligação 116.
+O detalhe apresenta resumo, objetivos extraídos das listas do conteúdo (ou a descrição), etapas e leitura. Módulos com quiz consultam `GET /api/v1/modules/{moduleId}/learn` após iniciar o módulo. A rota `/modulo/aprender` conecta pré-teste, treinamento estruturado, feedback por resposta do pós-teste e resultados aos endpoints de aprendizado. Ao aprovar, o usuário conclui o módulo pela API de progresso. Módulos sem quiz preservam a leitura e conclusão direta. As respostas, notas, bloqueios, pontos recebidos e pontos pendentes vêm do backend. Não há percentual de treinamento simulado.
 
-Saldo, patentes, ranking e envio de relatos ainda não têm endpoints públicos no backend. A tela sinaliza essa disponibilidade sem simular pontos ou desbloquear relatos. As artes dos nós foram extraídas dos SVGs fornecidos; os ícones podem ser regenerados com `node scripts/generate-trail-icons.mjs` e o fundo do detalhe com `node scripts/generate-module-pattern.mjs`.
+O card Continuar mostra o módulo atual e a quantidade real de módulos concluídos. O aviso de Reportar bloqueado oferece “Fazer módulo 0”, “Agora não” e ligação 116. Saldo global, patentes e ranking continuam sem integração. A API de relatos já existe; a interface de envio será uma entrega separada. Consulte [pendências de integração das telas da trilha](docs/trail-integration.md) para os dados faltantes e critérios de implementação. As artes dos nós foram extraídas dos SVGs fornecidos; os ícones podem ser regenerados com `node scripts/generate-trail-icons.mjs` e o fundo do detalhe com `node scripts/generate-module-pattern.mjs`.
+
+### Pontuação de relatos v2
+
+Aplique a migration com `npm run db:deploy` antes de iniciar a API atualizada.
+O envio não concede pontos. Para validar e resolver, o administrador envia
+`{ "status": "RESOLVED", "confirmedRisk": "LOW" | "MEDIUM" | "HIGH" }`
+em `PATCH /api/v1/admin/relatos/:reportId/status`. A classificação é da equipe,
+independente da urgência informada pelo usuário. A resolução é a validação final
+neste fluxo; relatos duplicados ou não confirmados devem usar `NOT_CONFIRMED`.
+Regras inativas concedem zero. Limites inativos não são aplicados; configurações
+ausentes ou limites ativos sem valor impedem a validação até serem configurados.
+Os limites contam relatos com pontos pela data da validação, em America/Fortaleza;
+ao atingir o limite o relato é resolvido com zero, sem concessão posterior automática.
+Conflitos concorrentes retornam 409 e exigem nova tentativa.
+
+A migration preserva os pontos antigos em `ReportLegacyPointsAudit` e zera
+as concessões legadas, inclusive de relatos resolvidos: não há risco confirmado
+pela equipe nos dados antigos para recalculá-las. O snapshot permite revisão
+operacional auditável; não há reatribuição retroativa automática.
+
+### Aprendizado e pontos v2
+
+Aplique `npm run db:deploy` antes de iniciar a API. A migration
+`20261017020000_learning_rules` preserva concessões antigas em
+`LearningLegacyPointsAudit` e zera os pontos legados de quizzes/treinamento.
+Notas, aprovações e progresso históricos são preservados; não há reatribuição
+retroativa de pontos sem comprovação dos critérios v2.
+
+- Pré-teste: diagnóstico sem pontos, registrado uma única vez por módulo.
+- Treinamento: concluir a etapa não pontua. A conclusão do módulo em
+  `POST /api/v1/progress/modules/:moduleId/complete` usa `module_completion`
+  (inicialmente 2 pontos), com `module_minimum_time` (70% da duração prevista,
+  medido pelo tempo desde o início no servidor). Duração ausente impede conclusão
+  enquanto esse requisito estiver ativo. Esse controle não mede atenção ou presença ativa.
+- Quiz do módulo: aprovação consulta `quiz_pass_score` (80%), sem usar o campo
+  legado `quizMinimumScore`. Regra `module_quiz` começa em zero. Cada tentativa
+  finalizada preserva seu corte e resultado; mudanças valem para novas avaliações e para liberar módulos ainda não concluídos. Novas tentativas preservam seu corte; tentativas legadas sem corte registrado exibem o requisito atual, mantendo nota e aprovação históricas.
+- Melhoria: compara a proporção de acertos com o primeiro pré-teste e aplica
+  `post_test_improvement` (6 pontos) uma única vez por usuário. Não exige aprovação,
+  mas exige melhoria mensurável. Também respeita `post_test_improvement_awards`.
+- Regras inativas não concedem pontos; limites inativos deixam de ser exigidos.
+  Aprovação desativada remove o corte, sem restaurar 70%. Configuração ausente ou
+  valor ativo pendente retorna 409; zero continua sendo zero.
+
+Concessões ficam em `LearningAward`, com valor aplicado e data da liberação,
+protegidas por transações serializáveis e unicidade. Módulos excedentes entram
+em fila, respeitando `training_modules_daily` (2) e `training_points_daily` (4),
+por usuário e dia de Fortaleza. A fila preserva o valor da conclusão e consulta
+os limites atuais. Reativar regra não transforma conclusões de zero em pontos.
+Novas conclusões tentam liberar a fila; o aplicativo também pode chamar
+`POST /api/v1/progress/learning-awards/claim` nos dias seguintes, retornando
+`pointsReleased`. Não existe processo em segundo plano para essa liberação.
+Se um prêmio individual exceder o teto diário, ele fica pendente até revisão do teto.
+O campo `moduleCompletion` em aprendizado/resultados mostra pontos liberados e
+pendentes. `totalPoints` soma as concessões efetivas do módulo, inclusive em
+outras tentativas; não soma apenas a tentativa mais recente.
+
+Prova final autenticada da trilha:
+
+- `GET /api/v1/trails/:trailId/final-exam`: perguntas sem gabarito de todos os
+  módulos publicados da trilha, reutilizando o banco de questões existente.
+- `POST /api/v1/trails/:trailId/final-exam`: envia `answers` com `questionId` e
+  `optionId`; corrige no servidor e grava uma tentativa própria.
+
+Exige concluir todos os módulos publicados e cumprir `final_exam_delay`
+(inicialmente 24 horas após a última conclusão). A aprovação usa o percentual
+administrativo e concede `final_exam` (10 pontos) uma única vez por usuário/trilha,
+respeitando `final_exam_awards`. Os limites de concessão podem suspender novas
+concessões com zero; não multiplicam eventos definidos como únicos.
+Repetições de pós-teste e prova final consultam `quiz_retry_interval`: seu valor
+padrão é de 30 segundos, ajustável ou desativável no painel. A migration
+`20261017140000_quiz_retry_default` preenche somente valores pendentes, preserva
+valores já definidos e registra a alteração no histórico de configuração.
+Com aprovação em 80% e três perguntas, são necessários três acertos (arredondamento
+para cima); dois acertos representam 66,7%. Após reprovação, o aplicativo mostra
+o resultado e permite revisar o treinamento ou iniciar explicitamente outra tentativa.
+Erros de configuração não exibem nomes internos, e a espera informa os segundos restantes.
+Conflitos concorrentes retornam 409; consulte o estado e repita a operação.
+
+### Proteção do histórico de quizzes
+
+Aplique `npm run db:deploy` para instalar a migration
+`20261017030000_preserve_quiz_answers`. Ela impede excluir perguntas e alternativas
+com respostas vinculadas. A API também recusa substituir quizzes com qualquer
+tentativa, inclusive aberta sem respostas, retornando `409 CONTENT_CONFLICT`.
+O início das tentativas e a substituição usam transações serializáveis para
+tratar disputas concorrentes. Consulte [administração de conteúdo](docs/content-administration.md).
+
+### Identificação das tentativas de pós-teste
+
+Aplique `npm run db:deploy` antes de iniciar a API atualizada. A migration
+`20261017040000_single_open_post_attempt` reconcilia tentativas abertas duplicadas
+com auditoria e preservação das respostas, mantendo somente a mais recente aberta,
+e cria o índice único parcial. O índice parcial é mantido explicitamente em SQL;
+não o substitua por uma unicidade que também alcance tentativas concluídas.
+
+O cliente deve obter `attemptId` em `GET /api/v1/modules/:moduleId/quiz/pos`
+e enviá-lo no corpo das respostas e da finalização. O envio de respostas já não
+abre uma tentativa automaticamente. Em caso de 409 durante uma abertura concorrente,
+consulte novamente o pós-teste para obter a tentativa vigente. Consulte os corpos
+atualizados em [administração de conteúdo](docs/content-administration.md).
+
+### Tempo de leitura dos módulos
+
+A API estima a leitura a 200 palavras por minuto, em segundos, usando o conteúdo do módulo ou o texto das etapas/cards quando o módulo exige quiz e possui treinamento estruturado. A estimativa é uma convenção do produto. O campo `readingSeconds` do progresso é exibido no detalhe do módulo. O limite `module_minimum_time` continua sendo um percentual, agora aplicado a essa estimativa em vez de `durationMinutes`. A duração cadastrada permanece como metadado editorial. O tempo mínimo continua contando de `startedAt`; ao tentar concluir antes dele, a API informa o tempo restante. Sem alteração de schema ou migration.

@@ -7,7 +7,7 @@ import { Button, colors, InputField } from '../components/ui'
 import { EnergyBrand } from '../components/energy-brand'
 import { EmergencyBanner } from '../components/emergency-banner'
 import { login } from '../features/auth/auth.api'
-import { ApiError } from '../services/api'
+import { errorMessage } from '../services/api'
 
 export default function LoginScreen() {
   const [contact, setContact] = useState('')
@@ -36,7 +36,7 @@ export default function LoginScreen() {
       await login({ ...(email ? { email: value.toLowerCase() } : { cellphone: phone }), password })
       router.replace('/trilha')
     } catch (cause) {
-      setError(cause instanceof ApiError ? cause.message : cause instanceof TypeError ? 'Não foi possível conectar à API. Verifique sua conexão e tente novamente.' : cause instanceof Error ? cause.message : 'Não foi possível entrar. Tente novamente.')
+      setError(errorMessage(cause, 'Não foi possível entrar. Tente novamente.'))
     } finally { pending.current = false; setLoading(false) }
   }
 

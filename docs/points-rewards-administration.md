@@ -88,19 +88,15 @@ exclusão da conta. O acesso direto ao banco deve ser restrito operacionalmente.
   fonte, sem configurar um benefício confirmado. O crédito depende de aprovação
   formal externa; o módulo não implementa um fluxo de aprovação.
 
-O repositório ainda não possui campanhas, validação de relatos, livro de
-transações de pontos, estornos, saldos, estoque operacional ou resgates. Este
-módulo administra as configurações; não executa essas operações nem altera o
-progresso/quiz existente. O orçamento é um parâmetro para a futura integração
-por campanha, não uma gestão de várias campanhas. A futura execução das regras
-deverá consultar os valores ativos no banco e tratar parâmetros pendentes antes
-de conceder benefícios. Os critérios de uso único, melhoria mensurável,
-validação humana e revisão de fraude continuam dependências dessa execução.
+O aprendizado e os relatos executam as regras e os limites administrativos
+conforme o README. LearningAward preserva concessões do aprendizado e seus
+valores aplicados. Campanhas, estornos, saldo consolidado, estoque operacional e
+resgates continuam pendentes. O orçamento é um parâmetro para futura integração
+por campanha. Revisão de fraude e critérios das operações ainda não implementadas
+continuam dependências dessas integrações.
 
 Nenhuma rota aceita ajustes diretos de saldo. Alterar configuração não recalcula
-concessões ou estornos. Quando o livro de pontos for implementado, cada lançamento
-deverá preservar os valores aplicados no momento da operação; não deve derivar
-transações históricas dos valores atuais da configuração.
+concessões ou estornos. O aprendizado já registra concessões em LearningAward, preservando os valores aplicados no momento da operação; as demais integrações também devem preservar snapshots históricos.
 
 Os testes HTTP usam persistência simulada, como os demais testes do repositório;
 verificam autorização, validação, snapshots, rollback e conflitos. Eles não

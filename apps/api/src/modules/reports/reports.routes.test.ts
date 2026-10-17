@@ -21,4 +21,10 @@ describe('reports routes', () => {
     expect(document.paths).toHaveProperty('/api/v1/admin/relatos')
     expect(document.paths).toHaveProperty('/api/v1/admin/relatos/{reportId}/status')
   })
+
+  it('documents absence of pending impact as nullable JSON with status 200', () => {
+    const responses = app.swagger().paths?.['/api/v1/relatos/impacto']?.get?.responses
+    expect(responses).toHaveProperty(['200', 'content', 'application/json', 'schema', 'nullable'], true)
+    expect(responses).not.toHaveProperty('204')
+  })
 })

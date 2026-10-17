@@ -89,8 +89,9 @@ export const quizRoutes: FastifyPluginAsyncTypebox = async (app) => {
   app.post('/:moduleId/quiz/pos/finish', {
     schema: {
       ...common,
-      summary: 'Finaliza o pós-teste e calcula aprovação',
+      summary: 'Finaliza a tentativa indicada do pós-teste e calcula aprovação',
       params: schema.moduleParamsSchema,
+      body: schema.finishPostTestSchema,
       response: { 200: schema.postTestResultSchema, ...errors },
     },
   }, controller.finishPostTestController)
