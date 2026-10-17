@@ -2,6 +2,22 @@ import { Prisma } from '../../generated/prisma/client.js'
 import { getPrisma } from '../../lib/prisma.js'
 import { getAuthenticatedUser } from '../../lib/auth-user.js'
 import { publishedModuleWhere } from '../../lib/content-visibility.js'
+import { hashPassword, passwordsMatch } from '../auth/auth.service.js'
+import type { ContentStatus, CreateTrail, UpdateTrail, CreateModule, UpdateModule } from './admin.schemas.js'
+
+export class AdminError extends Error {
+  constructor(public readonly code: 'FORBIDDEN' | 'TRAIL_NOT_FOUND' | 'MODULE_NOT_FOUND' | 'INVALID_ORDER' | 'INVALID_PUBLICATION' | 'CONTENT_CONFLICT' | 'INVALID_PASSWORD', message: string) { super(message) }
+}
+
+export async function changeAdministratorPassword(authorization: string | undefined, currentPassword: string, newPassword: string) {
+  const user = await getAuthenticatedUser(authorization)
+  if (user.role !== 'ADMIN') throw new AdminError('FORBIDDEN', 'Acesso permitido apenas a administradores.')
+  const account = await getPrisma().user.findUnique({ where: { id: user.id }, select: { passwordHash: true } })
+  if (!account || !await passwordsMatch(currentPassword, account.passwordHash)) throw new AdminError('INVALID_PASSWORD', 'A senha atual está incorreta.')
+  // Compare-and-swap evita sobrescrever uma troca simultânea de senha.
+  const result = await getPrisma().user.updateMany({ where: { id: user.id, role: 'ADMIN', passwordHash: account.passwordHash }, data: { passwordHash: await hashPassword(newPassword) } })
+  if (result.count !== 1) throw new AdminError('CONTENT_CONFLICT', 'A conta foi alterada. Entre novamente e tente outra vez.')
+  return { message: 'Senha alterada com sucesso.' }
 import type { ContentStatus, CreateTrail, UpdateTrail, CreateModule, UpdateModule, ReplaceQuiz, ReplaceTraining } from './admin.schemas.js'
 
 export class AdminError extends Error {

@@ -154,9 +154,9 @@ Para abrir a prévia web:
 npm run dev:web
 ```
 
-A abertura do app (`/`) redireciona sempre para `/entrar`. A tela `/inicio` consulta o catálogo público de trilhas. O login envia e-mail ou celular e senha para `POST /api/v1/entrar`, armazena o token e abre o catálogo em `/inicio`. O cliente HTTP centraliza o envio do Bearer token; o serviço de sessão oferece armazenamento seguro no Android e iOS. Na prévia web, o token é mantido apenas em memória.
+A abertura do app (`/`) consulta a sessão salva: sem token, abre `/entrar`; com token, abre `/trilha`, que valida a sessão em `GET /api/v1/me`. Sessões expiradas ou de contas excluídas retornam ao login. `/inicio` permanece como redirecionamento para `/trilha`. O login envia e-mail ou celular e senha para `POST /api/v1/entrar`, armazena o token e abre `/trilha`. O cliente HTTP centraliza o envio do Bearer token; o serviço de sessão oferece armazenamento seguro no Android e iOS. Na prévia web, o token é mantido apenas em memória.
 
-Para testar, inicie a API e o Expo, abra `/entrar` na prévia web ou toque em “Entrar na minha conta”. Crie previamente um usuário pelo endpoint `POST /api/v1/cadastrar` no Swagger. Use o mesmo celular cadastrado (incluindo código do país, se informado); o formulário remove espaços, parênteses e hífens, sem acrescentar prefixos. O login exibe erros de validação, credenciais, limite de tentativas e conexão. Recuperação de senha e Google exibem avisos de indisponibilidade até que seus fluxos sejam implementados. O botão de emergência abre `tel:116` em dispositivos compatíveis.
+Para testar, inicie a API e o Expo, abra o app ou `/entrar` na prévia web e crie uma conta pelo botão “Criar conta”. Também é possível cadastrar pelo endpoint `POST /api/v1/cadastrar` no Swagger. Use o mesmo celular cadastrado (incluindo código do país, se informado); o formulário remove espaços, parênteses e hífens, sem acrescentar prefixos. O login exibe erros de validação, credenciais, limite de tentativas e conexão. Recuperação de senha e Google exibem avisos de indisponibilidade até que seus fluxos sejam implementados. O botão de emergência abre `tel:116` em dispositivos compatíveis.
 
 ## Documentação e contratos
 
@@ -165,6 +165,8 @@ Com a API em execução, consulte o [Swagger UI](http://localhost:3000/documenta
 As operações administrativas e as regras de publicação estão no [guia de administração de conteúdo](docs/content-administration.md).
 
 A administração de pontos, recompensas, limites e auditoria está no [guia de pontos e recompensas](docs/points-rewards-administration.md). As rotas `/api/v1/admin/points-rewards` exigem Bearer token e papel `ADMIN`. A configuração inicial é instalada pela migration `20261016210000_program_configuration`, com `npm run db:deploy`; atualizações posteriores ficam no banco.
+
+O [painel administrativo](docs/admin-panel.md) está disponível em `/admin` no aplicativo web (`npm run dev:web`) e pelo link “Acesso administrativo” no login. Inclui trilhas, módulos, pontuação, recompensas, limites, histórico e troca da própria senha. O comando `npm run admin:user` provisiona uma conta `ADMIN` a partir de credenciais recebidas por stdin, sem senha padrão no código.
 
 Após alterar os contratos da API, regenere os tipos usados pelo aplicativo:
 
@@ -176,7 +178,7 @@ O arquivo `apps/mobile/src/services/api.types.ts` é gerado automaticamente. Nã
 
 ## Banco de dados
 
-O cadastro está em `/cadastrar`, acessível por “Criar conta” em `/entrar`. Após cadastrar, o app tenta autenticar e abre `/introducao`, com três etapas, sem o aviso de instalação na tela inicial. “Pular” e “Começar” abrem `/inicio` com sessão ou `/entrar` se a autenticação não foi concluída. O seletor consulta `GET /api/v1/neighborhoods/?municipalityCode=2111300`, busca por nome sem diferenciar acentos e permite informar “Outro bairro”. Nomes livres ficam no usuário, sem contaminar o catálogo de origem oficial. O cadastro envia `neighborhoodId` quando a escolha vem do catálogo; a API valida o município e utiliza o nome armazenado no banco.
+O cadastro está em `/cadastrar`, acessível por “Criar conta” em `/entrar`. Após cadastrar, o app tenta autenticar e abre `/introducao`, com três etapas, sem o aviso de instalação na tela inicial. “Pular” e “Começar” abrem `/trilha` com sessão ou `/entrar` se a autenticação não foi concluída. O seletor consulta `GET /api/v1/neighborhoods/?municipalityCode=2111300`, busca por nome sem diferenciar acentos e permite informar “Outro bairro”. Nomes livres ficam no usuário, sem contaminar o catálogo de origem oficial. O cadastro envia `neighborhoodId` quando a escolha vem do catálogo; a API valida o município e utiliza o nome armazenado no banco.
 
 As migrations incluem a tabela `Neighborhood`, o vínculo opcional ao usuário e os dados do catálogo. `npm run db:deploy` recria tudo em um banco novo, sem depender de downloads nem de seed manual:
 
@@ -220,3 +222,13 @@ npm run build
 Os testes da API usam persistência simulada. A exportação do mobile valida os bundles JavaScript; a geração de aplicativos nativos instaláveis é uma etapa separada, com builds locais ou EAS Build. No Windows, a compilação nativa local de iOS requer um Mac.
 
 Os deploys da API e do aplicativo são independentes, mesmo compartilhando o repositório.
+
+### Tela de trilha
+
+A rota `/trilha` carrega `GET /api/v1/trails/` e os detalhes autenticados em `GET /api/v1/trails/{trailId}` usando os contratos OpenAPI gerados. Exibe nome e iniciais da conta, seletor quando há várias trilhas, módulos ordenados e estados de bloqueio, andamento e conclusão retornados pela API. A numeração visual começa em 0; a ordem original do backend é preservada. Há carregamento, estado vazio, erro com nova tentativa e atualização ao puxar.
+
+Toque em um módulo para abrir `/modulo/{moduleId}?trailId={trailId}`. O detalhe consulta a trilha e `GET /api/v1/progress/trails/{trailId}` para exibir o estado e a exigência de quiz. Iniciar treinamento envia `POST /api/v1/progress/modules/{moduleId}/start`; concluir envia `POST /api/v1/progress/modules/{moduleId}/complete`. Ao retornar à trilha, o progresso é consultado novamente e os próximos módulos refletem o desbloqueio feito pelo backend. O menu Perfil mostra a conta atual e permite sair. Ajuda e Reportar oferecem a ligação de emergência para 116.
+
+O detalhe apresenta resumo, objetivos extraídos das listas do conteúdo (ou a descrição quando não há lista), etapas e leitura do treinamento. O backend ainda não oferece pré-teste, pós-teste, resultados de quiz nem progresso por etapa: esses testes aparecem como “Em breve” quando exigidos ou “Não exigido” nos demais módulos. Módulos que exigem quiz mantêm a conclusão bloqueada, respeitando a regra existente da API. Não são simulados percentuais, notas nem recompensas. O card Continuar mostra o módulo atual e o número real de módulos concluídos na trilha. O aviso de Reportar bloqueado oferece “Fazer módulo 0”, “Agora não” e ligação 116.
+
+Saldo, patentes, ranking e envio de relatos ainda não têm endpoints públicos no backend. A tela sinaliza essa disponibilidade sem simular pontos ou desbloquear relatos. As artes dos nós foram extraídas dos SVGs fornecidos; os ícones podem ser regenerados com `node scripts/generate-trail-icons.mjs` e o fundo do detalhe com `node scripts/generate-module-pattern.mjs`.

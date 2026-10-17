@@ -20,7 +20,7 @@ export const loginSchema = Type.Object(
   {
     email: Type.Optional(Type.String({ format: 'email', maxLength: 254, description: 'E-mail do usuário' })),
     cellphone: Type.Optional(Type.String({ pattern: '^\\+?[1-9]\\d{7,14}$', description: 'Celular no formato internacional, apenas números e + opcional' })),
-    password: Type.String({ minLength: 8, maxLength: 128, description: 'Senha do usuário' }),
+    password: Type.String({ minLength: 1, maxLength: 128, description: 'Senha atual do usuário; contas temporárias podem ter senhas legadas' }),
   },
   { additionalProperties: false },
 )
