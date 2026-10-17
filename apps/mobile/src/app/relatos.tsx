@@ -6,6 +6,7 @@ import { ProfilePage } from '../components/profile-page'
 import { ProfileSymbol } from '../components/profile-symbol'
 import { getPendingReportImpact, listReports, markReportImpactSeen, type ReportImpact, type ReportsList } from '../features/reports/reports.api'
 import { ApiError, errorMessage } from '../services/api'
+import { CreateReportButton } from '../features/reports/create-report-button'
 
 export default function ReportsScreen() {
   const [data, setData] = useState<ReportsList | null>(null)
@@ -107,6 +108,7 @@ export default function ReportsScreen() {
             </View>
           </> : null}
       </ScrollView>
+      <CreateReportButton onPress={() => router.push('/chat-reportar')} />
     </ProfilePage>
   )
 }
@@ -116,7 +118,7 @@ function Summary({ value, label }: { value: number; label: string }) {
 }
 
 const styles = StyleSheet.create({
-  content: { flexGrow: 1, paddingHorizontal: 18, paddingTop: 10, paddingBottom: 25 },
+  content: { flexGrow: 1, paddingHorizontal: 18, paddingTop: 10, paddingBottom: 104 },
   state: { paddingVertical: 30, gap: 14 },
   impactError: { gap: 10, padding: 14, borderRadius: 16, backgroundColor: colors.field, borderWidth: 1, borderColor: colors.warning },
   impactCard: { gap: 9, padding: 15, marginBottom: 14, borderRadius: 16, backgroundColor: '#171F5E', borderWidth: 1, borderColor: colors.primary },

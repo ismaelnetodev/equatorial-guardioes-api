@@ -13,6 +13,7 @@ Monorepo da plataforma Guardiões da Energia, com uma API para autenticação, a
 
 ```text
 apps/
+  ia/                   Serviço Python do chatbot (FastAPI, Gemini e base RAG)
   api/
     src/                Rotas, controllers, schemas, serviços e testes
     prisma/             Schema e migrations do PostgreSQL
@@ -35,6 +36,8 @@ package-lock.json       Dependências dos workspaces
 ```
 
 A API e o aplicativo possuem configurações e dependências próprias. O aplicativo acessa o banco exclusivamente pela API.
+
+As telas do chatbot ficam em `apps/mobile/src/features/chatbot`, com rotas em `apps/mobile/src/app/chat-reportar.tsx` e `chat-duvidas.tsx`. O serviço de IA fica em `apps/ia` e usa dependências Python próprias. Consulte [o guia do chatbot](docs/chatbot-ia.md) para executar o serviço. Os botões de criar relato abrem o chat em uma tela própria, fora da navbar. Ao confirmar, o app salva pela API com a sessão atual e permite acompanhar o registro em Meus relatos. A foto permanece local até a implementação do upload.
 
 ## Pré-requisitos
 
@@ -370,4 +373,4 @@ A API estima a leitura a 200 palavras por minuto, em segundos, usando o conteúd
 Para reiniciar o Expo sem o cache do Metro, execute `npm run dev:mobile -- --clear --lan`. O script da raiz repassa os argumentos ao workspace mobile; confirme que a saída mostra `expo start --clear --lan`. Reabra no Expo Go o projeto servido por essa sessão.
 
 
-O seed de demonstração também acrescenta a etapa `DO_NOT` (O que NÃO fazer) quando identifica exatamente as duas etapas originais, sem edição de títulos, introduções, durações ou cartões. Novas execuções não duplicam a etapa. Quizzes, tentativas e conclusões existentes são preservados. A tela de conclusão consulta novamente o progresso confirmado pela API, os pontos efetivamente concedidos e os pendentes; o espaço de progresso mostra módulos concluídos da trilha, pois ainda não há contrato de patentes. O botão Reportar abre a entrada já existente na trilha; o formulário de envio continua pendente.
+O seed de demonstração também acrescenta a etapa `DO_NOT` (O que NÃO fazer) quando identifica exatamente as duas etapas originais, sem edição de títulos, introduções, durações ou cartões. Novas execuções não duplicam a etapa. Quizzes, tentativas e conclusões existentes são preservados. A tela de conclusão consulta novamente o progresso confirmado pela API, os pontos efetivamente concedidos e os pendentes; o espaço de progresso mostra módulos concluídos da trilha, pois ainda não há contrato de patentes. O botão Reportar abre Meus relatos na trilha. Os botões de criar relato abrem o chatbot em uma tela própria, que salva pela API com a sessão atual.

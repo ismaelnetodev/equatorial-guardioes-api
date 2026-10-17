@@ -50,7 +50,7 @@ export async function perguntar(pergunta: string) {
 export async function analisarFoto(uri: string): Promise<Analise> {
   try {
     const dados = new FormData();
-    dados.append('foto', { uri, name: 'foto.jpg', type: 'image/jpeg' } as any);
+    dados.append('foto', { uri, name: 'foto.jpg', type: 'image/jpeg' } as unknown as Blob);
     const r = await fetch(`${IA_URL}/risco/analisar`, { method: 'POST', headers: await auth(), body: dados });
     if (!r.ok) return SEM_DETECCAO;
     return await r.json();
@@ -60,7 +60,7 @@ export async function analisarFoto(uri: string): Promise<Analise> {
 }
 
 export async function salvarRelato(relato: Relato) {
-  await enviarRelato(relato);
+  return enviarRelato(relato);
 }
 
 export async function obterLocal(): Promise<Local> {

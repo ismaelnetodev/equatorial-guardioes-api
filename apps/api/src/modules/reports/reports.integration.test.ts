@@ -111,7 +111,7 @@ describe('criação de relatos', () => {
       status: { code: 'SENT', label: 'Enviado', iconHint: 'check' },
       urgency: { code: 'MEDIUM', label: 'Urgência média' },
     })
-    expect(db.report.create).toHaveBeenCalledWith(expect.objectContaining({ data: expect.objectContaining({ pointsAwarded: 0 }) }))
+    expect(db.report.create).toHaveBeenCalledWith(expect.objectContaining({ data: expect.objectContaining({ userId, pointsAwarded: 0 }) }))
     expect(r.json().timeline[0]).toMatchObject({ pending: false, status: { code: 'SENT' } })
   })
 })
@@ -145,6 +145,7 @@ describe('listagem e detalhe', () => {
 
     const r = await app.inject({ method: 'GET', url: '/api/v1/relatos', headers: headers() })
     expect(r.statusCode).toBe(200)
+    expect(db.report.findMany).toHaveBeenCalledWith(expect.objectContaining({ where: { userId } }))
     expect(r.json()).toMatchObject({
       summary: { sentCount: 2, resolvedCount: 1, totalPoints: 50 },
     })

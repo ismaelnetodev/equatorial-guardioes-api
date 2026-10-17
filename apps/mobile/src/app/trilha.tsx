@@ -6,7 +6,7 @@ import { StatusBar } from 'expo-status-bar'
 import { Image, Modal, Pressable, RefreshControl, ScrollView, StyleSheet, Text, View } from 'react-native'
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context'
 import { AppIcon } from '../components/app-icon'
-import { Button, colors, InputField } from '../components/ui'
+import { Button, colors } from '../components/ui'
 import { EmergencyBanner } from '../components/emergency-banner'
 import { TrailPath } from '../components/trail-path'
 import { TrailSkeleton } from '../components/trail-skeleton'
@@ -16,11 +16,10 @@ import { getCurrentUser, type CurrentUser } from '../features/auth/auth.api'
 import { getTrail, getTrailProgress, listTrails, type TrailDetails, type TrailModule, type Trails } from '../features/trails/trails.api'
 import { getTrailCompletion, refreshLearningSummary, type LearningSummary, type TrailCompletion } from '../features/trails/progress.api'
 import { getProfile, getRanking, type Profile, type Ranking } from '../features/community/community.api'
-import { createReport } from '../features/reports/reports.api'
 import { ApiError } from '../services/api'
 import { clearAccessToken, getAccessToken } from '../services/session'
 
-type Panel = 'help' | 'report' | 'report-form' | 'ranking' | 'profile' | null
+type Panel = 'help' | 'report' | 'ranking' | 'profile' | null
 
 export default function TrailScreen() {
   const params = useLocalSearchParams<{ panel?: string; trailId?: string }>()
@@ -41,15 +40,12 @@ export default function TrailScreen() {
   const scroll = useRef<ScrollView>(null)
   const [ranking, setRanking] = useState<Ranking | null>(null)
   const [panelLoading, setPanelLoading] = useState(false)
-  const [reportTitle, setReportTitle] = useState('')
-  const [reportDescription, setReportDescription] = useState('')
-  const [reportAddress, setReportAddress] = useState('')
-  const [reportBusy, setReportBusy] = useState(false)
   const [panelAttempt, setPanelAttempt] = useState(0)
 
   useEffect(() => {
     if (params.panel === 'report' || params.panel === 'report-form') {
-      setPanel(params.panel)
+      setPanel('report')
+      if (params.panel === 'report-form') router.push('/chat-reportar')
       router.setParams({ panel: undefined })
     }
     if (params.trailId) setSelected(params.trailId)
@@ -86,7 +82,7 @@ export default function TrailScreen() {
   }, [selected, attempt]))
 
   useEffect(() => {
-    if (!panel || panel === 'help' || panel === 'report' || panel === 'report-form') return
+    if (!panel || panel === 'help' || panel === 'report') return
     const controller = new AbortController()
     async function loadPanel() {
       setPanelLoading(true); setActionError('')
@@ -132,41 +128,10 @@ export default function TrailScreen() {
     catch { setActionError('Não foi possível sair. Tente novamente.') }
   }
 
-  async function submitReport() {
-    if (reportBusy) return
-    const neighborhood = (profile?.neighborhood ?? user?.neighborhood ?? '').trim()
-    if (!neighborhood) {
-      setActionError('Não foi possível identificar seu bairro. Atualize seu perfil e tente novamente.')
-      return
-    }
-    setReportBusy(true)
-    setActionError('')
-    try {
-      await createReport({
-        title: reportTitle.trim(),
-        description: reportDescription.trim(),
-        address: reportAddress.trim(),
-        neighborhood,
-      })
-      setReportTitle('')
-      setReportDescription('')
-      setReportAddress('')
-      setPanel('report')
-    } catch (cause) {
-      if (cause instanceof ApiError && cause.status === 401) {
-        router.replace('/entrar')
-        return
-      }
-      setActionError(cause instanceof ApiError ? cause.message : 'Não foi possível enviar o relato.')
-    } finally {
-      setReportBusy(false)
-    }
-  }
-
   return <View style={styles.screen}>
     <StatusBar style="light" />
     <SafeAreaView edges={['top']} style={styles.main}>
-      {loading ? <TrailSkeleton /> : error ? <ScrollView contentContainerStyle={{ flexGrow: 1 }}><LoadFailure offline={offline} standalone onRetry={() => setAttempt(value => value + 1)} /></ScrollView> : showingReports ? <MyReportsScreen onBack={() => setPanel(null)} onCreateReport={() => { setActionError(''); setPanel('report-form') }} /> : <ScrollView ref={scroll} contentContainerStyle={styles.content} refreshControl={<RefreshControl refreshing={loading} onRefresh={() => setAttempt(value => value + 1)} tintColor={colors.primary} />}>
+      {loading ? <TrailSkeleton /> : error ? <ScrollView contentContainerStyle={{ flexGrow: 1 }}><LoadFailure offline={offline} standalone onRetry={() => setAttempt(value => value + 1)} /></ScrollView> : showingReports ? <MyReportsScreen onBack={() => setPanel(null)} onCreateReport={() => router.push('/chat-reportar')} /> : <ScrollView ref={scroll} contentContainerStyle={styles.content} refreshControl={<RefreshControl refreshing={loading} onRefresh={() => setAttempt(value => value + 1)} tintColor={colors.primary} />}>
         <View style={styles.hero}>
           <Image source={require('../../assets/lencois-login.png')} resizeMode="cover" accessible={false} style={styles.heroBackground} />
           <View style={styles.heroContent}>
@@ -208,19 +173,11 @@ export default function TrailScreen() {
       </View></View>
     </SafeAreaView>
     <ReportBlockedModal visible={panel === 'report' && !loading && !error && reportsLocked} available={!!firstModule} minutes={firstModule?.durationMinutes} onClose={() => setPanel(null)} onModule={() => { if (firstModule) openModule(firstModule) }} />
-    <Modal visible={panel !== null && panel !== 'report'} transparent animationType="slide" onRequestClose={() => setPanel(panel === 'report-form' ? 'report' : null)}>
+    <Modal visible={panel !== null && panel !== 'report'} transparent animationType="slide" onRequestClose={() => setPanel(null)}>
       <View style={styles.overlay}><SafeAreaView edges={['bottom']} style={styles.sheet}><ScrollView contentContainerStyle={styles.sheetContent}>
-        <View style={styles.sheetHeader}><Text accessibilityRole="header" style={styles.sheetTitle}>{panel === 'help' ? 'Ajuda e segurança' : panel === 'profile' ? 'Seu perfil' : panel === 'ranking' ? 'Ranking' : 'Reportar risco'}</Text><Pressable accessibilityRole="button" accessibilityLabel="Fechar" onPress={() => setPanel(panel === 'report-form' ? 'report' : null)} hitSlop={12}><Text style={styles.close}>×</Text></Pressable></View>
+        <View style={styles.sheetHeader}><Text accessibilityRole="header" style={styles.sheetTitle}>{panel === 'help' ? 'Ajuda e segurança' : panel === 'profile' ? 'Seu perfil' : panel === 'ranking' ? 'Ranking' : 'Reportar risco'}</Text><Pressable accessibilityRole="button" accessibilityLabel="Fechar" onPress={() => setPanel(null)} hitSlop={12}><Text style={styles.close}>×</Text></Pressable></View>
         {panelLoading ? <ContentSkeleton variant={panel === 'ranking' ? 'ranking' : 'profile'} surface="sheet" /> : null}
         {panel === 'help' ? <><Text style={styles.description}>Observe de longe, afaste-se e avise. Nunca toque em fios ou postes e nunca tente consertar.</Text><Text style={styles.description}>Toque no módulo disponível para ler o conteúdo. Os próximos são liberados conforme você conclui os anteriores.</Text><EmergencyBanner onError={() => setActionError('Não foi possível abrir a ligação. Ligue 116 pelo telefone.')} /></> : null}
-        {panel === 'report-form' ? <>
-          <Text style={styles.description}>Descreva o risco observado. A equipe analisará o relato e atualizará seu acompanhamento.</Text>
-          <InputField label="Título" value={reportTitle} onChangeText={setReportTitle} placeholder="Ex.: Pipa presa na rede" maxLength={120} />
-          <InputField label="Descrição" value={reportDescription} onChangeText={setReportDescription} placeholder="O que você observou?" multiline maxLength={1000} />
-          <InputField label="Endereço" value={reportAddress} onChangeText={setReportAddress} placeholder="Rua e ponto de referência" maxLength={240} />
-          <Text style={styles.pointsNote}>Bairro: {profile?.neighborhood ?? user?.neighborhood ?? 'Carregando…'}</Text>
-          <Button title="Enviar relato" loading={reportBusy} disabled={!reportTitle.trim() || !reportDescription.trim() || !reportAddress.trim()} onPress={() => { void submitReport() }} />
-        </> : null}
         {panel === 'ranking' && !panelLoading && !actionError ? <>
           {ranking ? <>
             <Text style={styles.description}>
