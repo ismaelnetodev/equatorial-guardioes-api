@@ -22,7 +22,7 @@ import { ReportError, listAdminReports, updateAdminReportStatus } from '../repor
 function sendError(reply: FastifyReply, error: unknown) {
   if (error instanceof AuthenticationError) return reply.status(401).send({ code: 'UNAUTHENTICATED', message: error.message })
   if (error instanceof ReportError) {
-    const status = error.code === 'REPORT_NOT_FOUND' ? 404 : 422
+    const status = error.code === 'REPORT_NOT_FOUND' ? 404 : error.code === 'REPORT_CONFLICT' ? 409 : 422
     return reply.status(status).send({ code: error.code, message: error.message })
   }
   if (error instanceof service.AdminError) {

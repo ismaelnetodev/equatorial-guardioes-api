@@ -35,10 +35,6 @@ async function withAuth<T>(
   try {
     const user = await getAuthenticatedUser(request.headers.authorization)
     const result = await operation(user.id)
-    if (result === null) {
-      // Sem schema de corpo no 204: o OpenAPI documenta o 200 quando há impacto.
-      return reply.status(204).send()
-    }
     return reply.status(status).send(result)
   } catch (error) {
     return sendError(reply, error)

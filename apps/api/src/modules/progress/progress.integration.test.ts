@@ -4,6 +4,9 @@ import { buildApp } from '../../app.js'
 import { createSessionToken } from '../../lib/auth-session.js'
 import * as quiz from '../quiz/quiz.service.js'
 
+const db = vi.hoisted(() => ({ $transaction: vi.fn(), user: { findUnique: vi.fn() }, trail: { findUnique: vi.fn() }, trailModule: { findUnique: vi.fn() }, programConfiguration: { findUnique: vi.fn() },
+  learningAward: { findUnique: vi.fn(), findMany: vi.fn(), create: vi.fn(), update: vi.fn(), count: vi.fn() },
+  moduleProgress: { findUniqueOrThrow: vi.fn(), upsert: vi.fn(), findUnique: vi.fn(), update: vi.fn() } }))
 const db = vi.hoisted(() => ({
   user: { findUnique: vi.fn() },
   trail: { findUnique: vi.fn(), findFirst: vi.fn() },
@@ -31,17 +34,44 @@ beforeEach(async () => {
   requiresQuiz = false
   token = createSessionToken(userId)
   db.user.findUnique.mockResolvedValue({ id: userId, role: 'USER' })
-  db.trailModule.findUnique.mockImplementation(async () => ({ id: moduleId, trailId, isActive: true, requiresQuiz }))
+  db.trailModule.findUnique.mockImplementation(async () => ({ id: moduleId, trailId, isActive: true, requiresQuiz, durationMinutes: 3 }))
   db.trail.findUnique.mockImplementation(async () => ({ id: trailId, modules: [{ id: moduleId, title: 'Módulo', order: 1, requiresQuiz, progressRecords: [{ startedAt: new Date(), completedAt: null }] }] }))
   db.moduleProgress.upsert.mockResolvedValue({ id: moduleId })
   db.moduleProgress.findUnique.mockResolvedValue({ id: moduleId })
   db.moduleProgress.update.mockResolvedValue({ completedAt: new Date() })
+  db.programConfiguration.findUnique.mockImplementation(async ({ where }: { where: { key: string } }) => ({
+    key: where.key, kind: ['module_completion', 'module_quiz', 'post_test_improvement', 'final_exam'].includes(where.key) ? 'RULE' : 'LIMIT',
+    value: ({ module_completion: 2, module_quiz: 0, post_test_improvement: 6, quiz_pass_score: 80, training_modules_daily: 2, training_points_daily: 4, module_minimum_time: 70, post_test_improvement_awards: 1, final_exam: 10, final_exam_delay: 24, final_exam_awards: 1 } as Record<string, number>)[where.key] ?? null,
+    isActive: true,
+  }))
+  db.learningAward.findMany.mockResolvedValue([])
+  db.learningAward.findUnique.mockResolvedValue(null)
+  db.learningAward.count.mockResolvedValue(0)
+  db.moduleProgress.findUniqueOrThrow.mockImplementation(async () => ({ id: '33333333-3333-4333-8333-333333333333', startedAt: new Date(Date.now() - 3600000), completedAt: null, preTestCompletedAt: new Date(), trainingCompletedAt: null }))
   db.trail.findFirst.mockResolvedValue({ modules: [{ id: moduleId }] })
   db.inviteAttribution.findUnique.mockResolvedValue(null)
   db.$transaction.mockImplementation(async (operation: (tx: typeof db) => Promise<unknown>) => operation(db))
   app = await buildApp({ logger: false })
 })
-afterEach(async () => { vi.restoreAllMocks(); await app.close() })
+afterEach(async () => { vi.useRealTimers(); vi.restoreAllMocks(); await app.close() })
+
+it('calcula o bloqueio pelo texto e permite concluir ao atingir o tempo de leitura mínimo', async () => {
+  const now = Date.now()
+  vi.spyOn(Date, 'now').mockReturnValue(now)
+  vi.useFakeTimers({ toFake: ['Date'] })
+  vi.setSystemTime(now)
+  db.trailModule.findUnique.mockResolvedValue({ id: moduleId, trailId, isActive: true, requiresQuiz: false, durationMinutes: 100, content: 'palavra '.repeat(200), trainingSteps: [] })
+  db.moduleProgress.findUniqueOrThrow.mockResolvedValue({ id: moduleId, startedAt: new Date(now - 41000), completedAt: null })
+  const early = await app.inject({ method: 'POST', url: completeUrl, headers: headers() })
+  expect(early.statusCode).toBe(409)
+  expect(early.json()).toMatchObject({ code: 'MINIMUM_TIME_REQUIRED', message: expect.stringContaining('1 s') })
+  expect(db.moduleProgress.update).not.toHaveBeenCalled()
+  db.moduleProgress.findUniqueOrThrow.mockResolvedValue({ id: moduleId, startedAt: new Date(now - 42000), completedAt: null })
+  const finished = await app.inject({ method: 'POST', url: completeUrl, headers: headers() })
+  expect(finished.statusCode).toBe(200)
+  expect(finished.json().status).toBe('completed')
+  vi.useRealTimers()
+})
 
 for (const [method, url] of [
   ['GET', '/api/v1/progress/trails/' + trailId],

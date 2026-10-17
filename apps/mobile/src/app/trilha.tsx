@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
-import { router, useFocusEffect } from 'expo-router'
+import { router, useFocusEffect, useLocalSearchParams } from 'expo-router'
 import { StatusBar } from 'expo-status-bar'
 import { ActivityIndicator, ImageBackground, Modal, Pressable, RefreshControl, ScrollView, StyleSheet, Text, View } from 'react-native'
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context'
@@ -9,6 +9,8 @@ import { EmergencyBanner } from '../components/emergency-banner'
 import { TrailPath } from '../components/trail-path'
 import { ReportBlockedModal } from '../components/report-blocked-modal'
 import { getCurrentUser, type CurrentUser } from '../features/auth/auth.api'
+import { getTrail, getTrailProgress, listTrails, type TrailDetails, type TrailModule, type Trails } from '../features/trails/trails.api'
+import { getTrailCompletion, refreshLearningSummary, type LearningSummary, type TrailCompletion } from '../features/trails/progress.api'
 import { getProfile, getRanking, type Profile, type Ranking } from '../features/community/community.api'
 import { createReport, listReports, type ReportsList } from '../features/reports/reports.api'
 import { getTrail, listTrails, type TrailDetails, type TrailModule, type Trails } from '../features/trails/trails.api'
@@ -18,17 +20,21 @@ import { clearAccessToken, getAccessToken } from '../services/session'
 type Panel = 'help' | 'report' | 'ranking' | 'profile' | null
 
 export default function TrailScreen() {
+  const params = useLocalSearchParams<{ panel?: string; trailId?: string }>()
   const insets = useSafeAreaInsets()
   const [user, setUser] = useState<CurrentUser | null>(null)
   const [profile, setProfile] = useState<Profile | null>(null)
   const [trails, setTrails] = useState<Trails>([])
   const [trail, setTrail] = useState<TrailDetails | null>(null)
-  const [selected, setSelected] = useState<string | null>(null)
+  const [selected, setSelected] = useState<string | null>(params.trailId ?? null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
   const [attempt, setAttempt] = useState(0)
   const [panel, setPanel] = useState<Panel>(null)
   const [actionError, setActionError] = useState('')
+  const [points, setPoints] = useState<LearningSummary | null>(null)
+  const [completion, setCompletion] = useState<TrailCompletion | null>(null)
+  const scroll = useRef<ScrollView>(null)
   const [ranking, setRanking] = useState<Ranking | null>(null)
   const [reports, setReports] = useState<ReportsList | null>(null)
   const [panelLoading, setPanelLoading] = useState(false)
@@ -38,21 +44,31 @@ export default function TrailScreen() {
   const [reportBusy, setReportBusy] = useState(false)
   const scroll = useRef<{ scrollTo: (options: { y?: number; animated?: boolean }) => void } | null>(null)
 
+  useEffect(() => {
+    if (params.panel === 'report') { setPanel('report'); router.setParams({ panel: undefined }) }
+    if (params.trailId) setSelected(params.trailId)
+  }, [params.panel, params.trailId])
+
   useFocusEffect(useCallback(() => {
     const controller = new AbortController()
     async function load() {
       setLoading(true); setError(''); setTrail(null)
       try {
         if (!await getAccessToken()) { router.replace('/entrar'); return }
+        const [account, catalog, balance] = await Promise.all([getCurrentUser(controller.signal), listTrails(controller.signal), refreshLearningSummary(controller.signal)])
         const [account, catalog, accountProfile] = await Promise.all([
           getCurrentUser(controller.signal),
           listTrails(controller.signal),
           getProfile(controller.signal),
         ])
         const id = catalog.find(item => item.id === selected)?.id ?? catalog[0]?.id
-        const details = id ? await getTrail(id, controller.signal) : null
+        const [details, states, finished] = id ? await Promise.all([getTrail(id, controller.signal), getTrailProgress(id, controller.signal), getTrailCompletion(id, controller.signal)]) : [null, null, null]
         if (controller.signal.aborted) return
-        setUser(account); setProfile(accountProfile); setTrails(catalog); setTrail(details)
+        const visible = details && states ? { ...details, modules: states.modules.flatMap(state => {
+          const module = details.modules.find(item => item.id === state.moduleId)
+          return module ? [{ ...module, status: state.status }] : []
+        }) } : details
+        setUser(account); setTrails(catalog); setTrail(visible); setPoints(balance); setCompletion(finished)
       } catch (cause) {
         if (controller.signal.aborted) return
         if (cause instanceof ApiError && cause.status === 401) { router.replace('/entrar'); return }
@@ -143,18 +159,7 @@ export default function TrailScreen() {
             <View style={styles.nameGroup}><Text accessibilityRole="header" style={styles.name}>Olá, {firstName}</Text><View style={styles.badge}><AppIcon name="shield" size={13} color={colors.primary} /><Text style={styles.badgeText}>{profile?.level.name ?? 'Guardião'}</Text></View></View>
             <Pressable accessibilityRole="button" accessibilityLabel="Ajuda e segurança" onPress={() => openPanel('help')} style={styles.help}><AppIcon name="help" color={colors.text} /></Pressable>
           </View>
-          <View style={styles.points}>
-            <View style={styles.pointsLine}>
-              <Text style={styles.pointsValue}>{profile ? profile.accumulated : '—'} <Text style={styles.pointsLabel}>pontos</Text></Text>
-              <Text style={styles.pointsLabel}>{profile ? `Saldo ${profile.balance}` : 'Carregando…'}</Text>
-            </View>
-            <View style={styles.progressTrack}><View style={[styles.trailProgress, { width: `${Math.round(levelProgress * 100)}%` }]} /></View>
-            <Text style={styles.pointsNote}>
-              {profile?.level.nextLevel
-                ? `${profile.level.pointsToNextLevel} pts para ${profile.level.nextLevel.name}`
-                : profile ? 'Nível máximo alcançado' : 'Pontuação da Comunidade'}
-            </Text>
-          </View>
+          <Pressable accessibilityRole="button" accessibilityLabel="Ver extrato de pontos do aprendizado" onPress={() => router.push('/pontos')} style={styles.points}><View style={styles.pointsLine}><Text style={styles.pointsValue}>{points?.totalPoints ?? '—'} <Text style={styles.pointsLabel}>pontos</Text></Text><Text style={styles.pointsLabel}>Ver extrato ›</Text></View><Text style={styles.pointsNote}>Pontos do aprendizado · {points?.modulePoints ?? '—'} por módulo{points?.dailyPointsLimit != null ? ` · até ${points.dailyPointsLimit}/dia em módulos` : ''}</Text>{points && points.pendingPoints > 0 ? <Text style={styles.pointsLabel}>{points.pendingPoints} pontos pendentes{points.nextReleaseAt ? ` · próxima liberação a partir de ${new Date(points.nextReleaseAt).toLocaleDateString('pt-BR')}` : ' · aguardando liberação do programa'}</Text> : null}</Pressable>
         </ImageBackground>
         <View style={styles.body}>
           {loading ? <View style={styles.state}><ActivityIndicator color={colors.primary} accessibilityLabel="Carregando trilha" /></View> : error ? <View style={styles.state}><Text accessibilityRole="alert" style={styles.description}>{error}</Text><Button title="Tentar novamente" onPress={() => setAttempt(value => value + 1)} /></View> : <>
@@ -166,6 +171,7 @@ export default function TrailScreen() {
             {trails.length > 1 ? <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.trailSelector}>{trails.map(item => <Pressable key={item.id} accessibilityRole="button" accessibilityState={{ selected: item.id === trail?.id }} onPress={() => setSelected(item.id)} style={[styles.trailChip, item.id === trail?.id && styles.selectedChip]}><Text style={[styles.chipText, item.id === trail?.id && styles.yellow]}>{item.title}</Text></Pressable>)}</ScrollView> : null}
             {trail ? <>
               <Text accessibilityRole="header" style={styles.trailHeading}>{trail.title}</Text>
+              {completion ? <View style={styles.continueCard}><View style={styles.continueCopy}><Text style={styles.noticeText}>{completion.finalExam.status === 'APPROVED' ? 'Trilha aprovada!' : 'Prova final e certificado'}</Text><Text style={styles.pointsLabel}>{completion.completedModules} de {completion.totalModules} módulos concluídos{completion.certificate ? ' · selo conquistado' : ''}</Text></View><Button title={completion.certificate ? 'Ver certificado' : 'Ver conclusão'} outline onPress={() => router.push({ pathname: '/modulo/prova-final', params: { trailId: trail.id } })} /></View> : null}
               {modules.length ? <TrailPath modules={modules} onSelect={openModule} /> : <Text style={[styles.description, styles.state]}>Esta trilha ainda não tem módulos disponíveis.</Text>}
             </> : <Text style={[styles.description, styles.state]}>Novas trilhas estarão disponíveis em breve. Puxe para atualizar.</Text>}
           </>}
@@ -178,8 +184,8 @@ export default function TrailScreen() {
         <Pressable accessibilityRole="tab" accessibilityLabel="Perfil" onPress={() => router.push('/perfil')} style={styles.navItem}><AppIcon name="user" /><Text style={styles.navLabel}>Perfil</Text></Pressable>
       </View></View>
     </SafeAreaView>
-    <ReportBlockedModal visible={panel === 'report' && reportsLocked} available={!!firstModule} minutes={firstModule?.durationMinutes} onClose={() => setPanel(null)} onModule={() => { if (firstModule) openModule(firstModule) }} />
-    <Modal visible={panel !== null && !(panel === 'report' && reportsLocked)} transparent animationType="slide" onRequestClose={() => setPanel(null)}>
+    <ReportBlockedModal visible={panel === 'report' && !loading && reportsLocked} available={!!firstModule} minutes={firstModule?.durationMinutes} onClose={() => setPanel(null)} onModule={() => { if (firstModule) openModule(firstModule) }} />
+    <Modal visible={panel !== null && !(panel === 'report' && (reportsLocked || loading))} transparent animationType="slide" onRequestClose={() => setPanel(null)}>
       <View style={styles.overlay}><SafeAreaView edges={['bottom']} style={styles.sheet}><ScrollView contentContainerStyle={styles.sheetContent}>
         <View style={styles.sheetHeader}><Text accessibilityRole="header" style={styles.sheetTitle}>{panel === 'help' ? 'Ajuda e segurança' : panel === 'profile' ? 'Seu perfil' : panel === 'ranking' ? 'Ranking' : 'Reportar risco'}</Text><Pressable accessibilityRole="button" accessibilityLabel="Fechar" onPress={() => setPanel(null)} hitSlop={12}><Text style={styles.close}>×</Text></Pressable></View>
         {panelLoading ? <ActivityIndicator color={colors.primary} accessibilityLabel="Carregando" /> : null}

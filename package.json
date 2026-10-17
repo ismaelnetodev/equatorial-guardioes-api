@@ -12,7 +12,7 @@
   "scripts": {
     "dev:api": "npm run dev --workspace apps/api",
     "admin:user": "npm run admin:user --workspace apps/api",
-    "dev:mobile": "npm run start --workspace apps/mobile",
+    "dev:mobile": "npm run start --workspace apps/mobile --",
     "dev:web": "npm run web --workspace apps/mobile",
     "start:api": "npm run start --workspace apps/api",
     "build:api": "npm run build --workspace apps/api",
@@ -22,6 +22,7 @@
     "test": "npm run test --workspaces --if-present",
     "test:watch": "npm run test:watch --workspace apps/api",
     "db:generate": "npm run db:generate --workspace apps/api",
+    "db:seed:demo": "npm run db:seed:demo --workspace apps/api",
     "db:deploy": "npm run db:deploy --workspace apps/api",
     "db:migrate": "npm run db:migrate --workspace apps/api --",
     "db:studio": "npm run db:studio --workspace apps/api",

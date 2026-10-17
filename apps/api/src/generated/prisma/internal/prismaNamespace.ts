@@ -415,7 +415,13 @@ export const ModelName = {
   Report: 'Report',
   ReportTimelineEvent: 'ReportTimelineEvent',
   ProgramConfiguration: 'ProgramConfiguration',
-  ProgramConfigurationChange: 'ProgramConfigurationChange'
+  ProgramConfigurationChange: 'ProgramConfigurationChange',
+  ReportLegacyPointsAudit: 'ReportLegacyPointsAudit',
+  LearningAward: 'LearningAward',
+  FinalExamAttempt: 'FinalExamAttempt',
+  TrailCertificate: 'TrailCertificate',
+  LearningLegacyPointsAudit: 'LearningLegacyPointsAudit',
+  QuizAttemptReconciliation: 'QuizAttemptReconciliation'
 } as const
 
 export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -1841,6 +1847,450 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
         }
       }
     }
+    ReportLegacyPointsAudit: {
+      payload: Prisma.$ReportLegacyPointsAuditPayload<ExtArgs>
+      fields: Prisma.ReportLegacyPointsAuditFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.ReportLegacyPointsAuditFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ReportLegacyPointsAuditPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.ReportLegacyPointsAuditFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ReportLegacyPointsAuditPayload>
+        }
+        findFirst: {
+          args: Prisma.ReportLegacyPointsAuditFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ReportLegacyPointsAuditPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.ReportLegacyPointsAuditFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ReportLegacyPointsAuditPayload>
+        }
+        findMany: {
+          args: Prisma.ReportLegacyPointsAuditFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ReportLegacyPointsAuditPayload>[]
+        }
+        create: {
+          args: Prisma.ReportLegacyPointsAuditCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ReportLegacyPointsAuditPayload>
+        }
+        createMany: {
+          args: Prisma.ReportLegacyPointsAuditCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.ReportLegacyPointsAuditCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ReportLegacyPointsAuditPayload>[]
+        }
+        delete: {
+          args: Prisma.ReportLegacyPointsAuditDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ReportLegacyPointsAuditPayload>
+        }
+        update: {
+          args: Prisma.ReportLegacyPointsAuditUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ReportLegacyPointsAuditPayload>
+        }
+        deleteMany: {
+          args: Prisma.ReportLegacyPointsAuditDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.ReportLegacyPointsAuditUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.ReportLegacyPointsAuditUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ReportLegacyPointsAuditPayload>[]
+        }
+        upsert: {
+          args: Prisma.ReportLegacyPointsAuditUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ReportLegacyPointsAuditPayload>
+        }
+        aggregate: {
+          args: Prisma.ReportLegacyPointsAuditAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateReportLegacyPointsAudit>
+        }
+        groupBy: {
+          args: Prisma.ReportLegacyPointsAuditGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.ReportLegacyPointsAuditGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.ReportLegacyPointsAuditCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.ReportLegacyPointsAuditCountAggregateOutputType> | number
+        }
+      }
+    }
+    LearningAward: {
+      payload: Prisma.$LearningAwardPayload<ExtArgs>
+      fields: Prisma.LearningAwardFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.LearningAwardFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$LearningAwardPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.LearningAwardFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$LearningAwardPayload>
+        }
+        findFirst: {
+          args: Prisma.LearningAwardFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$LearningAwardPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.LearningAwardFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$LearningAwardPayload>
+        }
+        findMany: {
+          args: Prisma.LearningAwardFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$LearningAwardPayload>[]
+        }
+        create: {
+          args: Prisma.LearningAwardCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$LearningAwardPayload>
+        }
+        createMany: {
+          args: Prisma.LearningAwardCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.LearningAwardCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$LearningAwardPayload>[]
+        }
+        delete: {
+          args: Prisma.LearningAwardDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$LearningAwardPayload>
+        }
+        update: {
+          args: Prisma.LearningAwardUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$LearningAwardPayload>
+        }
+        deleteMany: {
+          args: Prisma.LearningAwardDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.LearningAwardUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.LearningAwardUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$LearningAwardPayload>[]
+        }
+        upsert: {
+          args: Prisma.LearningAwardUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$LearningAwardPayload>
+        }
+        aggregate: {
+          args: Prisma.LearningAwardAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateLearningAward>
+        }
+        groupBy: {
+          args: Prisma.LearningAwardGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.LearningAwardGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.LearningAwardCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.LearningAwardCountAggregateOutputType> | number
+        }
+      }
+    }
+    FinalExamAttempt: {
+      payload: Prisma.$FinalExamAttemptPayload<ExtArgs>
+      fields: Prisma.FinalExamAttemptFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.FinalExamAttemptFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$FinalExamAttemptPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.FinalExamAttemptFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$FinalExamAttemptPayload>
+        }
+        findFirst: {
+          args: Prisma.FinalExamAttemptFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$FinalExamAttemptPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.FinalExamAttemptFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$FinalExamAttemptPayload>
+        }
+        findMany: {
+          args: Prisma.FinalExamAttemptFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$FinalExamAttemptPayload>[]
+        }
+        create: {
+          args: Prisma.FinalExamAttemptCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$FinalExamAttemptPayload>
+        }
+        createMany: {
+          args: Prisma.FinalExamAttemptCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.FinalExamAttemptCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$FinalExamAttemptPayload>[]
+        }
+        delete: {
+          args: Prisma.FinalExamAttemptDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$FinalExamAttemptPayload>
+        }
+        update: {
+          args: Prisma.FinalExamAttemptUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$FinalExamAttemptPayload>
+        }
+        deleteMany: {
+          args: Prisma.FinalExamAttemptDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.FinalExamAttemptUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.FinalExamAttemptUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$FinalExamAttemptPayload>[]
+        }
+        upsert: {
+          args: Prisma.FinalExamAttemptUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$FinalExamAttemptPayload>
+        }
+        aggregate: {
+          args: Prisma.FinalExamAttemptAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateFinalExamAttempt>
+        }
+        groupBy: {
+          args: Prisma.FinalExamAttemptGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.FinalExamAttemptGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.FinalExamAttemptCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.FinalExamAttemptCountAggregateOutputType> | number
+        }
+      }
+    }
+    TrailCertificate: {
+      payload: Prisma.$TrailCertificatePayload<ExtArgs>
+      fields: Prisma.TrailCertificateFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.TrailCertificateFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TrailCertificatePayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.TrailCertificateFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TrailCertificatePayload>
+        }
+        findFirst: {
+          args: Prisma.TrailCertificateFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TrailCertificatePayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.TrailCertificateFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TrailCertificatePayload>
+        }
+        findMany: {
+          args: Prisma.TrailCertificateFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TrailCertificatePayload>[]
+        }
+        create: {
+          args: Prisma.TrailCertificateCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TrailCertificatePayload>
+        }
+        createMany: {
+          args: Prisma.TrailCertificateCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.TrailCertificateCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TrailCertificatePayload>[]
+        }
+        delete: {
+          args: Prisma.TrailCertificateDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TrailCertificatePayload>
+        }
+        update: {
+          args: Prisma.TrailCertificateUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TrailCertificatePayload>
+        }
+        deleteMany: {
+          args: Prisma.TrailCertificateDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.TrailCertificateUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.TrailCertificateUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TrailCertificatePayload>[]
+        }
+        upsert: {
+          args: Prisma.TrailCertificateUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TrailCertificatePayload>
+        }
+        aggregate: {
+          args: Prisma.TrailCertificateAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateTrailCertificate>
+        }
+        groupBy: {
+          args: Prisma.TrailCertificateGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.TrailCertificateGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.TrailCertificateCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.TrailCertificateCountAggregateOutputType> | number
+        }
+      }
+    }
+    LearningLegacyPointsAudit: {
+      payload: Prisma.$LearningLegacyPointsAuditPayload<ExtArgs>
+      fields: Prisma.LearningLegacyPointsAuditFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.LearningLegacyPointsAuditFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$LearningLegacyPointsAuditPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.LearningLegacyPointsAuditFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$LearningLegacyPointsAuditPayload>
+        }
+        findFirst: {
+          args: Prisma.LearningLegacyPointsAuditFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$LearningLegacyPointsAuditPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.LearningLegacyPointsAuditFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$LearningLegacyPointsAuditPayload>
+        }
+        findMany: {
+          args: Prisma.LearningLegacyPointsAuditFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$LearningLegacyPointsAuditPayload>[]
+        }
+        create: {
+          args: Prisma.LearningLegacyPointsAuditCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$LearningLegacyPointsAuditPayload>
+        }
+        createMany: {
+          args: Prisma.LearningLegacyPointsAuditCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.LearningLegacyPointsAuditCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$LearningLegacyPointsAuditPayload>[]
+        }
+        delete: {
+          args: Prisma.LearningLegacyPointsAuditDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$LearningLegacyPointsAuditPayload>
+        }
+        update: {
+          args: Prisma.LearningLegacyPointsAuditUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$LearningLegacyPointsAuditPayload>
+        }
+        deleteMany: {
+          args: Prisma.LearningLegacyPointsAuditDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.LearningLegacyPointsAuditUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.LearningLegacyPointsAuditUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$LearningLegacyPointsAuditPayload>[]
+        }
+        upsert: {
+          args: Prisma.LearningLegacyPointsAuditUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$LearningLegacyPointsAuditPayload>
+        }
+        aggregate: {
+          args: Prisma.LearningLegacyPointsAuditAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateLearningLegacyPointsAudit>
+        }
+        groupBy: {
+          args: Prisma.LearningLegacyPointsAuditGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.LearningLegacyPointsAuditGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.LearningLegacyPointsAuditCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.LearningLegacyPointsAuditCountAggregateOutputType> | number
+        }
+      }
+    }
+    QuizAttemptReconciliation: {
+      payload: Prisma.$QuizAttemptReconciliationPayload<ExtArgs>
+      fields: Prisma.QuizAttemptReconciliationFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.QuizAttemptReconciliationFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$QuizAttemptReconciliationPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.QuizAttemptReconciliationFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$QuizAttemptReconciliationPayload>
+        }
+        findFirst: {
+          args: Prisma.QuizAttemptReconciliationFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$QuizAttemptReconciliationPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.QuizAttemptReconciliationFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$QuizAttemptReconciliationPayload>
+        }
+        findMany: {
+          args: Prisma.QuizAttemptReconciliationFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$QuizAttemptReconciliationPayload>[]
+        }
+        create: {
+          args: Prisma.QuizAttemptReconciliationCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$QuizAttemptReconciliationPayload>
+        }
+        createMany: {
+          args: Prisma.QuizAttemptReconciliationCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.QuizAttemptReconciliationCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$QuizAttemptReconciliationPayload>[]
+        }
+        delete: {
+          args: Prisma.QuizAttemptReconciliationDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$QuizAttemptReconciliationPayload>
+        }
+        update: {
+          args: Prisma.QuizAttemptReconciliationUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$QuizAttemptReconciliationPayload>
+        }
+        deleteMany: {
+          args: Prisma.QuizAttemptReconciliationDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.QuizAttemptReconciliationUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.QuizAttemptReconciliationUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$QuizAttemptReconciliationPayload>[]
+        }
+        upsert: {
+          args: Prisma.QuizAttemptReconciliationUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$QuizAttemptReconciliationPayload>
+        }
+        aggregate: {
+          args: Prisma.QuizAttemptReconciliationAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateQuizAttemptReconciliation>
+        }
+        groupBy: {
+          args: Prisma.QuizAttemptReconciliationGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.QuizAttemptReconciliationGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.QuizAttemptReconciliationCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.QuizAttemptReconciliationCountAggregateOutputType> | number
+        }
+      }
+    }
   }
 } & {
   other: {
@@ -2044,6 +2494,8 @@ export const QuizAttemptScalarFieldEnum = {
   score: 'score',
   isApproved: 'isApproved',
   pointsAwarded: 'pointsAwarded',
+  minimumCorrect: 'minimumCorrect',
+  supersededAt: 'supersededAt',
   finishedAt: 'finishedAt',
   submittedAt: 'submittedAt'
 } as const
@@ -2104,6 +2556,8 @@ export const ReportScalarFieldEnum = {
   status: 'status',
   urgency: 'urgency',
   pointsAwarded: 'pointsAwarded',
+  confirmedRisk: 'confirmedRisk',
+  validatedAt: 'validatedAt',
   impactSeenAt: 'impactSeenAt',
   submittedAt: 'submittedAt',
   createdAt: 'createdAt',
@@ -2149,6 +2603,80 @@ export const ProgramConfigurationChangeScalarFieldEnum = {
 } as const
 
 export type ProgramConfigurationChangeScalarFieldEnum = (typeof ProgramConfigurationChangeScalarFieldEnum)[keyof typeof ProgramConfigurationChangeScalarFieldEnum]
+
+
+export const ReportLegacyPointsAuditScalarFieldEnum = {
+  reportId: 'reportId',
+  userId: 'userId',
+  status: 'status',
+  urgency: 'urgency',
+  pointsAwarded: 'pointsAwarded',
+  reconciledAt: 'reconciledAt'
+} as const
+
+export type ReportLegacyPointsAuditScalarFieldEnum = (typeof ReportLegacyPointsAuditScalarFieldEnum)[keyof typeof ReportLegacyPointsAuditScalarFieldEnum]
+
+
+export const LearningAwardScalarFieldEnum = {
+  id: 'id',
+  userId: 'userId',
+  ruleKey: 'ruleKey',
+  sourceId: 'sourceId',
+  moduleId: 'moduleId',
+  trailId: 'trailId',
+  points: 'points',
+  grantedAt: 'grantedAt',
+  createdAt: 'createdAt'
+} as const
+
+export type LearningAwardScalarFieldEnum = (typeof LearningAwardScalarFieldEnum)[keyof typeof LearningAwardScalarFieldEnum]
+
+
+export const FinalExamAttemptScalarFieldEnum = {
+  id: 'id',
+  userId: 'userId',
+  trailId: 'trailId',
+  correctCount: 'correctCount',
+  totalCount: 'totalCount',
+  minimumCorrect: 'minimumCorrect',
+  isApproved: 'isApproved',
+  pointsAwarded: 'pointsAwarded',
+  submittedAt: 'submittedAt'
+} as const
+
+export type FinalExamAttemptScalarFieldEnum = (typeof FinalExamAttemptScalarFieldEnum)[keyof typeof FinalExamAttemptScalarFieldEnum]
+
+
+export const TrailCertificateScalarFieldEnum = {
+  id: 'id',
+  userId: 'userId',
+  trailId: 'trailId',
+  holderName: 'holderName',
+  trailTitle: 'trailTitle',
+  issuedAt: 'issuedAt'
+} as const
+
+export type TrailCertificateScalarFieldEnum = (typeof TrailCertificateScalarFieldEnum)[keyof typeof TrailCertificateScalarFieldEnum]
+
+
+export const LearningLegacyPointsAuditScalarFieldEnum = {
+  sourceId: 'sourceId',
+  sourceType: 'sourceType',
+  points: 'points',
+  reconciledAt: 'reconciledAt'
+} as const
+
+export type LearningLegacyPointsAuditScalarFieldEnum = (typeof LearningLegacyPointsAuditScalarFieldEnum)[keyof typeof LearningLegacyPointsAuditScalarFieldEnum]
+
+
+export const QuizAttemptReconciliationScalarFieldEnum = {
+  attemptId: 'attemptId',
+  retainedAttemptId: 'retainedAttemptId',
+  previousState: 'previousState',
+  reconciledAt: 'reconciledAt'
+} as const
+
+export type QuizAttemptReconciliationScalarFieldEnum = (typeof QuizAttemptReconciliationScalarFieldEnum)[keyof typeof QuizAttemptReconciliationScalarFieldEnum]
 
 
 export const SortOrder = {
@@ -2577,6 +3105,12 @@ export type GlobalOmitConfig = {
   reportTimelineEvent?: Prisma.ReportTimelineEventOmit
   programConfiguration?: Prisma.ProgramConfigurationOmit
   programConfigurationChange?: Prisma.ProgramConfigurationChangeOmit
+  reportLegacyPointsAudit?: Prisma.ReportLegacyPointsAuditOmit
+  learningAward?: Prisma.LearningAwardOmit
+  finalExamAttempt?: Prisma.FinalExamAttemptOmit
+  trailCertificate?: Prisma.TrailCertificateOmit
+  learningLegacyPointsAudit?: Prisma.LearningLegacyPointsAuditOmit
+  quizAttemptReconciliation?: Prisma.QuizAttemptReconciliationOmit
 }
 
 /* Types for Logging */

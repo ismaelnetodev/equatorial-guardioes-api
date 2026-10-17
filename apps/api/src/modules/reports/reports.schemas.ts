@@ -105,6 +105,8 @@ export const impactMessageSchema = Type.Object({
   neighborhood: Type.String(),
 }, { additionalProperties: false })
 
+export const pendingImpactResponseSchema = Type.Union([impactMessageSchema, Type.Null()])
+
 export const impactSeenResponseSchema = Type.Object({
   reportId: uuid,
   impactSeenAt: Type.String({ format: 'date-time' }),
@@ -112,6 +114,7 @@ export const impactSeenResponseSchema = Type.Object({
 
 export const adminReportStatusBodySchema = Type.Object({
   status: reportStatusCodeSchema,
+  confirmedRisk: Type.Optional(reportUrgencySchema),
 }, { additionalProperties: false })
 export type AdminReportStatusBody = Static<typeof adminReportStatusBodySchema>
 

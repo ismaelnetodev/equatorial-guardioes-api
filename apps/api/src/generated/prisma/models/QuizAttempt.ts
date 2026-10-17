@@ -31,6 +31,7 @@ export type QuizAttemptAvgAggregateOutputType = {
   totalCount: number | null
   score: number | null
   pointsAwarded: number | null
+  minimumCorrect: number | null
 }
 
 export type QuizAttemptSumAggregateOutputType = {
@@ -38,6 +39,7 @@ export type QuizAttemptSumAggregateOutputType = {
   totalCount: number | null
   score: number | null
   pointsAwarded: number | null
+  minimumCorrect: number | null
 }
 
 export type QuizAttemptMinAggregateOutputType = {
@@ -49,6 +51,8 @@ export type QuizAttemptMinAggregateOutputType = {
   score: number | null
   isApproved: boolean | null
   pointsAwarded: number | null
+  minimumCorrect: number | null
+  supersededAt: Date | null
   finishedAt: Date | null
   submittedAt: Date | null
 }
@@ -62,6 +66,8 @@ export type QuizAttemptMaxAggregateOutputType = {
   score: number | null
   isApproved: boolean | null
   pointsAwarded: number | null
+  minimumCorrect: number | null
+  supersededAt: Date | null
   finishedAt: Date | null
   submittedAt: Date | null
 }
@@ -75,6 +81,8 @@ export type QuizAttemptCountAggregateOutputType = {
   score: number
   isApproved: number
   pointsAwarded: number
+  minimumCorrect: number
+  supersededAt: number
   finishedAt: number
   submittedAt: number
   _all: number
@@ -86,6 +94,7 @@ export type QuizAttemptAvgAggregateInputType = {
   totalCount?: true
   score?: true
   pointsAwarded?: true
+  minimumCorrect?: true
 }
 
 export type QuizAttemptSumAggregateInputType = {
@@ -93,6 +102,7 @@ export type QuizAttemptSumAggregateInputType = {
   totalCount?: true
   score?: true
   pointsAwarded?: true
+  minimumCorrect?: true
 }
 
 export type QuizAttemptMinAggregateInputType = {
@@ -104,6 +114,8 @@ export type QuizAttemptMinAggregateInputType = {
   score?: true
   isApproved?: true
   pointsAwarded?: true
+  minimumCorrect?: true
+  supersededAt?: true
   finishedAt?: true
   submittedAt?: true
 }
@@ -117,6 +129,8 @@ export type QuizAttemptMaxAggregateInputType = {
   score?: true
   isApproved?: true
   pointsAwarded?: true
+  minimumCorrect?: true
+  supersededAt?: true
   finishedAt?: true
   submittedAt?: true
 }
@@ -130,6 +144,8 @@ export type QuizAttemptCountAggregateInputType = {
   score?: true
   isApproved?: true
   pointsAwarded?: true
+  minimumCorrect?: true
+  supersededAt?: true
   finishedAt?: true
   submittedAt?: true
   _all?: true
@@ -230,6 +246,8 @@ export type QuizAttemptGroupByOutputType = {
   score: number
   isApproved: boolean
   pointsAwarded: number
+  minimumCorrect: number | null
+  supersededAt: Date | null
   finishedAt: Date | null
   submittedAt: Date
   _count: QuizAttemptCountAggregateOutputType | null
@@ -266,6 +284,8 @@ export type QuizAttemptWhereInput = {
   score?: Prisma.FloatFilter<"QuizAttempt"> | number
   isApproved?: Prisma.BoolFilter<"QuizAttempt"> | boolean
   pointsAwarded?: Prisma.IntFilter<"QuizAttempt"> | number
+  minimumCorrect?: Prisma.IntNullableFilter<"QuizAttempt"> | number | null
+  supersededAt?: Prisma.DateTimeNullableFilter<"QuizAttempt"> | Date | string | null
   finishedAt?: Prisma.DateTimeNullableFilter<"QuizAttempt"> | Date | string | null
   submittedAt?: Prisma.DateTimeFilter<"QuizAttempt"> | Date | string
   progress?: Prisma.XOR<Prisma.ModuleProgressScalarRelationFilter, Prisma.ModuleProgressWhereInput>
@@ -281,6 +301,8 @@ export type QuizAttemptOrderByWithRelationInput = {
   score?: Prisma.SortOrder
   isApproved?: Prisma.SortOrder
   pointsAwarded?: Prisma.SortOrder
+  minimumCorrect?: Prisma.SortOrderInput | Prisma.SortOrder
+  supersededAt?: Prisma.SortOrderInput | Prisma.SortOrder
   finishedAt?: Prisma.SortOrderInput | Prisma.SortOrder
   submittedAt?: Prisma.SortOrder
   progress?: Prisma.ModuleProgressOrderByWithRelationInput
@@ -299,6 +321,8 @@ export type QuizAttemptWhereUniqueInput = Prisma.AtLeast<{
   score?: Prisma.FloatFilter<"QuizAttempt"> | number
   isApproved?: Prisma.BoolFilter<"QuizAttempt"> | boolean
   pointsAwarded?: Prisma.IntFilter<"QuizAttempt"> | number
+  minimumCorrect?: Prisma.IntNullableFilter<"QuizAttempt"> | number | null
+  supersededAt?: Prisma.DateTimeNullableFilter<"QuizAttempt"> | Date | string | null
   finishedAt?: Prisma.DateTimeNullableFilter<"QuizAttempt"> | Date | string | null
   submittedAt?: Prisma.DateTimeFilter<"QuizAttempt"> | Date | string
   progress?: Prisma.XOR<Prisma.ModuleProgressScalarRelationFilter, Prisma.ModuleProgressWhereInput>
@@ -314,6 +338,8 @@ export type QuizAttemptOrderByWithAggregationInput = {
   score?: Prisma.SortOrder
   isApproved?: Prisma.SortOrder
   pointsAwarded?: Prisma.SortOrder
+  minimumCorrect?: Prisma.SortOrderInput | Prisma.SortOrder
+  supersededAt?: Prisma.SortOrderInput | Prisma.SortOrder
   finishedAt?: Prisma.SortOrderInput | Prisma.SortOrder
   submittedAt?: Prisma.SortOrder
   _count?: Prisma.QuizAttemptCountOrderByAggregateInput
@@ -335,6 +361,8 @@ export type QuizAttemptScalarWhereWithAggregatesInput = {
   score?: Prisma.FloatWithAggregatesFilter<"QuizAttempt"> | number
   isApproved?: Prisma.BoolWithAggregatesFilter<"QuizAttempt"> | boolean
   pointsAwarded?: Prisma.IntWithAggregatesFilter<"QuizAttempt"> | number
+  minimumCorrect?: Prisma.IntNullableWithAggregatesFilter<"QuizAttempt"> | number | null
+  supersededAt?: Prisma.DateTimeNullableWithAggregatesFilter<"QuizAttempt"> | Date | string | null
   finishedAt?: Prisma.DateTimeNullableWithAggregatesFilter<"QuizAttempt"> | Date | string | null
   submittedAt?: Prisma.DateTimeWithAggregatesFilter<"QuizAttempt"> | Date | string
 }
@@ -347,6 +375,8 @@ export type QuizAttemptCreateInput = {
   score: number
   isApproved: boolean
   pointsAwarded?: number
+  minimumCorrect?: number | null
+  supersededAt?: Date | string | null
   finishedAt?: Date | string | null
   submittedAt?: Date | string
   progress: Prisma.ModuleProgressCreateNestedOneWithoutAttemptsInput
@@ -362,6 +392,8 @@ export type QuizAttemptUncheckedCreateInput = {
   score: number
   isApproved: boolean
   pointsAwarded?: number
+  minimumCorrect?: number | null
+  supersededAt?: Date | string | null
   finishedAt?: Date | string | null
   submittedAt?: Date | string
   answers?: Prisma.QuizAnswerUncheckedCreateNestedManyWithoutAttemptInput
@@ -375,6 +407,8 @@ export type QuizAttemptUpdateInput = {
   score?: Prisma.FloatFieldUpdateOperationsInput | number
   isApproved?: Prisma.BoolFieldUpdateOperationsInput | boolean
   pointsAwarded?: Prisma.IntFieldUpdateOperationsInput | number
+  minimumCorrect?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  supersededAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   finishedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   submittedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   progress?: Prisma.ModuleProgressUpdateOneRequiredWithoutAttemptsNestedInput
@@ -390,6 +424,8 @@ export type QuizAttemptUncheckedUpdateInput = {
   score?: Prisma.FloatFieldUpdateOperationsInput | number
   isApproved?: Prisma.BoolFieldUpdateOperationsInput | boolean
   pointsAwarded?: Prisma.IntFieldUpdateOperationsInput | number
+  minimumCorrect?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  supersededAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   finishedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   submittedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   answers?: Prisma.QuizAnswerUncheckedUpdateManyWithoutAttemptNestedInput
@@ -404,6 +440,8 @@ export type QuizAttemptCreateManyInput = {
   score: number
   isApproved: boolean
   pointsAwarded?: number
+  minimumCorrect?: number | null
+  supersededAt?: Date | string | null
   finishedAt?: Date | string | null
   submittedAt?: Date | string
 }
@@ -416,6 +454,8 @@ export type QuizAttemptUpdateManyMutationInput = {
   score?: Prisma.FloatFieldUpdateOperationsInput | number
   isApproved?: Prisma.BoolFieldUpdateOperationsInput | boolean
   pointsAwarded?: Prisma.IntFieldUpdateOperationsInput | number
+  minimumCorrect?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  supersededAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   finishedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   submittedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -429,6 +469,8 @@ export type QuizAttemptUncheckedUpdateManyInput = {
   score?: Prisma.FloatFieldUpdateOperationsInput | number
   isApproved?: Prisma.BoolFieldUpdateOperationsInput | boolean
   pointsAwarded?: Prisma.IntFieldUpdateOperationsInput | number
+  minimumCorrect?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  supersededAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   finishedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   submittedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -452,6 +494,8 @@ export type QuizAttemptCountOrderByAggregateInput = {
   score?: Prisma.SortOrder
   isApproved?: Prisma.SortOrder
   pointsAwarded?: Prisma.SortOrder
+  minimumCorrect?: Prisma.SortOrder
+  supersededAt?: Prisma.SortOrder
   finishedAt?: Prisma.SortOrder
   submittedAt?: Prisma.SortOrder
 }
@@ -461,6 +505,7 @@ export type QuizAttemptAvgOrderByAggregateInput = {
   totalCount?: Prisma.SortOrder
   score?: Prisma.SortOrder
   pointsAwarded?: Prisma.SortOrder
+  minimumCorrect?: Prisma.SortOrder
 }
 
 export type QuizAttemptMaxOrderByAggregateInput = {
@@ -472,6 +517,8 @@ export type QuizAttemptMaxOrderByAggregateInput = {
   score?: Prisma.SortOrder
   isApproved?: Prisma.SortOrder
   pointsAwarded?: Prisma.SortOrder
+  minimumCorrect?: Prisma.SortOrder
+  supersededAt?: Prisma.SortOrder
   finishedAt?: Prisma.SortOrder
   submittedAt?: Prisma.SortOrder
 }
@@ -485,6 +532,8 @@ export type QuizAttemptMinOrderByAggregateInput = {
   score?: Prisma.SortOrder
   isApproved?: Prisma.SortOrder
   pointsAwarded?: Prisma.SortOrder
+  minimumCorrect?: Prisma.SortOrder
+  supersededAt?: Prisma.SortOrder
   finishedAt?: Prisma.SortOrder
   submittedAt?: Prisma.SortOrder
 }
@@ -494,6 +543,7 @@ export type QuizAttemptSumOrderByAggregateInput = {
   totalCount?: Prisma.SortOrder
   score?: Prisma.SortOrder
   pointsAwarded?: Prisma.SortOrder
+  minimumCorrect?: Prisma.SortOrder
 }
 
 export type QuizAttemptScalarRelationFilter = {
@@ -577,6 +627,8 @@ export type QuizAttemptCreateWithoutProgressInput = {
   score: number
   isApproved: boolean
   pointsAwarded?: number
+  minimumCorrect?: number | null
+  supersededAt?: Date | string | null
   finishedAt?: Date | string | null
   submittedAt?: Date | string
   answers?: Prisma.QuizAnswerCreateNestedManyWithoutAttemptInput
@@ -590,6 +642,8 @@ export type QuizAttemptUncheckedCreateWithoutProgressInput = {
   score: number
   isApproved: boolean
   pointsAwarded?: number
+  minimumCorrect?: number | null
+  supersededAt?: Date | string | null
   finishedAt?: Date | string | null
   submittedAt?: Date | string
   answers?: Prisma.QuizAnswerUncheckedCreateNestedManyWithoutAttemptInput
@@ -633,6 +687,8 @@ export type QuizAttemptScalarWhereInput = {
   score?: Prisma.FloatFilter<"QuizAttempt"> | number
   isApproved?: Prisma.BoolFilter<"QuizAttempt"> | boolean
   pointsAwarded?: Prisma.IntFilter<"QuizAttempt"> | number
+  minimumCorrect?: Prisma.IntNullableFilter<"QuizAttempt"> | number | null
+  supersededAt?: Prisma.DateTimeNullableFilter<"QuizAttempt"> | Date | string | null
   finishedAt?: Prisma.DateTimeNullableFilter<"QuizAttempt"> | Date | string | null
   submittedAt?: Prisma.DateTimeFilter<"QuizAttempt"> | Date | string
 }
@@ -645,6 +701,8 @@ export type QuizAttemptCreateWithoutAnswersInput = {
   score: number
   isApproved: boolean
   pointsAwarded?: number
+  minimumCorrect?: number | null
+  supersededAt?: Date | string | null
   finishedAt?: Date | string | null
   submittedAt?: Date | string
   progress: Prisma.ModuleProgressCreateNestedOneWithoutAttemptsInput
@@ -659,6 +717,8 @@ export type QuizAttemptUncheckedCreateWithoutAnswersInput = {
   score: number
   isApproved: boolean
   pointsAwarded?: number
+  minimumCorrect?: number | null
+  supersededAt?: Date | string | null
   finishedAt?: Date | string | null
   submittedAt?: Date | string
 }
@@ -687,6 +747,8 @@ export type QuizAttemptUpdateWithoutAnswersInput = {
   score?: Prisma.FloatFieldUpdateOperationsInput | number
   isApproved?: Prisma.BoolFieldUpdateOperationsInput | boolean
   pointsAwarded?: Prisma.IntFieldUpdateOperationsInput | number
+  minimumCorrect?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  supersededAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   finishedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   submittedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   progress?: Prisma.ModuleProgressUpdateOneRequiredWithoutAttemptsNestedInput
@@ -701,6 +763,8 @@ export type QuizAttemptUncheckedUpdateWithoutAnswersInput = {
   score?: Prisma.FloatFieldUpdateOperationsInput | number
   isApproved?: Prisma.BoolFieldUpdateOperationsInput | boolean
   pointsAwarded?: Prisma.IntFieldUpdateOperationsInput | number
+  minimumCorrect?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  supersededAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   finishedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   submittedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -713,6 +777,8 @@ export type QuizAttemptCreateManyProgressInput = {
   score: number
   isApproved: boolean
   pointsAwarded?: number
+  minimumCorrect?: number | null
+  supersededAt?: Date | string | null
   finishedAt?: Date | string | null
   submittedAt?: Date | string
 }
@@ -725,6 +791,8 @@ export type QuizAttemptUpdateWithoutProgressInput = {
   score?: Prisma.FloatFieldUpdateOperationsInput | number
   isApproved?: Prisma.BoolFieldUpdateOperationsInput | boolean
   pointsAwarded?: Prisma.IntFieldUpdateOperationsInput | number
+  minimumCorrect?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  supersededAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   finishedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   submittedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   answers?: Prisma.QuizAnswerUpdateManyWithoutAttemptNestedInput
@@ -738,6 +806,8 @@ export type QuizAttemptUncheckedUpdateWithoutProgressInput = {
   score?: Prisma.FloatFieldUpdateOperationsInput | number
   isApproved?: Prisma.BoolFieldUpdateOperationsInput | boolean
   pointsAwarded?: Prisma.IntFieldUpdateOperationsInput | number
+  minimumCorrect?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  supersededAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   finishedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   submittedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   answers?: Prisma.QuizAnswerUncheckedUpdateManyWithoutAttemptNestedInput
@@ -751,6 +821,8 @@ export type QuizAttemptUncheckedUpdateManyWithoutProgressInput = {
   score?: Prisma.FloatFieldUpdateOperationsInput | number
   isApproved?: Prisma.BoolFieldUpdateOperationsInput | boolean
   pointsAwarded?: Prisma.IntFieldUpdateOperationsInput | number
+  minimumCorrect?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  supersededAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   finishedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   submittedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -795,6 +867,8 @@ export type QuizAttemptSelect<ExtArgs extends runtime.Types.Extensions.InternalA
   score?: boolean
   isApproved?: boolean
   pointsAwarded?: boolean
+  minimumCorrect?: boolean
+  supersededAt?: boolean
   finishedAt?: boolean
   submittedAt?: boolean
   progress?: boolean | Prisma.ModuleProgressDefaultArgs<ExtArgs>
@@ -811,6 +885,8 @@ export type QuizAttemptSelectCreateManyAndReturn<ExtArgs extends runtime.Types.E
   score?: boolean
   isApproved?: boolean
   pointsAwarded?: boolean
+  minimumCorrect?: boolean
+  supersededAt?: boolean
   finishedAt?: boolean
   submittedAt?: boolean
   progress?: boolean | Prisma.ModuleProgressDefaultArgs<ExtArgs>
@@ -825,6 +901,8 @@ export type QuizAttemptSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.E
   score?: boolean
   isApproved?: boolean
   pointsAwarded?: boolean
+  minimumCorrect?: boolean
+  supersededAt?: boolean
   finishedAt?: boolean
   submittedAt?: boolean
   progress?: boolean | Prisma.ModuleProgressDefaultArgs<ExtArgs>
@@ -839,11 +917,13 @@ export type QuizAttemptSelectScalar = {
   score?: boolean
   isApproved?: boolean
   pointsAwarded?: boolean
+  minimumCorrect?: boolean
+  supersededAt?: boolean
   finishedAt?: boolean
   submittedAt?: boolean
 }
 
-export type QuizAttemptOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "progressId" | "phase" | "correctCount" | "totalCount" | "score" | "isApproved" | "pointsAwarded" | "finishedAt" | "submittedAt", ExtArgs["result"]["quizAttempt"]>
+export type QuizAttemptOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "progressId" | "phase" | "correctCount" | "totalCount" | "score" | "isApproved" | "pointsAwarded" | "minimumCorrect" | "supersededAt" | "finishedAt" | "submittedAt", ExtArgs["result"]["quizAttempt"]>
 export type QuizAttemptInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   progress?: boolean | Prisma.ModuleProgressDefaultArgs<ExtArgs>
   answers?: boolean | Prisma.QuizAttempt$answersArgs<ExtArgs>
@@ -871,6 +951,8 @@ export type $QuizAttemptPayload<ExtArgs extends runtime.Types.Extensions.Interna
     score: number
     isApproved: boolean
     pointsAwarded: number
+    minimumCorrect: number | null
+    supersededAt: Date | null
     finishedAt: Date | null
     submittedAt: Date
   }, ExtArgs["result"]["quizAttempt"]>
@@ -1306,6 +1388,8 @@ export interface QuizAttemptFieldRefs {
   readonly score: Prisma.FieldRef<"QuizAttempt", 'Float'>
   readonly isApproved: Prisma.FieldRef<"QuizAttempt", 'Boolean'>
   readonly pointsAwarded: Prisma.FieldRef<"QuizAttempt", 'Int'>
+  readonly minimumCorrect: Prisma.FieldRef<"QuizAttempt", 'Int'>
+  readonly supersededAt: Prisma.FieldRef<"QuizAttempt", 'DateTime'>
   readonly finishedAt: Prisma.FieldRef<"QuizAttempt", 'DateTime'>
   readonly submittedAt: Prisma.FieldRef<"QuizAttempt", 'DateTime'>
 }

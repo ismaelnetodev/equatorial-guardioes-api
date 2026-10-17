@@ -8,8 +8,10 @@ import { Button, colors } from '../../components/ui'
 import { EmergencyBanner } from '../../components/emergency-banner'
 import { completeTraining, getLearnState, type LearnState } from '../../features/learn/learn.api'
 import { completeModule, getTrail, getTrailProgress, startModule, type TrailModule, type TrailProgress } from '../../features/trails/trails.api'
-import { ApiError } from '../../services/api'
+import { ApiError, errorMessage } from '../../services/api'
 import { getAccessToken } from '../../services/session'
+
+import { getLearnState, type LearnState } from '../../features/trails/learning.api'
 
 type ModuleProgress = TrailProgress['modules'][number]
 
@@ -27,6 +29,7 @@ function stageLabel(status: 'locked' | 'available' | 'completed', points?: numbe
 
 export default function ModuleScreen() {
   const params = useLocalSearchParams<{ moduleId: string; trailId: string }>()
+  const [learn, setLearn] = useState<LearnState | null>(null)
   const [module, setModule] = useState<TrailModule | null>(null)
   const [progress, setProgress] = useState<ModuleProgress | null>(null)
   const [learn, setLearn] = useState<LearnState | null>(null)
@@ -43,7 +46,7 @@ export default function ModuleScreen() {
 
   useFocusEffect(useCallback(() => {
     const controller = new AbortController()
-    setLoading(true); setError(''); setActionError(''); setReader(false)
+    setLoading(true); setError(''); setActionError(''); setReader(false); setLearn(null)
     async function load() {
       try {
         if (!await getAccessToken()) { if (!controller.signal.aborted) router.replace('/entrar'); return }
@@ -59,18 +62,23 @@ export default function ModuleScreen() {
           learnState = await getLearnState(params.moduleId, controller.signal)
         }
         if (controller.signal.aborted) return
-        setModule({ ...item, status: state.status }); setProgress(state)
-        setLearn(learnState); setNumber(index)
+        setModule({ ...item, status: state.status }); setProgress(state); setNumber(index)
+        if (state.requiresQuiz && state.status !== 'blocked' && state.status !== 'available') {
+          const learning = await getLearnState(item.id, controller.signal)
+          if (!controller.signal.aborted) setLearn(learning)
+        }
       } catch (cause) {
         if (controller.signal.aborted) return
         if (cause instanceof ApiError && cause.status === 401) { router.replace('/entrar'); return }
-        setError(cause instanceof ApiError ? cause.message : cause instanceof TypeError ? 'Não foi possível conectar. Verifique sua conexão e tente novamente.' : cause instanceof Error ? cause.message : 'Não foi possível carregar o módulo.')
+        setError(errorMessage(cause, 'Não foi possível carregar o módulo.'))
       } finally { if (!controller.signal.aborted) setLoading(false) }
     }
     void load()
     return () => controller.abort()
   }, [params.moduleId, params.trailId, attempt]))
 
+  const readingSeconds = progress?.readingSeconds ?? 0
+  const readingTime = readingSeconds >= 60 ? `${Math.floor(readingSeconds / 60)} min${readingSeconds % 60 ? ` e ${readingSeconds % 60} s` : ''}` : `${readingSeconds} s`
   const blocked = module?.status === 'blocked'
   const completed = module?.status === 'completed'
   const active = module?.status === 'in_progress'
@@ -122,9 +130,14 @@ export default function ModuleScreen() {
           return
         }
       }
+      if (requiresQuiz) { const phase = learn?.preTest.status !== 'completed' ? 'pre' : learn?.training.status !== 'completed' ? 'training' : 'pos'; openStage(phase, phase === 'pos' && learn?.postTest.isApproved != null); return }
       setReader(true); scroll.current?.scrollTo({ y: 0, animated: false })
     } catch (cause) { handleActionError(cause) }
     finally { pending.current = false; setBusy(false) }
+  }
+  function openStage(phase: 'pre' | 'training' | 'pos', result = false) {
+    if (!module) return
+    router.push({ pathname: '/modulo/aprender', params: { moduleId: module.id, trailId: params.trailId, phase, result: result ? '1' : '0', completed: module.status === 'completed' ? '1' : '0' } })
   }
   function handleActionError(cause: unknown) {
     if (cause instanceof ApiError && cause.status === 401) { router.replace('/entrar'); return }
@@ -134,24 +147,10 @@ export default function ModuleScreen() {
     if (!module || pending.current) return
     pending.current = true; setBusy(true); setActionError('')
     try {
-      if (requiresQuiz) {
-        await completeTraining(module.id)
-        const next = await getLearnState(module.id)
-        setLearn(next)
-        setReader(false); scroll.current?.scrollTo({ y: 0, animated: false })
-        if (next.postTest.status === 'available') {
-          openQuiz('pos')
-          return
-        }
-        if (next.postTest.status === 'completed' && next.postTest.isApproved) {
-          const state = await completeModule(module.id)
-          setProgress(state); setModule(current => current ? { ...current, status: state.status } : null)
-        }
-      } else {
-        const state = await completeModule(module.id)
-        setProgress(state); setModule(current => current ? { ...current, status: state.status } : null)
-        setReader(false); scroll.current?.scrollTo({ y: 0, animated: false })
-      }
+      const state = await completeModule(module.id)
+      setProgress(state); setModule(current => current ? { ...current, status: state.status } : null)
+      router.replace({ pathname: '/modulo/conclusao', params: { moduleId: module.id, trailId: params.trailId } })
+      setReader(false); scroll.current?.scrollTo({ y: 0, animated: false })
     } catch (cause) { handleActionError(cause) }
     finally { pending.current = false; setBusy(false) }
   }
@@ -164,49 +163,24 @@ export default function ModuleScreen() {
         <ImageBackground source={require('../../../assets/module-pattern.png')} resizeMode="cover" style={styles.hero} imageStyle={styles.heroImage}>
           <View style={styles.moduleIcon}><AppIcon name={blocked ? 'lock' : number === 0 ? 'eye' : number === 2 ? 'pole' : 'bolt'} size={40} color={colors.background} /></View><View style={styles.heroCopy}><Text style={styles.eyebrow}>MÓDULO {number}</Text><Text accessibilityRole="header" style={styles.title}>{module.title}</Text></View>
         </ImageBackground>
+        {!blocked && readingSeconds > 0 ? <Text style={styles.description}>Leitura estimada: {readingTime}</Text> : null}
         {reader ? <>
           <Text accessibilityRole="header" style={styles.readerTitle}>Treinamento</Text>
           <Text selectable style={styles.reading}>{module.content || 'O conteúdo deste módulo ainda não está disponível.'}</Text>
-          {requiresQuiz ? <Text style={styles.description}>Ao concluir, o treinamento registra pontos e libera o pós-teste.</Text> : null}
-          <View style={styles.footer}>{completed ? <Button title="Voltar ao módulo" onPress={back} /> : <Button title="Concluir treinamento" loading={busy} disabled={!module.content} onPress={() => { void finishTraining() }} />}</View>
+
+          <View style={styles.footer}>{completed ? <Button title="Voltar ao módulo" onPress={back} /> : <Button title="Concluir treinamento" loading={busy} disabled={requiresQuiz || !module.content} onPress={() => { void finish() }} />}</View>
         </> : <>
           <Text style={styles.description}>{module.description}</Text>
           {blocked ? <View style={styles.section}><Text style={styles.description}>Conclua os módulos anteriores para liberar este conteúdo.</Text><Button title="Voltar para trilha" onPress={back} /></View> : <>
             <View style={styles.section}><Text style={styles.eyebrow}>O QUE VOCÊ VAI APRENDER</Text>{(objectives.length ? objectives : [module.description]).map((objective, index) => <View key={index} style={styles.objective}><AppIcon name="check" color="#16bdb6" size={20} /><Text style={styles.objectiveText}>{objective}</Text></View>)}</View>
             <View style={styles.section}><Text style={styles.eyebrow}>ETAPAS</Text>
-              <Stage
-                title="Pré-teste"
-                description={requiresQuiz ? 'Quiz de conhecimentos prévios' : 'Sem teste obrigatório'}
-                status={requiresQuiz ? stageLabel(pre?.status ?? 'available', pre?.pointsAwarded) : 'Não exigido'}
-                kind={requiresQuiz ? stageKind(pre?.status ?? 'available') : 'locked'}
-                onPress={requiresQuiz && (pre?.status ?? 'available') === 'available' ? () => { void openQuiz('pre') } : undefined}
-                disabled={busy}
-              />
-              <Stage
-                title="Treinamento"
-                description={module.durationMinutes ? `Leitura · ${module.durationMinutes} min` : 'Conteúdo do módulo'}
-                status={stageLabel(training?.status ?? (completed ? 'completed' : !requiresQuiz || pre?.status === 'completed' ? 'available' : 'locked'), training?.pointsAwarded)}
-                kind={stageKind(training?.status ?? (completed ? 'completed' : !requiresQuiz || pre?.status === 'completed' ? 'available' : 'locked'))}
-                onPress={!blocked && (!requiresQuiz || pre?.status === 'completed' || training?.status === 'completed') ? () => { void openTraining() } : undefined}
-                disabled={busy || (requiresQuiz && pre?.status !== 'completed' && training?.status !== 'completed')}
-              />
-              <Stage
-                title="Pós-teste"
-                description={requiresQuiz ? 'Avaliação de aprendizagem' : 'Sem teste obrigatório'}
-                status={requiresQuiz ? stageLabel(post?.status ?? 'locked', post?.pointsAwarded) : 'Não exigido'}
-                kind={requiresQuiz ? stageKind(post?.status ?? 'locked') : 'locked'}
-                onPress={requiresQuiz && post?.status === 'available' ? () => { void openQuiz('pos') } : undefined}
-                disabled={busy}
-              />
+              {requiresQuiz ? <Stage title="Pré-teste" description="Quiz de conhecimentos prévios" status={learn?.preTest.status === 'completed' ? 'Concluído' : 'Disponível'} kind={learn?.preTest.status === 'completed' ? 'completed' : 'active'} onPress={() => { if (module.status === 'available') void openTraining(); else openStage('pre', learn?.preTest.status === 'completed') }} disabled={busy} /> : null}
+              <Stage title="Treinamento" description="Conteúdo do módulo" status={requiresQuiz && learn?.training.status === 'locked' ? 'Bloqueado' : completed || learn?.training.status === 'completed' ? 'Concluído' : 'Disponível'} kind={requiresQuiz && (!learn || learn.training.status === 'locked') ? 'locked' : completed || learn?.training.status === 'completed' ? 'completed' : 'active'} onPress={requiresQuiz ? () => openStage('training') : () => { void openTraining() }} disabled={busy || requiresQuiz && (!learn || learn.training.status === 'locked')} />
+              {requiresQuiz ? <Stage title="Pós-teste" description={learn ? `Mínimo: ${learn.postTest.minimumCorrect} acertos em ${learn.postTest.totalCount ?? 0} perguntas` : "Avaliação de aprendizagem"} status={!learn || learn.postTest.status === 'locked' ? 'Bloqueado' : learn.postTest.status === 'completed' ? 'Aprovado' : learn.postTest.isApproved === false ? 'Revisar resultado' : 'Disponível'} kind={!learn || learn.postTest.status === 'locked' ? 'locked' : learn.postTest.status === 'completed' ? 'completed' : 'active'} onPress={() => openStage('pos', learn?.postTest.isApproved != null)} disabled={busy || !learn || learn.postTest.status === 'locked'} /> : null}
             </View>
-            <View style={styles.score}><AppIcon name="star" color={colors.primary} size={20} /><Text style={styles.scoreText}>{learn ? `${learn.totalPoints} pts neste módulo` : 'Pontuação do módulo'}</Text><Text style={styles.scoreText}>{post?.correctCount != null ? `Melhor: ${post.correctCount}/${post.totalCount}` : 'Melhor: —'}</Text></View>
+            <View style={styles.score}><AppIcon name="star" color={colors.primary} size={20} /><Text style={styles.scoreText}>{learn ? `${learn.totalPoints} pontos recebidos` : "Pontuação não consultada"}</Text>{learn?.moduleCompletion.pendingPoints ? <Text style={styles.scoreText}>{learn.moduleCompletion.pendingPoints} pendentes</Text> : null}</View>
             {completed ? <Text accessibilityRole="alert" style={styles.success}>Módulo concluído! Seu progresso foi salvo.</Text> : null}
-            <View style={styles.footer}>
-              {requiresQuiz && (pre?.status ?? 'available') === 'available' ? <Button title="Começar pré-teste" loading={busy} onPress={() => { void openQuiz('pre') }} /> : null}
-              <Button title={completed || training?.status === 'completed' ? 'Rever treinamento' : active || training?.status === 'available' ? 'Continuar treinamento' : 'Começar treinamento'} loading={busy} disabled={!module.content || (requiresQuiz && pre?.status !== 'completed' && training?.status !== 'completed')} onPress={() => { void openTraining() }} />
-              {requiresQuiz && post?.status === 'available' ? <Button title="Fazer pós-teste" outline loading={busy} onPress={() => { void openQuiz('pos') }} /> : null}
-              {completed ? <Button title="Voltar para trilha" outline onPress={back} /> : null}
-            </View>
+            <View style={styles.footer}><Button title={requiresQuiz ? completed ? 'Ver resultado' : learn?.preTest.status !== 'completed' ? 'Começar pré-teste' : learn.training.status !== 'completed' ? 'Continuar treinamento' : learn.postTest.isApproved === true ? 'Ver resultado e concluir' : learn.postTest.isApproved === false ? 'Ver resultado do pós-teste' : 'Fazer pós-teste' : completed ? 'Rever treinamento' : active ? 'Continuar treinamento' : 'Começar treinamento'} loading={busy} disabled={!requiresQuiz && !module.content} onPress={() => { if (requiresQuiz && completed) openStage('pos', true); else void openTraining() }} />{completed ? <Button title="Voltar para trilha" outline onPress={back} /> : null}</View>
           </>}
         </>}
         {actionError ? <Text accessibilityRole="alert" style={styles.error}>{actionError}</Text> : null}

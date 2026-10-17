@@ -212,6 +212,13 @@ export async function replaceModuleQuiz(trailId: string, moduleId: string, input
   validateQuizQuestions(input.questions)
   return writeContent(async (tx) => {
     await requireModule(tx, trailId, moduleId)
+    const attempt = await tx.quizAttempt.findFirst({
+      where: { progress: { moduleId } },
+      select: { id: true },
+    })
+    if (attempt) {
+      throw new AdminError('CONTENT_CONFLICT', 'Este quiz já possui tentativas e não pode ser substituído. Preserve o conteúdo utilizado pelos participantes.')
+    }
     await tx.quizQuestion.deleteMany({ where: { moduleId } })
     for (const [index, question] of input.questions.entries()) {
       await tx.quizQuestion.create({

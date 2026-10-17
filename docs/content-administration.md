@@ -19,7 +19,7 @@ A documentação dos campos e respostas está no Swagger UI em `/documentation`,
 | PUT | `/trails/:trailId/modules/order` | Ordenar todos os módulos da trilha. |
 | PATCH | `/trails/:trailId/modules/:moduleId/status` | Publicar, arquivar, desativar ou retornar a rascunho. |
 | GET | `/trails/:trailId/modules/:moduleId/quiz` | Listar perguntas, alternativas e explicações do quiz. |
-| PUT | `/trails/:trailId/modules/:moduleId/quiz` | Substituir todas as perguntas do quiz do módulo. |
+| PUT | `/trails/:trailId/modules/:moduleId/quiz` | Substituir perguntas somente enquanto o módulo não possuir tentativas. |
 | GET | `/trails/:trailId/modules/:moduleId/training` | Listar etapas e cards do treinamento. |
 | PUT | `/trails/:trailId/modules/:moduleId/training` | Substituir todas as etapas do treinamento do módulo. |
 | GET | `/relatos` | Listar relatos (filtro opcional por `status`). |
@@ -84,11 +84,11 @@ Módulos com `requiresQuiz: true` usam o fluxo autenticado em `/api/v1/modules/:
 | GET | `/training` | Etapas do treinamento. |
 | POST | `/training/complete` | Marca o treinamento como concluído. |
 | GET | `/quiz/pos` | Perguntas do pós-teste sem gabarito. |
-| POST | `/quiz/pos/answers` | Uma resposta por vez, com explicação e `feedbackKind` semântico (`correct` / `incorrect`). |
-| POST | `/quiz/pos/finish` | Fecha a tentativa, compara antes/depois e aplica a nota mínima. |
+| POST | `/quiz/pos/answers` | Uma resposta por vez, com `attemptId`, explicação e `feedbackKind` semântico (`correct` / `incorrect`). |
+| POST | `/quiz/pos/finish` | Fecha a tentativa indicada por `attemptId`, compara antes/depois e aplica a nota mínima. |
 | GET | `/quiz/pos/resultado` | Último resultado do pós-teste. |
 
-Cada pergunta do quiz exige exatamente uma alternativa correta e textos de explicação (`explanationTitle`, `explanationBody`) usados só no pós-teste. A nota mínima padrão é 70% (`quizMinimumScore` no módulo). A conclusão em `/api/v1/progress/modules/:moduleId/complete` consulta a aprovação do pós-teste no servidor; o cliente não pode enviar a própria nota.
+Cada pergunta do quiz exige exatamente uma alternativa correta e textos de explicação (`explanationTitle`, `explanationBody`) usados só no pós-teste. A aprovação usa `quiz_pass_score` do painel de pontos e limites (inicialmente 80%). `quizMinimumScore` é legado e não sobrepõe essa configuração. A conclusão em `/api/v1/progress/modules/:moduleId/complete` consulta a aprovação do pós-teste no servidor; o cliente não pode enviar a própria nota.
 
 ## Relatos (Meus relatos)
 
@@ -96,10 +96,53 @@ Os relatos do Guardião usam o prefixo autenticado `/api/v1/relatos`. A criaçã
 
 | Método | Caminho | Uso |
 | --- | --- | --- |
-| POST | `/` | Criar relato (`SENT`, +10 pts, evento na timeline). |
+| POST | `/` | Criar relato (`SENT`, zero pontos, evento na timeline). |
 | GET | `/` | Listar relatos do usuário com resumo (`sentCount`, `resolvedCount`, `totalPoints`). |
 | GET | `/:reportId` | Detalhe com urgência, pontos e linha do tempo. |
-| GET | `/impacto` | Próximo relato `RESOLVED` ainda sem impacto visto (`204` se não houver). |
+| GET | `/impacto` | Próximo relato `RESOLVED` ainda sem impacto visto (`200` com JSON `null` se não houver). |
 | POST | `/:reportId/impacto/visto` | Marca a mensagem de impacto como vista. |
 
-Status semânticos na API: `SENT`, `RECEIVED`, `IN_ANALYSIS`, `RESOLVED`, `NOT_CONFIRMED`, cada um com `label` e `iconHint` (o app aplica ícone/cor). Ao confirmar (`RESOLVED`) pela administração, somam-se +40 pts uma vez e a mensagem de impacto fica disponível.
+Status semânticos na API: `SENT`, `RECEIVED`, `IN_ANALYSIS`, `RESOLVED`, `NOT_CONFIRMED`, cada um com `label` e `iconHint` (o app aplica ícone/cor). Ao validar e resolver (`RESOLVED`) pela administração, a pontuação segue o risco confirmado e os limites configurados; a mensagem de impacto fica disponível com os pontos efetivamente concedidos.
+
+### Preservação das respostas do quiz
+
+A substituição por `PUT /api/v1/admin/trails/:trailId/modules/:moduleId/quiz`
+retorna `409 CONTENT_CONFLICT` se existir qualquer tentativa do módulo,
+concluída ou aberta, inclusive sem respostas e mesmo com `questions: []`.
+A verificação e a substituição são feitas em uma transação serializável.
+A criação de tentativas também lê o conteúdo e grava a tentativa na mesma
+transação serializável: em uma disputa com a edição, a operação conflitante
+retorna 409 e deve ser refeita com o estado atual.
+
+A migration `20261017030000_preserve_quiz_answers` altera as referências
+`QuizAnswer.questionId` e `QuizAnswer.optionId` para `ON DELETE RESTRICT`.
+Assim, o banco impede apagar perguntas e alternativas com respostas vinculadas.
+A proteção não recupera respostas já apagadas por versões anteriores.
+Para alterar um quiz utilizado, crie um novo módulo; edição com versões do quiz
+não está implementada.
+
+### Uma tentativa aberta de pós-teste
+
+O `GET /api/v1/modules/:moduleId/quiz/pos` é o único caminho que abre uma
+tentativa de pós-teste. Consultas posteriores reutilizam a tentativa aberta.
+O banco garante no máximo uma tentativa POST com `finishedAt IS NULL` por
+`progressId`, por índice único parcial criado pela migration
+`20261017040000_single_open_post_attempt`. Disputas de unicidade ou serialização
+retornam `409 LEARNING_CONFLICT`; faça uma nova consulta para obter o ID vigente.
+
+Envie o `attemptId` retornado na consulta em ambas as operações:
+
+- `POST /quiz/pos/answers`: `{ "attemptId": "UUID", "questionId": "UUID", "optionId": "UUID" }`.
+- `POST /quiz/pos/finish`: `{ "attemptId": "UUID" }`.
+
+A API valida que a tentativa pertence ao progresso do usuário e módulo, é POST
+e está aberta e não foi reconciliada. IDs de outro usuário/módulo ou de tentativas
+encerradas retornam 404. Omissão ou formato inválido do ID retorna 400.
+Enviar uma resposta não cria outra tentativa automaticamente.
+
+A migration mantém aberta a tentativa mais recente de cada progresso (desempate
+por ID). Encerra as demais e preenche `supersededAt`, preservando suas respostas
+sem transferi-las ou mesclá-las. `QuizAttemptReconciliation` registra o estado
+anterior e a tentativa mantida. Tentativas reconciliadas não participam de
+resultados, intervalos de nova tentativa ou aprovação de módulos. Não há
+recálculo de notas nem concessão de pontos nessa reconciliação.

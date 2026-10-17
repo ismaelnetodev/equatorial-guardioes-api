@@ -11,6 +11,7 @@ const db = vi.hoisted(() => ({
   trail: { findMany: vi.fn(), findUnique: vi.fn(), aggregate: vi.fn(), create: vi.fn(), update: vi.fn() },
   trailModule: { findMany: vi.fn(), findUnique: vi.fn(), aggregate: vi.fn(), create: vi.fn(), update: vi.fn(), count: vi.fn() },
   moduleProgress: { upsert: vi.fn(), findUnique: vi.fn(), update: vi.fn() },
+  quizAttempt: { findFirst: vi.fn() },
   quizQuestion: { findMany: vi.fn(), deleteMany: vi.fn(), create: vi.fn() },
   trainingStep: { findMany: vi.fn(), deleteMany: vi.fn(), create: vi.fn() },
   $transaction: vi.fn(),
@@ -80,6 +81,7 @@ beforeEach(async () => {
     if (data?.['order'] !== undefined && modules.some(m => m.id !== row.id && m.trailId === row.trailId && m.order === data['order'])) throw uniqueError()
     Object.assign(row, data); return { ...row }
   })
+  db.quizAttempt.findFirst.mockResolvedValue(null)
   db.quizQuestion.findMany.mockResolvedValue([])
   db.quizQuestion.deleteMany.mockResolvedValue({ count: 0 })
   db.quizQuestion.create.mockImplementation(async ({ data }: Query) => ({ id: randomUUID(), ...data, options: [] }))
@@ -269,5 +271,45 @@ describe('visibilidade pública e progresso', () => {
     expect(document).toHaveProperty(['paths', '/api/v1/admin/trails', 'post', 'security'], [{ bearerAuth: [] }])
     expect(document.paths).toHaveProperty('/api/v1/admin/trails/{trailId}/modules/{moduleId}/status')
     expect(document.paths).toHaveProperty('/api/v1/admin/trails/{trailId}/modules/order')
+  })
+})
+
+describe('preservação do histórico do quiz', () => {
+  const payload = { questions: [{ statement: 'Pergunta nova', explanationTitle: 'Explicação', explanationBody: 'Motivo', options: [{ text: 'Sim', isCorrect: true }, { text: 'Não', isCorrect: false }] }] }
+  const replace = (body = payload) => app.inject({ method: 'PUT', url: moduleBase + '/' + moduleId + '/quiz', headers: headers(), payload: body })
+  it.each([
+    ['pré-teste concluído', 'PRE', new Date(), 1],
+    ['pós-teste concluído', 'POST', new Date(), 1],
+    ['pós-teste aberto com respostas', 'POST', null, 1],
+    ['pós-teste aberto sem respostas', 'POST', null, 0],
+  ])('bloqueia substituição quando existe %s', async (_label, phase, finishedAt, answeredCount) => {
+    db.quizAttempt.findFirst.mockResolvedValue({ id: randomUUID(), phase, finishedAt, answeredCount })
+    const response = await replace()
+    expect(response.statusCode).toBe(409)
+    expect(response.json()).toMatchObject({ code: 'CONTENT_CONFLICT' })
+    expect(db.quizAttempt.findFirst).toHaveBeenCalledWith({ where: { progress: { moduleId } }, select: { id: true } })
+    expect(db.quizQuestion.deleteMany).not.toHaveBeenCalled()
+    expect(db.quizQuestion.create).not.toHaveBeenCalled()
+  })
+  it('também impede apagar o quiz com uma lista vazia', async () => {
+    db.quizAttempt.findFirst.mockResolvedValue({ id: randomUUID() })
+    expect((await replace({ questions: [] })).statusCode).toBe(409)
+    expect(db.quizQuestion.deleteMany).not.toHaveBeenCalled()
+  })
+  it('permite substituir quando o módulo ainda não possui tentativas', async () => {
+    expect((await replace()).statusCode).toBe(200)
+    expect(db.quizQuestion.deleteMany).toHaveBeenCalledWith({ where: { moduleId } })
+    expect(db.quizQuestion.create).toHaveBeenCalledTimes(1)
+    expect(db.$transaction).toHaveBeenCalledWith(expect.any(Function), { isolationLevel: 'Serializable' })
+  })
+  it('retorna conflito se o banco impedir excluir uma pergunta referenciada', async () => {
+    db.quizQuestion.deleteMany.mockRejectedValueOnce(new Prisma.PrismaClientKnownRequestError('foreign key', { code: 'P2003', clientVersion: '7.10.1' }))
+    expect((await replace()).statusCode).toBe(409)
+    expect(db.quizQuestion.create).not.toHaveBeenCalled()
+  })
+  it('retorna conflito de serialização sem substituir o conteúdo', async () => {
+    db.$transaction.mockRejectedValueOnce(new Prisma.PrismaClientKnownRequestError('serialization', { code: 'P2034', clientVersion: '7.10.1' }))
+    expect((await replace()).statusCode).toBe(409)
+    expect(db.quizQuestion.deleteMany).not.toHaveBeenCalled()
   })
 })

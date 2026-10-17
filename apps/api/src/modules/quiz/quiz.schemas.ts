@@ -13,6 +13,11 @@ export const stageStatusSchema = Type.Union([
   Type.Literal('completed'),
 ])
 
+const moduleCompletionPointsSchema = Type.Object({
+  pointsAwarded: Type.Integer({ minimum: 0 }),
+  pendingPoints: Type.Integer({ minimum: 0 }),
+}, { additionalProperties: false })
+
 export const learnStateSchema = Type.Object({
   moduleId: uuid,
   preTest: Type.Object({
@@ -34,6 +39,7 @@ export const learnStateSchema = Type.Object({
     minimumCorrect: Type.Integer({ minimum: 0 }),
   }, { additionalProperties: false }),
   totalPoints: Type.Integer({ minimum: 0 }),
+  moduleCompletion: moduleCompletionPointsSchema,
 }, { additionalProperties: false })
 export type LearnState = Static<typeof learnStateSchema>
 
@@ -82,7 +88,11 @@ export const preTestResultSchema = Type.Object({
 }, { additionalProperties: false })
 export type PreTestResult = Static<typeof preTestResultSchema>
 
+export const finishPostTestSchema = Type.Object({ attemptId: uuid }, { additionalProperties: false })
+export type FinishPostTest = Static<typeof finishPostTestSchema>
+
 export const submitPostAnswerSchema = Type.Object({
+  attemptId: uuid,
   questionId: uuid,
   optionId: uuid,
 }, { additionalProperties: false })
@@ -118,6 +128,7 @@ export const postTestResultSchema = Type.Object({
   minimumCorrect: Type.Integer({ minimum: 0 }),
   pointsAwarded: Type.Integer({ minimum: 0 }),
   totalPoints: Type.Integer({ minimum: 0 }),
+  moduleCompletion: moduleCompletionPointsSchema,
   before: scoreSummarySchema,
   after: scoreSummarySchema,
   title: Type.String(),
