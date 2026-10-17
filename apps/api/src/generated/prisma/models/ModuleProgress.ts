@@ -575,10 +575,6 @@ export type ModuleProgressUncheckedUpdateManyWithoutModuleNestedInput = {
   deleteMany?: Prisma.ModuleProgressScalarWhereInput | Prisma.ModuleProgressScalarWhereInput[]
 }
 
-export type NullableDateTimeFieldUpdateOperationsInput = {
-  set?: Date | string | null
-}
-
 export type ModuleProgressCreateNestedOneWithoutAttemptsInput = {
   create?: Prisma.XOR<Prisma.ModuleProgressCreateWithoutAttemptsInput, Prisma.ModuleProgressUncheckedCreateWithoutAttemptsInput>
   connectOrCreate?: Prisma.ModuleProgressCreateOrConnectWithoutAttemptsInput

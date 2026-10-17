@@ -14,6 +14,8 @@ const db = vi.hoisted(() => ({
   programConfiguration: { findMany: vi.fn() },
   report: { count: vi.fn(), create: vi.fn(), findMany: vi.fn(), findFirst: vi.fn(), findUnique: vi.fn(), update: vi.fn() },
   reportTimelineEvent: { create: vi.fn() },
+  pointAccount: { upsert: vi.fn(), update: vi.fn() },
+  pointLedgerEntry: { create: vi.fn(), findFirst: vi.fn() },
   $transaction: vi.fn(),
 }))
 vi.mock('../../lib/prisma.js', () => ({ getPrisma: () => db }))
@@ -35,6 +37,10 @@ beforeEach(async () => {
       progressRecords: module0Completed ? [{ completedAt: new Date() }] : [],
     }],
   }))
+  db.pointAccount.upsert.mockResolvedValue({ userId, accumulated: 0, balance: 0 })
+  db.pointAccount.update.mockResolvedValue({ userId, accumulated: 10, balance: 10 })
+  db.pointLedgerEntry.create.mockResolvedValue({ id: 'bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb' })
+  db.pointLedgerEntry.findFirst.mockResolvedValue(null)
   db.$transaction.mockImplementation(async (operation: (tx: typeof db) => Promise<unknown>) => operation(db))
   db.programConfiguration.findMany.mockResolvedValue([
     ...['low', 'medium', 'high'].map((risk, i) => ({ key: 'report_' + risk, kind: 'RULE', value: [10, 25, 50][i], isActive: true })),

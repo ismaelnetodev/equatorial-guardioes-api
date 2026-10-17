@@ -49,6 +49,21 @@ enum ReportUrgency {
   HIGH
 }
 
+enum PointLedgerReason {
+  QUIZ_PRE
+  QUIZ_TRAINING
+  QUIZ_POST
+  REPORT_SEND
+  REPORT_CONFIRM
+  INVITE_REWARD
+  REDEMPTION
+  BACKFILL
+}
+
+enum RewardRedemptionStatus {
+  COMPLETED
+}
+
 model User {
   id               String           @id @default(uuid()) @db.Uuid
   role             UserRole         @default(USER)
@@ -59,12 +74,68 @@ model User {
   neighborhood     String
   neighborhoodId   String?
   neighborhoodRecord Neighborhood? @relation(fields: [neighborhoodId], references: [id])
-  inviteCode       String?
+  inviteCode       String?          @unique
   termsAcceptedAt  DateTime
   moduleProgresses ModuleProgress[]
   reports          Report[]
+  pointAccount     PointAccount?
+  pointLedger      PointLedgerEntry[]
+  redemptions      RewardRedemption[]
+  invitesSent      InviteAttribution[] @relation("InvitesSent")
+  invitedBy        InviteAttribution?  @relation("InvitedBy")
   createdAt        DateTime         @default(now())
   updatedAt        DateTime         @updatedAt
+}
+
+model PointAccount {
+  userId       String   @id @db.Uuid
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  accumulated  Int      @default(0)
+  balance      Int      @default(0)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+}
+
+model PointLedgerEntry {
+  id                 String             @id @default(uuid()) @db.Uuid
+  userId             String             @db.Uuid
+  user               User               @relation(fields: [userId], references: [id], onDelete: Cascade)
+  delta              Int
+  affectsAccumulated Boolean
+  reason             PointLedgerReason
+  sourceType         String
+  sourceId           String?
+  createdAt          DateTime           @default(now())
+
+  @@index([userId, createdAt])
+  @@unique([reason, sourceType, sourceId])
+}
+
+model RewardRedemption {
+  id          String                 @id @default(uuid()) @db.Uuid
+  userId      String                 @db.Uuid
+  user        User                   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  rewardKey   String
+  pointsSpent Int
+  status      RewardRedemptionStatus @default(COMPLETED)
+  createdAt   DateTime               @default(now())
+
+  @@index([userId, createdAt])
+  @@index([rewardKey, createdAt])
+}
+
+model InviteAttribution {
+  id                  String    @id @default(uuid()) @db.Uuid
+  inviterId           String    @db.Uuid
+  inviter             User      @relation("InvitesSent", fields: [inviterId], references: [id], onDelete: Cascade)
+  inviteeId           String    @unique @db.Uuid
+  invitee             User      @relation("InvitedBy", fields: [inviteeId], references: [id], onDelete: Cascade)
+  inviteCode          String
+  registeredAt        DateTime  @default(now())
+  module0CompletedAt  DateTime?
+  pointsAwarded       Int       @default(0)
+
+  @@index([inviterId, registeredAt])
 }
 
 model Neighborhood {

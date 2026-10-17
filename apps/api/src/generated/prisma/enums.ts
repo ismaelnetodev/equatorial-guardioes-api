@@ -64,6 +64,27 @@ export const ReportUrgency = {
 export type ReportUrgency = (typeof ReportUrgency)[keyof typeof ReportUrgency]
 
 
+export const PointLedgerReason = {
+  QUIZ_PRE: 'QUIZ_PRE',
+  QUIZ_TRAINING: 'QUIZ_TRAINING',
+  QUIZ_POST: 'QUIZ_POST',
+  REPORT_SEND: 'REPORT_SEND',
+  REPORT_CONFIRM: 'REPORT_CONFIRM',
+  INVITE_REWARD: 'INVITE_REWARD',
+  REDEMPTION: 'REDEMPTION',
+  BACKFILL: 'BACKFILL'
+} as const
+
+export type PointLedgerReason = (typeof PointLedgerReason)[keyof typeof PointLedgerReason]
+
+
+export const RewardRedemptionStatus = {
+  COMPLETED: 'COMPLETED'
+} as const
+
+export type RewardRedemptionStatus = (typeof RewardRedemptionStatus)[keyof typeof RewardRedemptionStatus]
+
+
 export const ProgramConfigurationKind = {
   RULE: 'RULE',
   REWARD: 'REWARD',

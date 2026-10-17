@@ -1,5 +1,6 @@
 import { Prisma } from '../../generated/prisma/client.js'
 import { publishedModuleWhere, publishedTrailWhere } from '../../lib/content-visibility.js'
+import { creditPoints } from '../../lib/points-ledger.js'
 import { getPrisma } from '../../lib/prisma.js'
 import type {
   AdminReportStatusBody,
@@ -151,22 +152,33 @@ export async function createReport(userId: string, input: CreateReport) {
       timeline: {
         create: [{ status: 'SENT', occurredAt: now }],
       },
-    },
-    select: {
-      id: true,
-      title: true,
-      description: true,
-      address: true,
-      neighborhood: true,
-      photoUrl: true,
-      latitude: true,
-      longitude: true,
-      status: true,
-      urgency: true,
-      pointsAwarded: true,
-      submittedAt: true,
-      timeline: { orderBy: { occurredAt: 'asc' }, select: { status: true, occurredAt: true } },
-    },
+      select: {
+        id: true,
+        title: true,
+        description: true,
+        address: true,
+        neighborhood: true,
+        photoUrl: true,
+        latitude: true,
+        longitude: true,
+        status: true,
+        urgency: true,
+        pointsAwarded: true,
+        submittedAt: true,
+        timeline: { orderBy: { occurredAt: 'asc' }, select: { status: true, occurredAt: true } },
+      },
+    })
+    await creditPoints(
+      {
+        userId,
+        amount: SEND_POINTS,
+        reason: 'REPORT_SEND',
+        sourceType: 'ReportSend',
+        sourceId: created.id,
+      },
+      tx,
+    )
+    return created
   })
 
   return {

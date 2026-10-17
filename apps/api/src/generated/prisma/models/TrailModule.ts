@@ -631,10 +631,6 @@ export type NullableIntFieldUpdateOperationsInput = {
   divide?: number
 }
 
-export type BoolFieldUpdateOperationsInput = {
-  set?: boolean
-}
-
 export type TrailModuleCreateNestedOneWithoutProgressRecordsInput = {
   create?: Prisma.XOR<Prisma.TrailModuleCreateWithoutProgressRecordsInput, Prisma.TrailModuleUncheckedCreateWithoutProgressRecordsInput>
   connectOrCreate?: Prisma.TrailModuleCreateOrConnectWithoutProgressRecordsInput

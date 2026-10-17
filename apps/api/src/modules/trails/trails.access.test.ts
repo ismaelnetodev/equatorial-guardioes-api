@@ -4,6 +4,17 @@ import { buildApp } from '../../app.js'
 import { createSessionToken } from '../../lib/auth-session.js'
 
 const db = vi.hoisted(() => ({ $transaction: vi.fn(), programConfiguration: { findUnique: vi.fn() }, learningAward: { create: vi.fn(), findMany: vi.fn() }, user: { findUnique: vi.fn() }, trail: { findUnique: vi.fn() }, trailModule: { findUnique: vi.fn() }, moduleProgress: { findUniqueOrThrow: vi.fn(), upsert: vi.fn(), findUnique: vi.fn(), update: vi.fn() } }))
+const db = vi.hoisted(() => ({
+  user: { findUnique: vi.fn() },
+  trail: { findUnique: vi.fn(), findFirst: vi.fn() },
+  trailModule: { findUnique: vi.fn() },
+  moduleProgress: { upsert: vi.fn(), findUnique: vi.fn(), update: vi.fn() },
+  inviteAttribution: { findUnique: vi.fn(), update: vi.fn(), count: vi.fn() },
+  programConfiguration: { findUnique: vi.fn() },
+  pointAccount: { upsert: vi.fn(), update: vi.fn() },
+  pointLedgerEntry: { create: vi.fn(), findFirst: vi.fn() },
+  $transaction: vi.fn(),
+}))
 vi.mock('../../lib/prisma.js', () => ({ getPrisma: () => db }))
 const userId = '11111111-1111-4111-8111-111111111111'
 const trailId = '22222222-2222-4222-8222-222222222222'
@@ -30,6 +41,9 @@ beforeEach(async () => {
   db.programConfiguration.findUnique.mockImplementation(async ({ where }: { where: { key: string } }) => ({ key: where.key, kind: where.key === 'module_completion' ? 'RULE' : 'LIMIT', value: 0, isActive: false }))
   db.learningAward.findMany.mockResolvedValue([])
   db.moduleProgress.findUniqueOrThrow.mockResolvedValue({ id: ids[0], startedAt: new Date(), completedAt: null })
+  db.trail.findFirst.mockResolvedValue({ modules: [{ id: ids[0] }] })
+  db.inviteAttribution.findUnique.mockResolvedValue(null)
+  db.$transaction.mockImplementation(async (operation: (tx: typeof db) => Promise<unknown>) => operation(db))
   app = await buildApp({ logger: false })
 })
 afterEach(async () => { await app.close() })

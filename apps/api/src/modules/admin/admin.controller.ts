@@ -1,7 +1,22 @@
 import type { FastifyReply, FastifyRequest } from 'fastify'
 import { AuthenticationError } from '../../lib/auth-user.js'
 import * as service from './admin.service.js'
-import type { AdminTrailParams, AdminModuleParams, CreateTrail, UpdateTrail, CreateModule, UpdateModule, ChangeStatus, Reorder, ChangePassword, ReplaceQuiz, ReplaceTraining, AdminReportStatusBody, AdminReportsQuery, ReportParams } from './admin.schemas.js'
+import type {
+  AdminTrailParams,
+  AdminModuleParams,
+  CreateTrail,
+  UpdateTrail,
+  CreateModule,
+  UpdateModule,
+  ChangeStatus,
+  Reorder,
+  ChangePassword,
+  ReplaceQuiz,
+  ReplaceTraining,
+  AdminReportStatusBody,
+  AdminReportsQuery,
+  ReportParams,
+} from './admin.schemas.js'
 import { ReportError, listAdminReports, updateAdminReportStatus } from '../reports/reports.service.js'
 
 function sendError(reply: FastifyReply, error: unknown) {

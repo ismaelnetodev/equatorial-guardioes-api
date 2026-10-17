@@ -97,6 +97,22 @@ continuam dependências dessas integrações.
 
 Nenhuma rota aceita ajustes diretos de saldo. Alterar configuração não recalcula
 concessões ou estornos. O aprendizado já registra concessões em LearningAward, preservando os valores aplicados no momento da operação; as demais integrações também devem preservar snapshots históricos.
+O módulo admin continua responsável só pela configuração. A execução do livro de
+pontos, saldo, ranking, resgates e convites do learner fica no módulo
+**Community** (`/api/v1/ranking`, `/recompensas`, `/convidar`, `/perfil`), com
+`PointAccount` / `PointLedgerEntry` / `RewardRedemption` / `InviteAttribution`.
+
+Créditos (quiz, relatos, convite no módulo 0) aumentam `accumulated` e `balance`.
+Resgates debitam **somente** `balance` (`affectsAccumulated: false`), sem alterar
+nível nem ranking. O catálogo learner usa configs `kind=REWARD` ativas; o limite
+`redemption_validated_reports` exige relatos `RESOLVED` antes do resgate. Convites
+usam `invite_module0_reward` e `invite_reward_limit`; níveis usam
+`level_*_threshold` sobre pontos acumulados.
+
+Ainda não há campanhas, estoque operacional, estornos administrativos nem
+ajustes manuais de saldo. Alterar configuração não recalcula concessões
+históricas: cada lançamento do ledger preserva o valor aplicado no momento da
+operação.
 
 Os testes HTTP usam persistência simulada, como os demais testes do repositório;
 verificam autorização, validação, snapshots, rollback e conflitos. Eles não

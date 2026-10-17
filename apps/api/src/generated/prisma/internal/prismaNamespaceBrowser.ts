@@ -52,6 +52,10 @@ export const AnyNull = runtime.AnyNull
 
 export const ModelName = {
   User: 'User',
+  PointAccount: 'PointAccount',
+  PointLedgerEntry: 'PointLedgerEntry',
+  RewardRedemption: 'RewardRedemption',
+  InviteAttribution: 'InviteAttribution',
   Neighborhood: 'Neighborhood',
   Trail: 'Trail',
   TrailModule: 'TrailModule',
@@ -106,6 +110,56 @@ export const UserScalarFieldEnum = {
 } as const
 
 export type UserScalarFieldEnum = (typeof UserScalarFieldEnum)[keyof typeof UserScalarFieldEnum]
+
+
+export const PointAccountScalarFieldEnum = {
+  userId: 'userId',
+  accumulated: 'accumulated',
+  balance: 'balance',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type PointAccountScalarFieldEnum = (typeof PointAccountScalarFieldEnum)[keyof typeof PointAccountScalarFieldEnum]
+
+
+export const PointLedgerEntryScalarFieldEnum = {
+  id: 'id',
+  userId: 'userId',
+  delta: 'delta',
+  affectsAccumulated: 'affectsAccumulated',
+  reason: 'reason',
+  sourceType: 'sourceType',
+  sourceId: 'sourceId',
+  createdAt: 'createdAt'
+} as const
+
+export type PointLedgerEntryScalarFieldEnum = (typeof PointLedgerEntryScalarFieldEnum)[keyof typeof PointLedgerEntryScalarFieldEnum]
+
+
+export const RewardRedemptionScalarFieldEnum = {
+  id: 'id',
+  userId: 'userId',
+  rewardKey: 'rewardKey',
+  pointsSpent: 'pointsSpent',
+  status: 'status',
+  createdAt: 'createdAt'
+} as const
+
+export type RewardRedemptionScalarFieldEnum = (typeof RewardRedemptionScalarFieldEnum)[keyof typeof RewardRedemptionScalarFieldEnum]
+
+
+export const InviteAttributionScalarFieldEnum = {
+  id: 'id',
+  inviterId: 'inviterId',
+  inviteeId: 'inviteeId',
+  inviteCode: 'inviteCode',
+  registeredAt: 'registeredAt',
+  module0CompletedAt: 'module0CompletedAt',
+  pointsAwarded: 'pointsAwarded'
+} as const
+
+export type InviteAttributionScalarFieldEnum = (typeof InviteAttributionScalarFieldEnum)[keyof typeof InviteAttributionScalarFieldEnum]
 
 
 export const NeighborhoodScalarFieldEnum = {

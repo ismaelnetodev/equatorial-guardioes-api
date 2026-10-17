@@ -1,6 +1,7 @@
 import { estimateReadingSeconds } from '../../lib/reading-time.js'
 import { assertMinimumTime, learningTransaction, queueModuleAward, releasePendingModules } from '../quiz/learning-rules.service.js'
 import { publishedTrailWhere, publishedModuleWhere } from '../../lib/content-visibility.js'
+import { maybeAwardInviteOnModule0 } from '../../lib/invite-attribution.js'
 import { getPrisma } from '../../lib/prisma.js'
 import { getQuizCompletionStatus } from '../quiz/quiz.service.js'
 

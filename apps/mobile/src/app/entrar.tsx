@@ -6,6 +6,7 @@ import { SafeAreaView } from 'react-native-safe-area-context'
 import { Button, colors, InputField } from '../components/ui'
 import { EnergyBrand } from '../components/energy-brand'
 import { EmergencyBanner } from '../components/emergency-banner'
+import { OfflineBanner } from '../components/offline-banner'
 import { login } from '../features/auth/auth.api'
 import { errorMessage } from '../services/api'
 
@@ -15,6 +16,7 @@ export default function LoginScreen() {
   const [visible, setVisible] = useState(false)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
+  const [invalidCredentials, setInvalidCredentials] = useState(false)
   const [notice, setNotice] = useState('')
   const [submitted, setSubmitted] = useState(false)
   const pending = useRef(false)
@@ -28,6 +30,7 @@ export default function LoginScreen() {
     if (pending.current) return
     setSubmitted(true)
     setError('')
+    setInvalidCredentials(false)
     setNotice('')
     if (contactError || passwordError) return
     pending.current = true
@@ -36,18 +39,36 @@ export default function LoginScreen() {
       await login({ ...(email ? { email: value.toLowerCase() } : { cellphone: phone }), password })
       router.replace('/trilha')
     } catch (cause) {
-      setError(errorMessage(cause, 'Não foi possível entrar. Tente novamente.'))
+      if (cause instanceof ApiError && cause.status === 401 && cause.code === 'INVALID_CREDENTIALS') {
+        setInvalidCredentials(true)
+        setError('E-mail ou senha incorretos, tente novamente.')
+      } else {
+        setError(cause instanceof TypeError ? 'Sem acesso à internet, tente novamente.' : cause instanceof ApiError ? cause.message : cause instanceof Error ? cause.message : 'Não foi possível entrar. Tente novamente.')
+      }
     } finally { pending.current = false; setLoading(false) }
+  }
+
+  function updateContact(text: string) {
+    setContact(text)
+    setError('')
+    setInvalidCredentials(false)
+  }
+
+  function updatePassword(text: string) {
+    setPassword(text)
+    setError('')
+    setInvalidCredentials(false)
   }
 
   return <SafeAreaView style={styles.screen}>
     <StatusBar style="light" />
     <KeyboardAvoidingView style={styles.flex} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
       <ScrollView keyboardShouldPersistTaps="handled" contentContainerStyle={styles.content}>
+        <OfflineBanner />
         <EnergyBrand />
         <View style={styles.form}>
-          <InputField label="Celular ou e-mail" icon="user" value={contact} onChangeText={setContact} placeholder="(98) 9 8888-0000" autoCapitalize="none" autoCorrect={false} autoComplete="username" textContentType="username" editable={!loading} maxLength={254} error={submitted ? contactError : undefined} returnKeyType="next" />
-          <InputField label="Senha" icon="lock" value={password} onChangeText={setPassword} placeholder="Sua senha" secureTextEntry={!visible} autoCapitalize="none" autoCorrect={false} autoComplete="current-password" textContentType="password" maxLength={128} editable={!loading} error={submitted ? passwordError : undefined} returnKeyType="go" onSubmitEditing={() => { void submit() }} trailing={<Pressable accessibilityRole="button" accessibilityLabel={visible ? 'Ocultar senha' : 'Mostrar senha'} onPress={() => setVisible(!visible)} hitSlop={8} style={styles.eye}><Text style={styles.eyeText}>{visible ? '◉' : '◎'}</Text></Pressable>} />
+          <InputField label="Celular ou e-mail" icon="user" value={contact} onChangeText={updateContact} placeholder="(98) 9 8888-0000" autoCapitalize="none" autoCorrect={false} autoComplete="username" textContentType="username" editable={!loading} maxLength={254} error={submitted ? contactError : undefined} invalid={invalidCredentials} returnKeyType="next" />
+          <InputField label="Senha" icon="lock" value={password} onChangeText={updatePassword} placeholder="Sua senha" secureTextEntry={!visible} autoCapitalize="none" autoCorrect={false} autoComplete="current-password" textContentType="password" maxLength={128} editable={!loading} error={submitted ? passwordError : undefined} invalid={invalidCredentials} returnKeyType="go" onSubmitEditing={() => { void submit() }} trailing={<Pressable accessibilityRole="button" accessibilityLabel={visible ? 'Ocultar senha' : 'Mostrar senha'} onPress={() => setVisible(!visible)} hitSlop={8} style={styles.eye}><Text style={styles.eyeText}>{visible ? '◉' : '◎'}</Text></Pressable>} />
           <Pressable accessibilityRole="button" onPress={() => setNotice('A recuperação de senha ainda não está disponível.')} style={styles.forgot}><Text style={styles.link}>Esqueci minha senha</Text></Pressable>
           {error ? <Text accessibilityRole="alert" style={styles.error}>{error}</Text> : null}
           <Button title="Entrar" loading={loading} onPress={() => { void submit() }} />
@@ -70,5 +91,5 @@ const styles = StyleSheet.create({
   link: { color: colors.primary, fontWeight: '700', fontSize: 13 }, muted: { color: colors.muted, fontSize: 13, textAlign: 'center' },
   signup: { alignItems: 'center', paddingVertical: 7 }, or: { color: '#858bad', textAlign: 'center', fontSize: 12 },
   eye: { minWidth: 30, minHeight: 36, justifyContent: 'center', alignItems: 'center' }, eyeText: { color: colors.muted, fontSize: 25 },
-  error: { color: '#ffad61', fontSize: 13, lineHeight: 19 }, notice: { color: colors.muted, fontSize: 13, lineHeight: 20, textAlign: 'center' }, emergency: { marginTop: 16 },
+  error: { color: colors.warning, fontSize: 13, lineHeight: 19 }, notice: { color: colors.muted, fontSize: 13, lineHeight: 20, textAlign: 'center' }, emergency: { marginTop: 16 },
 })
