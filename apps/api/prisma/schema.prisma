@@ -24,6 +24,31 @@ enum ContentStatus {
   DISABLED
 }
 
+enum QuizPhase {
+  PRE
+  POST
+}
+
+enum TrainingStepKind {
+  RECOGNIZE
+  DO_NOT
+  INFO
+}
+
+enum ReportStatus {
+  SENT
+  RECEIVED
+  IN_ANALYSIS
+  RESOLVED
+  NOT_CONFIRMED
+}
+
+enum ReportUrgency {
+  LOW
+  MEDIUM
+  HIGH
+}
+
 model User {
   id               String           @id @default(uuid()) @db.Uuid
   role             UserRole         @default(USER)
@@ -37,6 +62,7 @@ model User {
   inviteCode       String?
   termsAcceptedAt  DateTime
   moduleProgresses ModuleProgress[]
+  reports          Report[]
   createdAt        DateTime         @default(now())
   updatedAt        DateTime         @updatedAt
 }
@@ -79,6 +105,7 @@ model TrailModule {
   quizMinimumScore Int?
   progressRecords ModuleProgress[]
   quizQuestions   QuizQuestion[]
+  trainingSteps   TrainingStep[]
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
 
@@ -87,16 +114,19 @@ model TrailModule {
 }
 
 model ModuleProgress {
-  id          String   @id @default(uuid()) @db.Uuid
-  userId      String   @db.Uuid
-  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  moduleId    String   @db.Uuid
-  module      TrailModule @relation(fields: [moduleId], references: [id], onDelete: Cascade)
-  startedAt   DateTime @default(now())
-  completedAt DateTime?
-  attempts    QuizAttempt[]
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  id                  String    @id @default(uuid()) @db.Uuid
+  userId              String    @db.Uuid
+  user                User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  moduleId            String    @db.Uuid
+  module              TrailModule @relation(fields: [moduleId], references: [id], onDelete: Cascade)
+  startedAt           DateTime  @default(now())
+  completedAt         DateTime?
+  preTestCompletedAt  DateTime?
+  trainingCompletedAt DateTime?
+  trainingPointsAwarded Int     @default(0)
+  attempts            QuizAttempt[]
+  createdAt           DateTime  @default(now())
+  updatedAt           DateTime  @updatedAt
 
   @@unique([userId, moduleId])
   @@index([userId])
@@ -104,14 +134,18 @@ model ModuleProgress {
 }
 
 model QuizQuestion {
-  id        String   @id @default(uuid()) @db.Uuid
-  moduleId  String   @db.Uuid
-  module    TrailModule @relation(fields: [moduleId], references: [id], onDelete: Cascade)
-  statement String   @db.Text
-  order     Int
-  options   QuizOption[]
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id               String       @id @default(uuid()) @db.Uuid
+  moduleId         String       @db.Uuid
+  module           TrailModule  @relation(fields: [moduleId], references: [id], onDelete: Cascade)
+  statement        String       @db.Text
+  order            Int
+  explanationTitle String       @db.Text
+  explanationBody  String       @db.Text
+  imageUrl         String?
+  options          QuizOption[]
+  answers          QuizAnswer[]
+  createdAt        DateTime     @default(now())
+  updatedAt        DateTime     @updatedAt
 
   @@unique([moduleId, order])
 }
@@ -122,19 +156,106 @@ model QuizOption {
   question   QuizQuestion @relation(fields: [questionId], references: [id], onDelete: Cascade)
   text       String
   isCorrect  Boolean  @default(false)
+  answers    QuizAnswer[]
   createdAt  DateTime @default(now())
   updatedAt  DateTime @updatedAt
 }
 
 model QuizAttempt {
-  id         String   @id @default(uuid()) @db.Uuid
-  progressId String   @db.Uuid
-  progress   ModuleProgress @relation(fields: [progressId], references: [id], onDelete: Cascade)
-  score      Float
-  isApproved Boolean
-  submittedAt DateTime @default(now())
+  id            String       @id @default(uuid()) @db.Uuid
+  progressId    String       @db.Uuid
+  progress      ModuleProgress @relation(fields: [progressId], references: [id], onDelete: Cascade)
+  phase         QuizPhase
+  correctCount  Int
+  totalCount    Int
+  score         Float
+  isApproved    Boolean
+  pointsAwarded Int          @default(0)
+  finishedAt    DateTime?
+  submittedAt   DateTime     @default(now())
+  answers       QuizAnswer[]
 
-  @@index([progressId, submittedAt])
+  @@index([progressId, phase, submittedAt])
+}
+
+model QuizAnswer {
+  id         String       @id @default(uuid()) @db.Uuid
+  attemptId  String       @db.Uuid
+  attempt    QuizAttempt  @relation(fields: [attemptId], references: [id], onDelete: Cascade)
+  questionId String       @db.Uuid
+  question   QuizQuestion @relation(fields: [questionId], references: [id], onDelete: Cascade)
+  optionId   String       @db.Uuid
+  option     QuizOption   @relation(fields: [optionId], references: [id], onDelete: Cascade)
+  isCorrect  Boolean
+  answeredAt DateTime     @default(now())
+
+  @@unique([attemptId, questionId])
+  @@index([attemptId])
+}
+
+model TrainingStep {
+  id              String            @id @default(uuid()) @db.Uuid
+  moduleId        String            @db.Uuid
+  module          TrailModule       @relation(fields: [moduleId], references: [id], onDelete: Cascade)
+  title           String
+  kind            TrainingStepKind  @default(INFO)
+  order           Int
+  durationMinutes Int?
+  introText       String?           @db.Text
+  cards           TrainingCard[]
+  createdAt       DateTime          @default(now())
+  updatedAt       DateTime          @updatedAt
+
+  @@unique([moduleId, order])
+  @@index([moduleId, order])
+}
+
+model TrainingCard {
+  id          String       @id @default(uuid()) @db.Uuid
+  stepId      String       @db.Uuid
+  step        TrainingStep @relation(fields: [stepId], references: [id], onDelete: Cascade)
+  title       String
+  description String       @db.Text
+  order       Int
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+
+  @@unique([stepId, order])
+  @@index([stepId, order])
+}
+
+model Report {
+  id            String                @id @default(uuid()) @db.Uuid
+  userId        String                @db.Uuid
+  user          User                  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  title         String
+  description   String                @db.Text
+  address       String
+  neighborhood  String
+  photoUrl      String?
+  latitude      Float?
+  longitude     Float?
+  status        ReportStatus          @default(SENT)
+  urgency       ReportUrgency         @default(MEDIUM)
+  pointsAwarded Int                   @default(0)
+  impactSeenAt  DateTime?
+  submittedAt   DateTime              @default(now())
+  timeline      ReportTimelineEvent[]
+  createdAt     DateTime              @default(now())
+  updatedAt     DateTime              @updatedAt
+
+  @@index([userId, submittedAt])
+  @@index([status, submittedAt])
+}
+
+model ReportTimelineEvent {
+  id         String       @id @default(uuid()) @db.Uuid
+  reportId   String       @db.Uuid
+  report     Report       @relation(fields: [reportId], references: [id], onDelete: Cascade)
+  status     ReportStatus
+  occurredAt DateTime     @default(now())
+
+  @@index([reportId, occurredAt])
 }
 
 enum ProgramConfigurationKind {

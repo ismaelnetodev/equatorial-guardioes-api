@@ -6,10 +6,18 @@ import { createSessionToken } from '../../lib/auth-session.js'
 import { Prisma } from '../../generated/prisma/client.js'
 import type { ContentStatus } from './admin.schemas.js'
 
-const db = vi.hoisted(() => ({ user: { findUnique: vi.fn() }, trail: { findMany: vi.fn(), findUnique: vi.fn(), aggregate: vi.fn(), create: vi.fn(), update: vi.fn() }, trailModule: { findMany: vi.fn(), findUnique: vi.fn(), aggregate: vi.fn(), create: vi.fn(), update: vi.fn(), count: vi.fn() }, moduleProgress: { upsert: vi.fn(), findUnique: vi.fn(), update: vi.fn() }, $transaction: vi.fn() }))
+const db = vi.hoisted(() => ({
+  user: { findUnique: vi.fn() },
+  trail: { findMany: vi.fn(), findUnique: vi.fn(), aggregate: vi.fn(), create: vi.fn(), update: vi.fn() },
+  trailModule: { findMany: vi.fn(), findUnique: vi.fn(), aggregate: vi.fn(), create: vi.fn(), update: vi.fn(), count: vi.fn() },
+  moduleProgress: { upsert: vi.fn(), findUnique: vi.fn(), update: vi.fn() },
+  quizQuestion: { findMany: vi.fn(), deleteMany: vi.fn(), create: vi.fn() },
+  trainingStep: { findMany: vi.fn(), deleteMany: vi.fn(), create: vi.fn() },
+  $transaction: vi.fn(),
+}))
 vi.mock('../../lib/prisma.js', () => ({ getPrisma: () => db }))
 type TrailRow = { id: string; title: string; description: string; order: number; publicationStatus: ContentStatus }
-type ModuleRow = TrailRow & { trailId: string; content: string; isActive: boolean; durationMinutes: number | null; requiresQuiz: boolean }
+type ModuleRow = TrailRow & { trailId: string; content: string; isActive: boolean; durationMinutes: number | null; requiresQuiz: boolean; quizMinimumScore: number | null }
 type Where = Record<string, unknown>
 type Query = { where?: Where; data?: Record<string, unknown>; select?: Record<string, unknown>; orderBy?: unknown }
 const userId = '11111111-1111-4111-8111-111111111111'
@@ -43,7 +51,7 @@ beforeEach(async () => {
   role = 'ADMIN'
   completed = new Set()
   trails = [{ id: trailId, title: 'Trilha', description: 'Descrição', order: 1, publicationStatus: 'PUBLISHED' }, { id: otherTrailId, title: 'Outra', description: 'Descrição', order: 2, publicationStatus: 'PUBLISHED' }]
-  const item = { title: 'Módulo', description: 'Descrição', content: 'Conteúdo completo', durationMinutes: null, isActive: true, requiresQuiz: false, publicationStatus: 'PUBLISHED' as const }
+  const item = { title: 'Módulo', description: 'Descrição', content: 'Conteúdo completo', durationMinutes: null, isActive: true, requiresQuiz: false, quizMinimumScore: null, publicationStatus: 'PUBLISHED' as const }
   modules = [{ ...item, id: moduleId, trailId, order: 1 }, { ...item, id: nextModuleId, trailId, order: 2 }, { ...item, id: hiddenModuleId, trailId, order: 3, publicationStatus: 'DRAFT' }, { ...item, id: otherModuleId, trailId: otherTrailId, order: 1 }]
   db.user.findUnique.mockImplementation(async () => ({ id: userId, role }))
   const withProgress = (m: ModuleRow) => ({ ...m, progressRecords: completed.has(m.id) ? [{ startedAt: new Date(), completedAt: new Date() }] : [] })
@@ -66,12 +74,18 @@ beforeEach(async () => {
   db.trailModule.findUnique.mockImplementation(async ({ where }: Query) => { const m = modules.find(m => matches(m, where)); return m ? { ...m } : null })
   db.trailModule.aggregate.mockImplementation(async ({ where }: Query) => { const rows = modules.filter(m => matches(m, where)); return { _max: { order: rows.length ? Math.max(...rows.map(m => m.order)) : null } } })
   db.trailModule.count.mockImplementation(async ({ where }: Query) => modules.filter(m => matches(m, where)).length)
-  db.trailModule.create.mockImplementation(async ({ data }: Query) => { const row = { id: randomUUID(), publicationStatus: 'DRAFT', isActive: true, ...data } as ModuleRow; modules.push(row); return { ...row } })
+  db.trailModule.create.mockImplementation(async ({ data }: Query) => { const row = { id: randomUUID(), publicationStatus: 'DRAFT', isActive: true, quizMinimumScore: null, ...data } as ModuleRow; modules.push(row); return { ...row } })
   db.trailModule.update.mockImplementation(async ({ where, data }: Query) => {
     const row = modules.find(m => matches(m, where))!
     if (data?.['order'] !== undefined && modules.some(m => m.id !== row.id && m.trailId === row.trailId && m.order === data['order'])) throw uniqueError()
     Object.assign(row, data); return { ...row }
   })
+  db.quizQuestion.findMany.mockResolvedValue([])
+  db.quizQuestion.deleteMany.mockResolvedValue({ count: 0 })
+  db.quizQuestion.create.mockImplementation(async ({ data }: Query) => ({ id: randomUUID(), ...data, options: [] }))
+  db.trainingStep.findMany.mockResolvedValue([])
+  db.trainingStep.deleteMany.mockResolvedValue({ count: 0 })
+  db.trainingStep.create.mockImplementation(async ({ data }: Query) => ({ id: randomUUID(), ...data, cards: [] }))
   db.$transaction.mockImplementation(async (operation: (tx: typeof db) => Promise<unknown>) => {
     const snapshot = structuredClone({ trails, modules })
     try { return await operation(db) } catch (error) { trails = snapshot.trails; modules = snapshot.modules; throw error }

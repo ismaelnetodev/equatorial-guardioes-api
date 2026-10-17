@@ -18,6 +18,10 @@ export async function changeAdministratorPassword(authorization: string | undefi
   const result = await getPrisma().user.updateMany({ where: { id: user.id, role: 'ADMIN', passwordHash: account.passwordHash }, data: { passwordHash: await hashPassword(newPassword) } })
   if (result.count !== 1) throw new AdminError('CONTENT_CONFLICT', 'A conta foi alterada. Entre novamente e tente outra vez.')
   return { message: 'Senha alterada com sucesso.' }
+import type { ContentStatus, CreateTrail, UpdateTrail, CreateModule, UpdateModule, ReplaceQuiz, ReplaceTraining } from './admin.schemas.js'
+
+export class AdminError extends Error {
+  constructor(public readonly code: 'FORBIDDEN' | 'TRAIL_NOT_FOUND' | 'MODULE_NOT_FOUND' | 'INVALID_ORDER' | 'INVALID_PUBLICATION' | 'INVALID_QUIZ' | 'CONTENT_CONFLICT', message: string) { super(message) }
 }
 
 export async function authorizeAdministrator(authorization: string | undefined): Promise<void> {
@@ -26,7 +30,25 @@ export async function authorizeAdministrator(authorization: string | undefined):
 }
 
 const trailSelect = { id: true, title: true, description: true, order: true, publicationStatus: true } as const
-const moduleSelect = { id: true, trailId: true, title: true, description: true, content: true, order: true, publicationStatus: true, durationMinutes: true, isActive: true, requiresQuiz: true } as const
+const moduleSelect = { id: true, trailId: true, title: true, description: true, content: true, order: true, publicationStatus: true, durationMinutes: true, isActive: true, requiresQuiz: true, quizMinimumScore: true } as const
+const quizQuestionSelect = {
+  id: true,
+  statement: true,
+  order: true,
+  explanationTitle: true,
+  explanationBody: true,
+  imageUrl: true,
+  options: { select: { id: true, text: true, isCorrect: true }, orderBy: { createdAt: 'asc' as const } },
+} as const
+const trainingStepSelect = {
+  id: true,
+  title: true,
+  kind: true,
+  order: true,
+  durationMinutes: true,
+  introText: true,
+  cards: { select: { id: true, title: true, description: true, order: true }, orderBy: { order: 'asc' as const } },
+} as const
 
 async function writeContent<T>(operation: (tx: Prisma.TransactionClient) => Promise<T>): Promise<T> {
   try {
@@ -40,13 +62,15 @@ async function writeContent<T>(operation: (tx: Prisma.TransactionClient) => Prom
   }
 }
 
-async function requireTrail(db: Prisma.TransactionClient, trailId: string) {
+type ContentDb = Prisma.TransactionClient | ReturnType<typeof getPrisma>
+
+async function requireTrail(db: ContentDb, trailId: string) {
   const trail = await db.trail.findUnique({ where: { id: trailId }, select: trailSelect })
   if (!trail) throw new AdminError('TRAIL_NOT_FOUND', 'Trilha não encontrada.')
   return trail
 }
 
-async function requireModule(db: Prisma.TransactionClient, trailId: string, moduleId: string) {
+async function requireModule(db: ContentDb, trailId: string, moduleId: string) {
   await requireTrail(db, trailId)
   const module = await db.trailModule.findUnique({ where: { id: moduleId, trailId }, select: moduleSelect })
   if (!module) throw new AdminError('MODULE_NOT_FOUND', 'Módulo não encontrado nesta trilha.')
@@ -117,7 +141,19 @@ export async function createModule(trailId: string, input: CreateModule) {
   return writeContent(async tx => {
     await requireTrail(tx, trailId)
     const aggregate = await tx.trailModule.aggregate({ where: { trailId }, _max: { order: true } })
-    return tx.trailModule.create({ data: { trailId, title: input.title.trim(), description: input.description.trim(), content: input.content ?? '', durationMinutes: input.durationMinutes ?? null, requiresQuiz: input.requiresQuiz ?? false, order: nextOrder(aggregate._max.order) }, select: moduleSelect })
+    return tx.trailModule.create({
+      data: {
+        trailId,
+        title: input.title.trim(),
+        description: input.description.trim(),
+        content: input.content ?? '',
+        durationMinutes: input.durationMinutes ?? null,
+        requiresQuiz: input.requiresQuiz ?? false,
+        quizMinimumScore: input.quizMinimumScore ?? null,
+        order: nextOrder(aggregate._max.order),
+      },
+      select: moduleSelect,
+    })
   })
 }
 
@@ -154,5 +190,98 @@ export async function reorderModules(trailId: string, ids: string[]) {
     for (const [index, id] of ids.entries()) await tx.trailModule.update({ where: { id }, data: { order: temporaryStart + index } })
     for (const [index, id] of ids.entries()) await tx.trailModule.update({ where: { id }, data: { order: index + 1 } })
     return tx.trailModule.findMany({ where: { trailId }, select: moduleSelect, orderBy: { order: 'asc' } })
+  })
+}
+
+function validateQuizQuestions(questions: ReplaceQuiz['questions']) {
+  for (const [index, question] of questions.entries()) {
+    const correctCount = question.options.filter((option) => option.isCorrect).length
+    if (correctCount !== 1) {
+      throw new AdminError('INVALID_QUIZ', `A pergunta ${index + 1} deve ter exatamente uma alternativa correta.`)
+    }
+  }
+}
+
+export async function getModuleQuiz(trailId: string, moduleId: string) {
+  await requireModule(getPrisma(), trailId, moduleId)
+  const questions = await getPrisma().quizQuestion.findMany({
+    where: { moduleId },
+    orderBy: { order: 'asc' },
+    select: quizQuestionSelect,
+  })
+  return { moduleId, questions }
+}
+
+export async function replaceModuleQuiz(trailId: string, moduleId: string, input: ReplaceQuiz) {
+  validateQuizQuestions(input.questions)
+  return writeContent(async (tx) => {
+    await requireModule(tx, trailId, moduleId)
+    await tx.quizQuestion.deleteMany({ where: { moduleId } })
+    for (const [index, question] of input.questions.entries()) {
+      await tx.quizQuestion.create({
+        data: {
+          moduleId,
+          statement: question.statement.trim(),
+          order: index + 1,
+          explanationTitle: question.explanationTitle.trim(),
+          explanationBody: question.explanationBody.trim(),
+          imageUrl: question.imageUrl ?? null,
+          options: {
+            create: question.options.map((option) => ({
+              text: option.text.trim(),
+              isCorrect: option.isCorrect,
+            })),
+          },
+        },
+      })
+    }
+    const questions = await tx.quizQuestion.findMany({
+      where: { moduleId },
+      orderBy: { order: 'asc' },
+      select: quizQuestionSelect,
+    })
+    return { moduleId, questions }
+  })
+}
+
+export async function getModuleTraining(trailId: string, moduleId: string) {
+  await requireModule(getPrisma(), trailId, moduleId)
+  const steps = await getPrisma().trainingStep.findMany({
+    where: { moduleId },
+    orderBy: { order: 'asc' },
+    select: trainingStepSelect,
+  })
+  return { moduleId, steps }
+}
+
+export async function replaceModuleTraining(trailId: string, moduleId: string, input: ReplaceTraining) {
+  return writeContent(async (tx) => {
+    await requireModule(tx, trailId, moduleId)
+    await tx.trainingStep.deleteMany({ where: { moduleId } })
+    for (const [index, step] of input.steps.entries()) {
+      await tx.trainingStep.create({
+        data: {
+          moduleId,
+          title: step.title.trim(),
+          kind: step.kind ?? 'INFO',
+          order: index + 1,
+          durationMinutes: step.durationMinutes ?? null,
+          introText: step.introText?.trim() ? step.introText.trim() : null,
+          cards: {
+            create: step.cards.map((card, cardIndex) => ({
+              title: card.title.trim(),
+              description: card.description.trim(),
+              order: cardIndex + 1,
+            })),
+          },
+        },
+      })
+    }
+    const steps = await tx.trainingStep.findMany({
+      where: { moduleId },
+      orderBy: { order: 'asc' },
+      select: trainingStepSelect,
+    })
+    return { moduleId, steps }
   })
 }

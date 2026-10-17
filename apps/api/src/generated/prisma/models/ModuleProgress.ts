@@ -20,8 +20,18 @@ export type ModuleProgressModel = runtime.Types.Result.DefaultSelection<Prisma.$
 
 export type AggregateModuleProgress = {
   _count: ModuleProgressCountAggregateOutputType | null
+  _avg: ModuleProgressAvgAggregateOutputType | null
+  _sum: ModuleProgressSumAggregateOutputType | null
   _min: ModuleProgressMinAggregateOutputType | null
   _max: ModuleProgressMaxAggregateOutputType | null
+}
+
+export type ModuleProgressAvgAggregateOutputType = {
+  trainingPointsAwarded: number | null
+}
+
+export type ModuleProgressSumAggregateOutputType = {
+  trainingPointsAwarded: number | null
 }
 
 export type ModuleProgressMinAggregateOutputType = {
@@ -30,6 +40,9 @@ export type ModuleProgressMinAggregateOutputType = {
   moduleId: string | null
   startedAt: Date | null
   completedAt: Date | null
+  preTestCompletedAt: Date | null
+  trainingCompletedAt: Date | null
+  trainingPointsAwarded: number | null
   createdAt: Date | null
   updatedAt: Date | null
 }
@@ -40,6 +53,9 @@ export type ModuleProgressMaxAggregateOutputType = {
   moduleId: string | null
   startedAt: Date | null
   completedAt: Date | null
+  preTestCompletedAt: Date | null
+  trainingCompletedAt: Date | null
+  trainingPointsAwarded: number | null
   createdAt: Date | null
   updatedAt: Date | null
 }
@@ -50,11 +66,22 @@ export type ModuleProgressCountAggregateOutputType = {
   moduleId: number
   startedAt: number
   completedAt: number
+  preTestCompletedAt: number
+  trainingCompletedAt: number
+  trainingPointsAwarded: number
   createdAt: number
   updatedAt: number
   _all: number
 }
 
+
+export type ModuleProgressAvgAggregateInputType = {
+  trainingPointsAwarded?: true
+}
+
+export type ModuleProgressSumAggregateInputType = {
+  trainingPointsAwarded?: true
+}
 
 export type ModuleProgressMinAggregateInputType = {
   id?: true
@@ -62,6 +89,9 @@ export type ModuleProgressMinAggregateInputType = {
   moduleId?: true
   startedAt?: true
   completedAt?: true
+  preTestCompletedAt?: true
+  trainingCompletedAt?: true
+  trainingPointsAwarded?: true
   createdAt?: true
   updatedAt?: true
 }
@@ -72,6 +102,9 @@ export type ModuleProgressMaxAggregateInputType = {
   moduleId?: true
   startedAt?: true
   completedAt?: true
+  preTestCompletedAt?: true
+  trainingCompletedAt?: true
+  trainingPointsAwarded?: true
   createdAt?: true
   updatedAt?: true
 }
@@ -82,6 +115,9 @@ export type ModuleProgressCountAggregateInputType = {
   moduleId?: true
   startedAt?: true
   completedAt?: true
+  preTestCompletedAt?: true
+  trainingCompletedAt?: true
+  trainingPointsAwarded?: true
   createdAt?: true
   updatedAt?: true
   _all?: true
@@ -125,6 +161,18 @@ export type ModuleProgressAggregateArgs<ExtArgs extends runtime.Types.Extensions
   /**
    * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
    * 
+   * Select which fields to average
+  **/
+  _avg?: ModuleProgressAvgAggregateInputType
+  /**
+   * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+   * 
+   * Select which fields to sum
+  **/
+  _sum?: ModuleProgressSumAggregateInputType
+  /**
+   * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+   * 
    * Select which fields to find the minimum value
   **/
   _min?: ModuleProgressMinAggregateInputType
@@ -155,6 +203,8 @@ export type ModuleProgressGroupByArgs<ExtArgs extends runtime.Types.Extensions.I
   take?: number
   skip?: number
   _count?: ModuleProgressCountAggregateInputType | true
+  _avg?: ModuleProgressAvgAggregateInputType
+  _sum?: ModuleProgressSumAggregateInputType
   _min?: ModuleProgressMinAggregateInputType
   _max?: ModuleProgressMaxAggregateInputType
 }
@@ -165,9 +215,14 @@ export type ModuleProgressGroupByOutputType = {
   moduleId: string
   startedAt: Date
   completedAt: Date | null
+  preTestCompletedAt: Date | null
+  trainingCompletedAt: Date | null
+  trainingPointsAwarded: number
   createdAt: Date
   updatedAt: Date
   _count: ModuleProgressCountAggregateOutputType | null
+  _avg: ModuleProgressAvgAggregateOutputType | null
+  _sum: ModuleProgressSumAggregateOutputType | null
   _min: ModuleProgressMinAggregateOutputType | null
   _max: ModuleProgressMaxAggregateOutputType | null
 }
@@ -196,6 +251,9 @@ export type ModuleProgressWhereInput = {
   moduleId?: Prisma.UuidFilter<"ModuleProgress"> | string
   startedAt?: Prisma.DateTimeFilter<"ModuleProgress"> | Date | string
   completedAt?: Prisma.DateTimeNullableFilter<"ModuleProgress"> | Date | string | null
+  preTestCompletedAt?: Prisma.DateTimeNullableFilter<"ModuleProgress"> | Date | string | null
+  trainingCompletedAt?: Prisma.DateTimeNullableFilter<"ModuleProgress"> | Date | string | null
+  trainingPointsAwarded?: Prisma.IntFilter<"ModuleProgress"> | number
   createdAt?: Prisma.DateTimeFilter<"ModuleProgress"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"ModuleProgress"> | Date | string
   user?: Prisma.XOR<Prisma.UserScalarRelationFilter, Prisma.UserWhereInput>
@@ -209,6 +267,9 @@ export type ModuleProgressOrderByWithRelationInput = {
   moduleId?: Prisma.SortOrder
   startedAt?: Prisma.SortOrder
   completedAt?: Prisma.SortOrderInput | Prisma.SortOrder
+  preTestCompletedAt?: Prisma.SortOrderInput | Prisma.SortOrder
+  trainingCompletedAt?: Prisma.SortOrderInput | Prisma.SortOrder
+  trainingPointsAwarded?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
   user?: Prisma.UserOrderByWithRelationInput
@@ -226,6 +287,9 @@ export type ModuleProgressWhereUniqueInput = Prisma.AtLeast<{
   moduleId?: Prisma.UuidFilter<"ModuleProgress"> | string
   startedAt?: Prisma.DateTimeFilter<"ModuleProgress"> | Date | string
   completedAt?: Prisma.DateTimeNullableFilter<"ModuleProgress"> | Date | string | null
+  preTestCompletedAt?: Prisma.DateTimeNullableFilter<"ModuleProgress"> | Date | string | null
+  trainingCompletedAt?: Prisma.DateTimeNullableFilter<"ModuleProgress"> | Date | string | null
+  trainingPointsAwarded?: Prisma.IntFilter<"ModuleProgress"> | number
   createdAt?: Prisma.DateTimeFilter<"ModuleProgress"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"ModuleProgress"> | Date | string
   user?: Prisma.XOR<Prisma.UserScalarRelationFilter, Prisma.UserWhereInput>
@@ -239,11 +303,16 @@ export type ModuleProgressOrderByWithAggregationInput = {
   moduleId?: Prisma.SortOrder
   startedAt?: Prisma.SortOrder
   completedAt?: Prisma.SortOrderInput | Prisma.SortOrder
+  preTestCompletedAt?: Prisma.SortOrderInput | Prisma.SortOrder
+  trainingCompletedAt?: Prisma.SortOrderInput | Prisma.SortOrder
+  trainingPointsAwarded?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
   _count?: Prisma.ModuleProgressCountOrderByAggregateInput
+  _avg?: Prisma.ModuleProgressAvgOrderByAggregateInput
   _max?: Prisma.ModuleProgressMaxOrderByAggregateInput
   _min?: Prisma.ModuleProgressMinOrderByAggregateInput
+  _sum?: Prisma.ModuleProgressSumOrderByAggregateInput
 }
 
 export type ModuleProgressScalarWhereWithAggregatesInput = {
@@ -255,6 +324,9 @@ export type ModuleProgressScalarWhereWithAggregatesInput = {
   moduleId?: Prisma.UuidWithAggregatesFilter<"ModuleProgress"> | string
   startedAt?: Prisma.DateTimeWithAggregatesFilter<"ModuleProgress"> | Date | string
   completedAt?: Prisma.DateTimeNullableWithAggregatesFilter<"ModuleProgress"> | Date | string | null
+  preTestCompletedAt?: Prisma.DateTimeNullableWithAggregatesFilter<"ModuleProgress"> | Date | string | null
+  trainingCompletedAt?: Prisma.DateTimeNullableWithAggregatesFilter<"ModuleProgress"> | Date | string | null
+  trainingPointsAwarded?: Prisma.IntWithAggregatesFilter<"ModuleProgress"> | number
   createdAt?: Prisma.DateTimeWithAggregatesFilter<"ModuleProgress"> | Date | string
   updatedAt?: Prisma.DateTimeWithAggregatesFilter<"ModuleProgress"> | Date | string
 }
@@ -263,6 +335,9 @@ export type ModuleProgressCreateInput = {
   id?: string
   startedAt?: Date | string
   completedAt?: Date | string | null
+  preTestCompletedAt?: Date | string | null
+  trainingCompletedAt?: Date | string | null
+  trainingPointsAwarded?: number
   createdAt?: Date | string
   updatedAt?: Date | string
   user: Prisma.UserCreateNestedOneWithoutModuleProgressesInput
@@ -276,6 +351,9 @@ export type ModuleProgressUncheckedCreateInput = {
   moduleId: string
   startedAt?: Date | string
   completedAt?: Date | string | null
+  preTestCompletedAt?: Date | string | null
+  trainingCompletedAt?: Date | string | null
+  trainingPointsAwarded?: number
   createdAt?: Date | string
   updatedAt?: Date | string
   attempts?: Prisma.QuizAttemptUncheckedCreateNestedManyWithoutProgressInput
@@ -285,6 +363,9 @@ export type ModuleProgressUpdateInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   startedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   completedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  preTestCompletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  trainingCompletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  trainingPointsAwarded?: Prisma.IntFieldUpdateOperationsInput | number
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   user?: Prisma.UserUpdateOneRequiredWithoutModuleProgressesNestedInput
@@ -298,6 +379,9 @@ export type ModuleProgressUncheckedUpdateInput = {
   moduleId?: Prisma.StringFieldUpdateOperationsInput | string
   startedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   completedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  preTestCompletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  trainingCompletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  trainingPointsAwarded?: Prisma.IntFieldUpdateOperationsInput | number
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   attempts?: Prisma.QuizAttemptUncheckedUpdateManyWithoutProgressNestedInput
@@ -309,6 +393,9 @@ export type ModuleProgressCreateManyInput = {
   moduleId: string
   startedAt?: Date | string
   completedAt?: Date | string | null
+  preTestCompletedAt?: Date | string | null
+  trainingCompletedAt?: Date | string | null
+  trainingPointsAwarded?: number
   createdAt?: Date | string
   updatedAt?: Date | string
 }
@@ -317,6 +404,9 @@ export type ModuleProgressUpdateManyMutationInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   startedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   completedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  preTestCompletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  trainingCompletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  trainingPointsAwarded?: Prisma.IntFieldUpdateOperationsInput | number
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -327,6 +417,9 @@ export type ModuleProgressUncheckedUpdateManyInput = {
   moduleId?: Prisma.StringFieldUpdateOperationsInput | string
   startedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   completedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  preTestCompletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  trainingCompletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  trainingPointsAwarded?: Prisma.IntFieldUpdateOperationsInput | number
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -352,8 +445,15 @@ export type ModuleProgressCountOrderByAggregateInput = {
   moduleId?: Prisma.SortOrder
   startedAt?: Prisma.SortOrder
   completedAt?: Prisma.SortOrder
+  preTestCompletedAt?: Prisma.SortOrder
+  trainingCompletedAt?: Prisma.SortOrder
+  trainingPointsAwarded?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
+}
+
+export type ModuleProgressAvgOrderByAggregateInput = {
+  trainingPointsAwarded?: Prisma.SortOrder
 }
 
 export type ModuleProgressMaxOrderByAggregateInput = {
@@ -362,6 +462,9 @@ export type ModuleProgressMaxOrderByAggregateInput = {
   moduleId?: Prisma.SortOrder
   startedAt?: Prisma.SortOrder
   completedAt?: Prisma.SortOrder
+  preTestCompletedAt?: Prisma.SortOrder
+  trainingCompletedAt?: Prisma.SortOrder
+  trainingPointsAwarded?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
 }
@@ -372,8 +475,15 @@ export type ModuleProgressMinOrderByAggregateInput = {
   moduleId?: Prisma.SortOrder
   startedAt?: Prisma.SortOrder
   completedAt?: Prisma.SortOrder
+  preTestCompletedAt?: Prisma.SortOrder
+  trainingCompletedAt?: Prisma.SortOrder
+  trainingPointsAwarded?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
+}
+
+export type ModuleProgressSumOrderByAggregateInput = {
+  trainingPointsAwarded?: Prisma.SortOrder
 }
 
 export type ModuleProgressScalarRelationFilter = {
@@ -487,6 +597,9 @@ export type ModuleProgressCreateWithoutUserInput = {
   id?: string
   startedAt?: Date | string
   completedAt?: Date | string | null
+  preTestCompletedAt?: Date | string | null
+  trainingCompletedAt?: Date | string | null
+  trainingPointsAwarded?: number
   createdAt?: Date | string
   updatedAt?: Date | string
   module: Prisma.TrailModuleCreateNestedOneWithoutProgressRecordsInput
@@ -498,6 +611,9 @@ export type ModuleProgressUncheckedCreateWithoutUserInput = {
   moduleId: string
   startedAt?: Date | string
   completedAt?: Date | string | null
+  preTestCompletedAt?: Date | string | null
+  trainingCompletedAt?: Date | string | null
+  trainingPointsAwarded?: number
   createdAt?: Date | string
   updatedAt?: Date | string
   attempts?: Prisma.QuizAttemptUncheckedCreateNestedManyWithoutProgressInput
@@ -538,6 +654,9 @@ export type ModuleProgressScalarWhereInput = {
   moduleId?: Prisma.UuidFilter<"ModuleProgress"> | string
   startedAt?: Prisma.DateTimeFilter<"ModuleProgress"> | Date | string
   completedAt?: Prisma.DateTimeNullableFilter<"ModuleProgress"> | Date | string | null
+  preTestCompletedAt?: Prisma.DateTimeNullableFilter<"ModuleProgress"> | Date | string | null
+  trainingCompletedAt?: Prisma.DateTimeNullableFilter<"ModuleProgress"> | Date | string | null
+  trainingPointsAwarded?: Prisma.IntFilter<"ModuleProgress"> | number
   createdAt?: Prisma.DateTimeFilter<"ModuleProgress"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"ModuleProgress"> | Date | string
 }
@@ -546,6 +665,9 @@ export type ModuleProgressCreateWithoutModuleInput = {
   id?: string
   startedAt?: Date | string
   completedAt?: Date | string | null
+  preTestCompletedAt?: Date | string | null
+  trainingCompletedAt?: Date | string | null
+  trainingPointsAwarded?: number
   createdAt?: Date | string
   updatedAt?: Date | string
   user: Prisma.UserCreateNestedOneWithoutModuleProgressesInput
@@ -557,6 +679,9 @@ export type ModuleProgressUncheckedCreateWithoutModuleInput = {
   userId: string
   startedAt?: Date | string
   completedAt?: Date | string | null
+  preTestCompletedAt?: Date | string | null
+  trainingCompletedAt?: Date | string | null
+  trainingPointsAwarded?: number
   createdAt?: Date | string
   updatedAt?: Date | string
   attempts?: Prisma.QuizAttemptUncheckedCreateNestedManyWithoutProgressInput
@@ -592,6 +717,9 @@ export type ModuleProgressCreateWithoutAttemptsInput = {
   id?: string
   startedAt?: Date | string
   completedAt?: Date | string | null
+  preTestCompletedAt?: Date | string | null
+  trainingCompletedAt?: Date | string | null
+  trainingPointsAwarded?: number
   createdAt?: Date | string
   updatedAt?: Date | string
   user: Prisma.UserCreateNestedOneWithoutModuleProgressesInput
@@ -604,6 +732,9 @@ export type ModuleProgressUncheckedCreateWithoutAttemptsInput = {
   moduleId: string
   startedAt?: Date | string
   completedAt?: Date | string | null
+  preTestCompletedAt?: Date | string | null
+  trainingCompletedAt?: Date | string | null
+  trainingPointsAwarded?: number
   createdAt?: Date | string
   updatedAt?: Date | string
 }
@@ -628,6 +759,9 @@ export type ModuleProgressUpdateWithoutAttemptsInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   startedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   completedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  preTestCompletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  trainingCompletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  trainingPointsAwarded?: Prisma.IntFieldUpdateOperationsInput | number
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   user?: Prisma.UserUpdateOneRequiredWithoutModuleProgressesNestedInput
@@ -640,6 +774,9 @@ export type ModuleProgressUncheckedUpdateWithoutAttemptsInput = {
   moduleId?: Prisma.StringFieldUpdateOperationsInput | string
   startedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   completedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  preTestCompletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  trainingCompletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  trainingPointsAwarded?: Prisma.IntFieldUpdateOperationsInput | number
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -649,6 +786,9 @@ export type ModuleProgressCreateManyUserInput = {
   moduleId: string
   startedAt?: Date | string
   completedAt?: Date | string | null
+  preTestCompletedAt?: Date | string | null
+  trainingCompletedAt?: Date | string | null
+  trainingPointsAwarded?: number
   createdAt?: Date | string
   updatedAt?: Date | string
 }
@@ -657,6 +797,9 @@ export type ModuleProgressUpdateWithoutUserInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   startedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   completedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  preTestCompletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  trainingCompletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  trainingPointsAwarded?: Prisma.IntFieldUpdateOperationsInput | number
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   module?: Prisma.TrailModuleUpdateOneRequiredWithoutProgressRecordsNestedInput
@@ -668,6 +811,9 @@ export type ModuleProgressUncheckedUpdateWithoutUserInput = {
   moduleId?: Prisma.StringFieldUpdateOperationsInput | string
   startedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   completedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  preTestCompletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  trainingCompletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  trainingPointsAwarded?: Prisma.IntFieldUpdateOperationsInput | number
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   attempts?: Prisma.QuizAttemptUncheckedUpdateManyWithoutProgressNestedInput
@@ -678,6 +824,9 @@ export type ModuleProgressUncheckedUpdateManyWithoutUserInput = {
   moduleId?: Prisma.StringFieldUpdateOperationsInput | string
   startedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   completedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  preTestCompletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  trainingCompletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  trainingPointsAwarded?: Prisma.IntFieldUpdateOperationsInput | number
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -687,6 +836,9 @@ export type ModuleProgressCreateManyModuleInput = {
   userId: string
   startedAt?: Date | string
   completedAt?: Date | string | null
+  preTestCompletedAt?: Date | string | null
+  trainingCompletedAt?: Date | string | null
+  trainingPointsAwarded?: number
   createdAt?: Date | string
   updatedAt?: Date | string
 }
@@ -695,6 +847,9 @@ export type ModuleProgressUpdateWithoutModuleInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   startedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   completedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  preTestCompletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  trainingCompletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  trainingPointsAwarded?: Prisma.IntFieldUpdateOperationsInput | number
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   user?: Prisma.UserUpdateOneRequiredWithoutModuleProgressesNestedInput
@@ -706,6 +861,9 @@ export type ModuleProgressUncheckedUpdateWithoutModuleInput = {
   userId?: Prisma.StringFieldUpdateOperationsInput | string
   startedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   completedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  preTestCompletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  trainingCompletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  trainingPointsAwarded?: Prisma.IntFieldUpdateOperationsInput | number
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   attempts?: Prisma.QuizAttemptUncheckedUpdateManyWithoutProgressNestedInput
@@ -716,6 +874,9 @@ export type ModuleProgressUncheckedUpdateManyWithoutModuleInput = {
   userId?: Prisma.StringFieldUpdateOperationsInput | string
   startedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   completedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  preTestCompletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  trainingCompletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  trainingPointsAwarded?: Prisma.IntFieldUpdateOperationsInput | number
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -757,6 +918,9 @@ export type ModuleProgressSelect<ExtArgs extends runtime.Types.Extensions.Intern
   moduleId?: boolean
   startedAt?: boolean
   completedAt?: boolean
+  preTestCompletedAt?: boolean
+  trainingCompletedAt?: boolean
+  trainingPointsAwarded?: boolean
   createdAt?: boolean
   updatedAt?: boolean
   user?: boolean | Prisma.UserDefaultArgs<ExtArgs>
@@ -771,6 +935,9 @@ export type ModuleProgressSelectCreateManyAndReturn<ExtArgs extends runtime.Type
   moduleId?: boolean
   startedAt?: boolean
   completedAt?: boolean
+  preTestCompletedAt?: boolean
+  trainingCompletedAt?: boolean
+  trainingPointsAwarded?: boolean
   createdAt?: boolean
   updatedAt?: boolean
   user?: boolean | Prisma.UserDefaultArgs<ExtArgs>
@@ -783,6 +950,9 @@ export type ModuleProgressSelectUpdateManyAndReturn<ExtArgs extends runtime.Type
   moduleId?: boolean
   startedAt?: boolean
   completedAt?: boolean
+  preTestCompletedAt?: boolean
+  trainingCompletedAt?: boolean
+  trainingPointsAwarded?: boolean
   createdAt?: boolean
   updatedAt?: boolean
   user?: boolean | Prisma.UserDefaultArgs<ExtArgs>
@@ -795,11 +965,14 @@ export type ModuleProgressSelectScalar = {
   moduleId?: boolean
   startedAt?: boolean
   completedAt?: boolean
+  preTestCompletedAt?: boolean
+  trainingCompletedAt?: boolean
+  trainingPointsAwarded?: boolean
   createdAt?: boolean
   updatedAt?: boolean
 }
 
-export type ModuleProgressOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "userId" | "moduleId" | "startedAt" | "completedAt" | "createdAt" | "updatedAt", ExtArgs["result"]["moduleProgress"]>
+export type ModuleProgressOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "userId" | "moduleId" | "startedAt" | "completedAt" | "preTestCompletedAt" | "trainingCompletedAt" | "trainingPointsAwarded" | "createdAt" | "updatedAt", ExtArgs["result"]["moduleProgress"]>
 export type ModuleProgressInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   user?: boolean | Prisma.UserDefaultArgs<ExtArgs>
   module?: boolean | Prisma.TrailModuleDefaultArgs<ExtArgs>
@@ -828,6 +1001,9 @@ export type $ModuleProgressPayload<ExtArgs extends runtime.Types.Extensions.Inte
     moduleId: string
     startedAt: Date
     completedAt: Date | null
+    preTestCompletedAt: Date | null
+    trainingCompletedAt: Date | null
+    trainingPointsAwarded: number
     createdAt: Date
     updatedAt: Date
   }, ExtArgs["result"]["moduleProgress"]>
@@ -1261,6 +1437,9 @@ export interface ModuleProgressFieldRefs {
   readonly moduleId: Prisma.FieldRef<"ModuleProgress", 'String'>
   readonly startedAt: Prisma.FieldRef<"ModuleProgress", 'DateTime'>
   readonly completedAt: Prisma.FieldRef<"ModuleProgress", 'DateTime'>
+  readonly preTestCompletedAt: Prisma.FieldRef<"ModuleProgress", 'DateTime'>
+  readonly trainingCompletedAt: Prisma.FieldRef<"ModuleProgress", 'DateTime'>
+  readonly trainingPointsAwarded: Prisma.FieldRef<"ModuleProgress", 'Int'>
   readonly createdAt: Prisma.FieldRef<"ModuleProgress", 'DateTime'>
   readonly updatedAt: Prisma.FieldRef<"ModuleProgress", 'DateTime'>
 }
