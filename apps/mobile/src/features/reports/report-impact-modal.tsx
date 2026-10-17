@@ -19,7 +19,7 @@ export function ReportImpactCard({ impact, onClose, onViewReport, busy = false, 
         <Text accessibilityRole="header" style={styles.title}>{impact.title}</Text>
         <Text style={styles.message}>{impact.message}</Text>
         <View style={styles.points}>
-          <Svg width={14} height={14} viewBox="0 0 14 14" fill="none" accessible={false}><Path d="m7 1.75 1.575 3.5 3.675.35-2.8 2.45.817 3.617L7 9.8l-3.267 1.867.817-3.617-2.8-2.45 3.675-.35L7 1.75Z" stroke="#0B1240" strokeWidth={1.4} strokeLinecap="round" strokeLinejoin="round" /></Svg>
+          <Svg width={14} height={14} viewBox="0 0 14 14" fill="none"><Path d="m7 1.75 1.575 3.5 3.675.35-2.8 2.45.817 3.617L7 9.8l-3.267 1.867.817-3.617-2.8-2.45 3.675-.35L7 1.75Z" stroke="#0B1240" strokeWidth={1.4} strokeLinecap="round" strokeLinejoin="round" /></Svg>
           <Text style={styles.pointsText}>+{impact.pointsAwarded} pts · relato confirmado</Text>
         </View>
         {error ? <Text accessibilityRole="alert" style={styles.error}>{error}</Text> : null}

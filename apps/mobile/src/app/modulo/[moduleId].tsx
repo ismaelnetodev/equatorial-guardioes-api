@@ -98,7 +98,6 @@ export default function ModuleScreen() {
     setProgress(state)
     const next = { ...module, status: state.status }
     setModule(next)
-    setLearn(await getLearnState(module.id).catch(() => learn))
     return next
   }
   async function openQuiz(phase: 'pre' | 'pos') {
@@ -112,22 +111,19 @@ export default function ModuleScreen() {
   }
   async function openTraining() {
     if (!module || blocked || pending.current) return
-    if (requiresQuiz && learn && learn.preTest.status !== 'completed') {
-      setActionError('Conclua o pré-teste antes do treinamento.')
-      return
-    }
     pending.current = true; setBusy(true); setActionError('')
     try {
-      await ensureStarted()
-      if (requiresQuiz && !learn) {
-        const next = await getLearnState(module.id)
-        setLearn(next)
-        if (next.preTest.status !== 'completed') {
-          setActionError('Conclua o pré-teste antes do treinamento.')
-          return
-        }
+      const started = await ensureStarted()
+      if (!started) return
+      if (requiresQuiz) {
+        const currentLearn = await getLearnState(started.id)
+        setLearn(currentLearn)
+        const phase = currentLearn.preTest.status !== 'completed'
+          ? 'pre'
+          : currentLearn.training.status !== 'completed' ? 'training' : 'pos'
+        openStage(phase, phase === 'pos' && currentLearn.postTest.isApproved != null)
+        return
       }
-      if (requiresQuiz) { const phase = learn?.preTest.status !== 'completed' ? 'pre' : learn?.training.status !== 'completed' ? 'training' : 'pos'; openStage(phase, phase === 'pos' && learn?.postTest.isApproved != null); return }
       setReader(true); scroll.current?.scrollTo({ y: 0, animated: false })
     } catch (cause) { recordFailure(cause); handleActionError(cause) }
     finally { pending.current = false; setBusy(false) }

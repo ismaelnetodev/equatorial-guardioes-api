@@ -25,7 +25,7 @@ const blocks = [
 export function TrailSkeleton() {
   return <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
     <View accessible accessibilityLabel="Carregando trilha" accessibilityState={{ busy: true }} style={styles.canvas}>
-      <Svg width="100%" height="100%" viewBox="0 0 360 688" accessible={false}>
+      <Svg width="100%" height="100%" viewBox="0 0 360 688">
         {blocks.map(([x, y, width, height, radius], index) => <Rect key={index} x={x} y={y} width={width} height={height} rx={radius} fill="#141C55" />)}
       </Svg>
     </View>

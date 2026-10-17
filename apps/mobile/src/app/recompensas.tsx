@@ -1,5 +1,5 @@
 import { useCallback, useState } from 'react'
-import { ActivityIndicator, ImageBackground, Modal, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native'
+import { ActivityIndicator, Image, Modal, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native'
 import { router, useFocusEffect } from 'expo-router'
 import GiftAsset from '../../assets/icon-gift.svg'
 import { Button, colors } from '../components/ui'
@@ -76,13 +76,14 @@ export default function RewardsScreen() {
         {loading ? <ActivityIndicator color={colors.primary} style={styles.state} accessibilityLabel="Carregando recompensas" /> :
           error ? <View style={styles.state}><Text accessibilityRole="alert" style={styles.bodyText}>{error}</Text><Button title="Tentar novamente" onPress={() => setAttempt(value => value + 1)} /></View> :
           data ? <>
-            <ImageBackground source={require('../../assets/profile-tile-amber.png')} resizeMode="cover" imageStyle={styles.balanceTile} style={styles.balanceCard}>
+            <View style={styles.balanceCard}>
+              <Image source={require('../../assets/Frame - azulejo amarelo.png')} resizeMode="contain" accessible={false} style={styles.balanceTile} />
               <Text style={styles.balanceEyebrow}>SALDO PARA RESGATAR</Text>
               <View style={styles.balanceLine}><Text style={styles.balanceNumber}>{data.balance}</Text><Text style={styles.balanceUnit}>pts</Text></View>
               <Text style={styles.balanceDescription}>Acumulados: {data.accumulated} pts · {data.level.name}</Text>
               <View style={styles.progressTrack}><View style={[styles.progressFill, { width: `${Math.round(progress * 100)}%` }]} /></View>
               <Text style={styles.nextLevel}>{data.level.nextLevel && data.level.pointsToNextLevel != null ? `Faltam ${data.level.pointsToNextLevel} pts para a próxima faixa` : 'Você chegou ao nível máximo'}</Text>
-            </ImageBackground>
+            </View>
             <View style={styles.notice}><ProfileSymbol name="shield" size={15} /><Text style={styles.noticeText}>Resgates dependem dos requisitos exibidos para cada recompensa.</Text></View>
             {notice ? <Text accessibilityRole="alert" style={styles.feedback}>{notice}</Text> : null}
             <View style={styles.rewardList}>
@@ -135,20 +136,20 @@ export default function RewardsScreen() {
 const styles = StyleSheet.create({
   content: { flexGrow: 1, paddingHorizontal: 18, paddingTop: 8, paddingBottom: 24, gap: 12 },
   state: { paddingVertical: 30, gap: 14 },
-  bodyText: { color: colors.muted, fontSize: 13, lineHeight: 20, textAlign: 'center' },
-  balanceCard: { width: '100%', maxWidth: 420, alignSelf: 'center', overflow: 'hidden', padding: 18, borderRadius: 20, backgroundColor: colors.primary },
-  balanceTile: { opacity: 0.36, borderRadius: 20 },
-  balanceEyebrow: { color: colors.background, fontSize: 10, letterSpacing: 1.2, fontWeight: '700' },
+  bodyText: { color: colors.muted, fontSize: 13, lineHeight: 20, textAlign: 'center', fontWeight: '700' },
+  balanceCard: { width: '100%', maxWidth: 420, alignSelf: 'center', position: 'relative', overflow: 'hidden', padding: 18, borderRadius: 20, backgroundColor: colors.primary },
+  balanceTile: { position: 'absolute', top: 0, right: 0, width: 130, height: 170, opacity: 0.62 },
+  balanceEyebrow: { color: colors.background, fontSize: 10, letterSpacing: 1.2, fontWeight: '800' },
   balanceLine: { flexDirection: 'row', alignItems: 'baseline', gap: 8, marginTop: 1 },
   balanceNumber: { color: colors.background, fontSize: 49, lineHeight: 58, fontWeight: '900' },
   balanceUnit: { color: colors.background, fontSize: 15, fontWeight: '800' },
-  balanceDescription: { color: colors.background, fontSize: 12 },
+  balanceDescription: { maxWidth: '78%', color: colors.background, fontSize: 12, fontWeight: '700' },
   progressTrack: { height: 7, overflow: 'hidden', marginTop: 14, borderRadius: 5, backgroundColor: '#FFFFFF66' },
   progressFill: { height: '100%', borderRadius: 5, backgroundColor: colors.background },
-  nextLevel: { color: colors.background, fontSize: 11, marginTop: 6 },
+  nextLevel: { maxWidth: '88%', color: colors.background, fontSize: 11, marginTop: 6, fontWeight: '700' },
   notice: { flexDirection: 'row', alignItems: 'center', gap: 7, paddingHorizontal: 11, paddingVertical: 8, borderRadius: 12, backgroundColor: colors.field },
-  noticeText: { flex: 1, color: colors.muted, fontSize: 10, lineHeight: 14 },
-  feedback: { color: colors.success, fontSize: 12, lineHeight: 18 },
+  noticeText: { flex: 1, color: colors.muted, fontSize: 10, lineHeight: 14, fontWeight: '700' },
+  feedback: { color: colors.success, fontSize: 12, lineHeight: 18, fontWeight: '700' },
   rewardList: { gap: 10 },
   rewardCard: { minHeight: 90, flexDirection: 'row', alignItems: 'center', gap: 11, padding: 12, borderRadius: 17, backgroundColor: colors.field, borderWidth: 1, overflow: 'visible' },
   rewardCardAvailable: { borderColor: colors.primary },
@@ -158,8 +159,8 @@ const styles = StyleSheet.create({
   rewardCopy: { flex: 1, gap: 2 },
   rewardCost: { color: colors.text, fontSize: 16, fontWeight: '800' },
   lockedText: { color: colors.mutedSecondary },
-  rewardDescription: { color: colors.muted, fontSize: 11, lineHeight: 15 },
-  lockedReason: { color: colors.mutedSecondary, fontSize: 10 },
+  rewardDescription: { color: colors.muted, fontSize: 11, lineHeight: 15, fontWeight: '700' },
+  lockedReason: { color: colors.mutedSecondary, fontSize: 10, fontWeight: '700' },
   redeemButton: { minHeight: 40, justifyContent: 'center', paddingHorizontal: 12, borderRadius: 13, backgroundColor: colors.primary },
   redeemText: { color: colors.background, fontSize: 14, fontWeight: '800' },
   lockBadge: { width: 34, alignItems: 'center' },
@@ -168,8 +169,8 @@ const styles = StyleSheet.create({
   confirmIcon: { width: 64, height: 64, alignItems: 'center', justifyContent: 'center', borderRadius: 32, backgroundColor: colors.primary },
   confirmTitle: { color: colors.text, fontSize: 22, fontWeight: '800', textAlign: 'center' },
   balanceChange: { width: '100%', gap: 12, padding: 14, borderRadius: 14, backgroundColor: '#222C70' },
-  changeLabel: { color: colors.muted, fontSize: 11 },
-  changeValue: { color: colors.text, fontSize: 13, fontWeight: '700' },
+  changeLabel: { color: colors.muted, fontSize: 11, fontWeight: '700' },
+  changeValue: { color: colors.text, fontSize: 13, fontWeight: '800' },
   modalButtons: { width: '100%', flexDirection: 'row', gap: 10 },
-  simulationNote: { color: colors.mutedSecondary, fontSize: 10, textAlign: 'center' },
+  simulationNote: { color: colors.mutedSecondary, fontSize: 10, textAlign: 'center', fontWeight: '700' },
 })

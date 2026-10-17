@@ -22,7 +22,7 @@ export function ContentSkeleton({ variant, label = 'Carregando conteúdo', surfa
   const layout = layouts[variant]
   return <View accessible accessibilityLabel={label} accessibilityState={{ busy: true }} style={styles.container}>
     <View style={{ width: '100%', aspectRatio: 320 / layout.height }}>
-      <Svg width="100%" height="100%" viewBox={`0 0 320 ${layout.height}`} accessible={false}>
+      <Svg width="100%" height="100%" viewBox={`0 0 320 ${layout.height}`}>
         {layout.blocks.map(([x, y, width, height, radius], index) => <Rect key={index} x={x} y={y} width={width} height={height} rx={radius} fill={surface === 'sheet' ? '#222C70' : '#141C55'} />)}
       </Svg>
     </View>

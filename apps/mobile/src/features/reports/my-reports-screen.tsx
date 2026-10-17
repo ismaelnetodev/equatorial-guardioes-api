@@ -22,7 +22,7 @@ const statusColors = {
 } satisfies Record<Report['status']['code'], { backgroundColor: string; color: string; width: number }>
 
 function StatusIcon({ status, color }: { status: Report['status']['code']; color: string }) {
-  return <Svg width={14} height={14} viewBox="0 0 14 14" accessible={false} fill="none" stroke={color} strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round">
+  return <Svg width={14} height={14} viewBox="0 0 14 14" fill="none" stroke={color} strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round">
     {status === 'IN_ANALYSIS' ? <><Circle cx={7} cy={7} r={5.2} /><Path d="M7 3.8V7l2.2 1.3" /></> : status === 'NOT_CONFIRMED' ? <><Circle cx={7} cy={7} r={5.2} /><Path d="M7 6.2v3.2M7 4.3h.01" /></> : <Path d="m3 7 2.5 2.5L11 4" />}
   </Svg>
 }

@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useCallback, useState } from 'react'
 import { Archivo_400Regular, Archivo_700Bold, useFonts } from '@expo-google-fonts/archivo'
 import * as Network from 'expo-network'
 import { ActivityIndicator, Linking, Pressable, StyleSheet, Text, View } from 'react-native'
@@ -7,7 +7,8 @@ import { NetworkError } from '../services/api'
 
 export function useLoadFailureKind() {
   const [offline, setOffline] = useState(false)
-  return { offline, recordFailure: (cause: unknown) => setOffline(cause instanceof NetworkError) }
+  const recordFailure = useCallback((cause: unknown) => setOffline(cause instanceof NetworkError), [])
+  return { offline, recordFailure }
 }
 
 function FailureIcon({ offline }: { offline: boolean }) {

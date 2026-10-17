@@ -3,7 +3,7 @@ import { ContentSkeleton } from '../components/content-skeleton'
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { router, useFocusEffect, useLocalSearchParams } from 'expo-router'
 import { StatusBar } from 'expo-status-bar'
-import { ImageBackground, Modal, Pressable, RefreshControl, ScrollView, StyleSheet, Text, View } from 'react-native'
+import { Image, Modal, Pressable, RefreshControl, ScrollView, StyleSheet, Text, View } from 'react-native'
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context'
 import { AppIcon } from '../components/app-icon'
 import { Button, colors, InputField } from '../components/ui'
@@ -113,8 +113,10 @@ export default function TrailScreen() {
   const completedCount = modules.filter(item => item.status === 'completed').length
   const firstName = user?.name.trim().split(/\s+/)[0] ?? 'Guardião'
   const initials = user?.name.trim().split(/\s+/).filter(Boolean).slice(0, 2).map(part => part[0]).join('').toUpperCase() ?? 'G'
-  const levelProgress = profile?.level.pointsToNextLevel == null || !profile.level.nextLevel
-    ? 1
+  const levelProgress = !profile
+    ? 0
+    : profile.level.pointsToNextLevel == null || !profile.level.nextLevel
+      ? 1
     : Math.max(0, Math.min(1, 1 - profile.level.pointsToNextLevel / Math.max(profile.level.pointsToNextLevel + profile.accumulated, 1)))
 
   const showingReports = panel === 'report' && !loading && !reportsLocked
@@ -165,14 +167,25 @@ export default function TrailScreen() {
     <StatusBar style="light" />
     <SafeAreaView edges={['top']} style={styles.main}>
       {loading ? <TrailSkeleton /> : error ? <ScrollView contentContainerStyle={{ flexGrow: 1 }}><LoadFailure offline={offline} standalone onRetry={() => setAttempt(value => value + 1)} /></ScrollView> : showingReports ? <MyReportsScreen onBack={() => setPanel(null)} onCreateReport={() => { setActionError(''); setPanel('report-form') }} /> : <ScrollView ref={scroll} contentContainerStyle={styles.content} refreshControl={<RefreshControl refreshing={loading} onRefresh={() => setAttempt(value => value + 1)} tintColor={colors.primary} />}>
-        <ImageBackground source={require('../../assets/lencois-login.png')} resizeMode="cover" style={styles.hero}>
-          <View style={styles.greeting}>
-            <View style={styles.avatar}><Text style={styles.initials}>{initials}</Text></View>
-            <View style={styles.nameGroup}><Text accessibilityRole="header" style={styles.name}>Olá, {firstName}</Text><View style={styles.badge}><AppIcon name="shield" size={13} color={colors.primary} /><Text style={styles.badgeText}>{profile?.level.name ?? 'Guardião'}</Text></View></View>
-            <Pressable accessibilityRole="button" accessibilityLabel="Ajuda e segurança" onPress={() => openPanel('help')} style={styles.help}><AppIcon name="help" color={colors.text} /></Pressable>
+        <View style={styles.hero}>
+          <Image source={require('../../assets/lencois-login.png')} resizeMode="cover" accessible={false} style={styles.heroBackground} />
+          <View style={styles.heroContent}>
+            <View style={styles.greeting}>
+              <View style={styles.avatar}><Text style={styles.initials}>{initials}</Text></View>
+              <View style={styles.nameGroup}><Text accessibilityRole="header" style={styles.name}>Olá, {firstName}</Text><View style={styles.badge}><AppIcon name="shield" size={13} color={colors.primary} /><Text style={styles.badgeText}>{profile?.level.name ?? 'Guardião'}</Text></View></View>
+              <Pressable accessibilityRole="button" accessibilityLabel="Ajuda e segurança" onPress={() => openPanel('help')} style={styles.help}><AppIcon name="help" color={colors.text} /></Pressable>
+            </View>
+            <Pressable accessibilityRole="button" accessibilityLabel="Ver extrato de pontos do aprendizado" onPress={() => router.push('/pontos')} style={styles.points}>
+              <View style={styles.pointsLine}>
+                <Text style={styles.pointsValue}>{profile?.accumulated ?? '—'} <Text style={styles.pointsLabel}>pontos</Text></Text>
+                <Text style={styles.pointsLabel}>{profile?.level.nextLevel && profile.level.pointsToNextLevel != null ? `${profile.level.pointsToNextLevel} pts para ${profile.level.nextLevel.name}` : profile ? 'Nível máximo' : 'Carregando…'}</Text>
+              </View>
+              <View style={styles.progressTrack}><View style={[styles.trailProgress, { width: `${Math.round(levelProgress * 100)}%` }]} /></View>
+              <Text style={styles.pointsNote}>Saldo {profile?.balance ?? '—'}{points ? ` · ${points.modulePoints} pts por módulo` : ''}</Text>
+              {points && points.pendingPoints > 0 ? <Text style={styles.pointsLabel}>{points.pendingPoints} pontos pendentes{points.nextReleaseAt ? ` · próxima liberação ${new Date(points.nextReleaseAt).toLocaleDateString('pt-BR')}` : ''}</Text> : null}
+            </Pressable>
           </View>
-          <Pressable accessibilityRole="button" accessibilityLabel="Ver extrato de pontos do aprendizado" onPress={() => router.push('/pontos')} style={styles.points}><View style={styles.pointsLine}><Text style={styles.pointsValue}>{points?.totalPoints ?? '—'} <Text style={styles.pointsLabel}>pontos</Text></Text><Text style={styles.pointsLabel}>Ver extrato ›</Text></View><Text style={styles.pointsNote}>Pontos do aprendizado · {points?.modulePoints ?? '—'} por módulo{points?.dailyPointsLimit != null ? ` · até ${points.dailyPointsLimit}/dia em módulos` : ''}</Text>{points && points.pendingPoints > 0 ? <Text style={styles.pointsLabel}>{points.pendingPoints} pontos pendentes{points.nextReleaseAt ? ` · próxima liberação a partir de ${new Date(points.nextReleaseAt).toLocaleDateString('pt-BR')}` : ' · aguardando liberação do programa'}</Text> : null}</Pressable>
-        </ImageBackground>
+        </View>
         <View style={styles.body}>
             {currentModule && (currentModule.status === 'in_progress' || completedCount > 0) ? <View style={styles.continueCard}>
               <View style={styles.continueCopy}><Text style={styles.continueEyebrow}>CONTINUE · MÓDULO {currentNumber}</Text><Text style={styles.noticeText}>{currentModule.title}</Text><Text style={styles.pointsLabel}>{currentModule.status === 'in_progress' ? 'Treinamento em andamento' : 'Próximo módulo disponível'}</Text><View style={styles.progressTrack}><View style={[styles.trailProgress, { width: `${modules.length ? completedCount / modules.length * 100 : 0}%` }]} /></View><Text style={styles.pointsNote}>{completedCount} de {modules.length} módulos concluídos</Text></View><Button title="Continuar" onPress={() => openModule(currentModule)} />
@@ -239,8 +252,8 @@ export default function TrailScreen() {
 
 const styles = StyleSheet.create({
   screen: { flex: 1, backgroundColor: colors.background }, main: { flex: 1 }, content: { flexGrow: 1, width: '100%', maxWidth: 430, alignSelf: 'center', paddingBottom: 12 },
-  hero: { paddingHorizontal: 20, paddingTop: 16, paddingBottom: 14 }, greeting: { flexDirection: 'row', gap: 12, alignItems: 'center' }, avatar: { width: 52, height: 52, borderRadius: 26, backgroundColor: colors.primary, justifyContent: 'center', alignItems: 'center' }, initials: { fontSize: 20, fontWeight: '800', color: colors.background }, nameGroup: { flex: 1, gap: 6 }, name: { color: colors.text, fontSize: 23, fontWeight: '800' }, badge: { flexDirection: 'row', alignItems: 'center', gap: 6, backgroundColor: '#222c70', alignSelf: 'flex-start', paddingVertical: 5, paddingHorizontal: 10, borderRadius: 16 }, badgeText: { color: colors.primary, fontSize: 11, fontWeight: '700' }, help: { width: 44, height: 44, borderRadius: 22, backgroundColor: colors.field, justifyContent: 'center', alignItems: 'center' },
-  points: { marginTop: 16, backgroundColor: colors.field, borderRadius: 18, padding: 16, gap: 8 }, pointsLine: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }, pointsValue: { color: colors.text, fontSize: 23, fontWeight: '800' }, pointsLabel: { color: colors.muted, fontSize: 13, fontWeight: '400' }, progressTrack: { height: 8, borderRadius: 4, backgroundColor: '#222c70' }, pointsNote: { color: colors.muted, fontSize: 11 },
+  hero: { width: '100%', alignSelf: 'stretch', position: 'relative', paddingHorizontal: 20, paddingTop: 12, paddingBottom: 12, overflow: 'hidden' }, heroBackground: { position: 'absolute', top: 0, right: 0, bottom: 0, left: 0, width: '100%', height: '100%' }, heroContent: { zIndex: 1 }, greeting: { flexDirection: 'row', gap: 12, alignItems: 'center' }, avatar: { width: 52, height: 52, borderRadius: 26, backgroundColor: colors.primary, justifyContent: 'center', alignItems: 'center' }, initials: { fontSize: 20, fontWeight: '800', color: colors.background }, nameGroup: { flex: 1, gap: 6 }, name: { color: colors.text, fontSize: 23, fontWeight: '800' }, badge: { flexDirection: 'row', alignItems: 'center', gap: 6, backgroundColor: '#222c70', alignSelf: 'flex-start', paddingVertical: 5, paddingHorizontal: 10, borderRadius: 16 }, badgeText: { color: colors.primary, fontSize: 11, fontWeight: '700' }, help: { width: 44, height: 44, borderRadius: 22, backgroundColor: colors.field, justifyContent: 'center', alignItems: 'center' },
+  points: { marginTop: 12, backgroundColor: colors.field, borderRadius: 18, padding: 16, gap: 8 }, pointsLine: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }, pointsValue: { color: colors.text, fontSize: 23, fontWeight: '800' }, pointsLabel: { color: colors.muted, fontSize: 13, fontWeight: '400' }, progressTrack: { height: 8, borderRadius: 4, backgroundColor: '#222c70' }, pointsNote: { color: colors.muted, fontSize: 11 },
   body: { paddingHorizontal: 20 }, notice: { borderWidth: 1.5, borderColor: colors.primary, backgroundColor: colors.field, borderRadius: 18, minHeight: 60, padding: 12, flexDirection: 'row', gap: 10, alignItems: 'center' }, noticeIcon: { width: 36, height: 36, borderRadius: 18, backgroundColor: colors.primary, justifyContent: 'center', alignItems: 'center' }, noticeText: { flex: 1, fontSize: 14, lineHeight: 19, fontWeight: '700', color: colors.text }, trailHeading: { color: colors.muted, fontSize: 12, marginTop: 18 },
   continueCard: { backgroundColor: colors.field, borderColor: colors.border, borderWidth: 1, borderRadius: 20, padding: 15, flexDirection: 'row', alignItems: 'center', gap: 12, flexWrap: 'wrap' }, continueCopy: { flex: 1, minWidth: 150, gap: 6 }, continueEyebrow: { color: colors.primary, fontSize: 10, letterSpacing: 1 }, trailProgress: { height: 8, borderRadius: 4, backgroundColor: colors.primary },
   trailSelector: { gap: 8, paddingVertical: 16 }, trailChip: { padding: 10, borderRadius: 16, backgroundColor: colors.field, borderWidth: 1, borderColor: colors.border }, selectedChip: { borderColor: colors.primary }, chipText: { color: colors.muted, fontSize: 12 }, yellow: { color: colors.primary },
