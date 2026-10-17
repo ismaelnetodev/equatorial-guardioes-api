@@ -52,6 +52,6 @@ const styles = StyleSheet.create({
   shackle: { width: 9, height: 8, borderWidth: 1.6, borderBottomWidth: 0, borderColor: colors.muted, borderTopLeftRadius: 5, borderTopRightRadius: 5 },
   lockBody: { width: 14, height: 11, borderWidth: 1.6, borderColor: colors.muted, borderRadius: 2 },
   input: { flex: 1, color: colors.text, fontSize: 16, paddingVertical: 12, minWidth: 0 },
-  webInput: { outlineWidth: 0 },
+  webInput: { borderWidth: 0, outlineWidth: 0, outlineStyle: 'solid', backgroundColor: 'transparent' },
   error: { color: colors.warning, fontSize: 12 },
 })

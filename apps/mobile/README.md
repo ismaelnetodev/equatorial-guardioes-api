@@ -27,14 +27,14 @@ As rotas da API abaixo usam o prefixo `/api/v1`.
 | Administração (`/admin`) | Usa os endpoints administrativos para gerenciar trilhas, módulos, conteúdo, quizzes, relatos e configurações de pontos/recompensas, conforme as permissões da conta. |
 | Como funciona e termos (`/como-funciona`, `/termos`) | Conteúdo informativo local; não há endpoints próprios para essas páginas. |
 
-## Ajustes recentes no mobile
+## Compilado do desenvolvimento local
 
-- A navegação do módulo consulta novamente o progresso antes de abrir a etapa, evitando retornar a uma etapa já concluída.
-- O quiz separa visualmente a pergunta das respostas e não abre a imagem ilustrativa ao toque.
-- As telas de resultado e conclusão mantêm a proporção dos banners de bandeirinhas/escudo das referências.
-- O cartão de recompensas posiciona o azulejo amarelo à direita e usa texto em negrito.
-- O ranking apresenta os dados reais disponíveis por bairro; não cria posições ou dados de cidade que a API não fornece.
-- Os estados de carregamento e falha usam callbacks estáveis, e os SVGs decorativos não repassam atributos de acessibilidade incompatíveis com o Expo Web.
+- **Acesso e cadastro:** login e criação de conta integrados à API; validação de nome, contato, senha de pelo menos 8 caracteres, bairro, aceite dos termos e convite opcional, com erros junto aos campos.
+- **Trilha e aprendizagem:** progresso e pontos carregados da API; o módulo abre a primeira etapa pendente. Pré/pós-testes, treinamento, feedback e conclusão usam o conteúdo e estado retornados pelo backend.
+- **Perfil, ranking e recompensas:** perfil e selos integrados; ranking por bairro e contribuição conectados à API; recompensas e pontos ligados aos endpoints disponíveis. Ranking por cidade permanece como Fase 2, pois não há endpoint correspondente.
+- **Relatos, convites e certificado:** fluxos conectados às rotas existentes, incluindo envio e acompanhamento de relatos, compartilhamento de convites e emissão/compartilhamento de certificado.
+- **Interface e navegação:** cabeçalho da trilha, banners nas proporções das referências, azulejo amarelo em recompensas, imagem do quiz não interativa, retorno entre cards da introdução, destaque correto do menu inferior e campos de texto com apenas a borda externa.
+- **Validação e estados de tela:** erros de cadastro apresentados nos campos, carregamentos/falhas tratados no mobile e SVGs decorativos ajustados para evitar o aviso de acessibilidade no Expo Web.
 
 Estas alterações são somente no frontend em `apps/mobile`; nenhum endpoint, schema ou regra do backend foi alterado.
 

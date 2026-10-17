@@ -43,6 +43,11 @@ export default function IntroductionScreen() {
     scroll.current?.scrollTo({ y: 0, animated: false })
   }
 
+  function previous() {
+    setIndex(current => Math.max(current - 1, 0))
+    scroll.current?.scrollTo({ y: 0, animated: false })
+  }
+
   return <SafeAreaView style={styles.screen}>
     <StatusBar style="light" />
     <ScrollView ref={scroll as never} contentContainerStyle={styles.content}>
@@ -59,6 +64,7 @@ export default function IntroductionScreen() {
       </>}
       <View style={styles.footer}>
         {error ? <Text accessibilityRole="alert" style={styles.error}>{error}</Text> : null}
+        {index > 0 ? <Pressable accessibilityRole="button" accessibilityLabel="Voltar para a etapa anterior" disabled={finishing} onPress={previous} hitSlop={10} style={styles.previous}><Text style={styles.previousText}>‹ Voltar</Text></Pressable> : null}
         <Button title={index === 2 ? 'Começar' : 'Próximo'} loading={finishing} onPress={next} />
       </View>
     </ScrollView>
@@ -72,5 +78,5 @@ const styles = StyleSheet.create({
   art: { width: '100%', borderRadius: 28, overflow: 'hidden' },
   dots: { flexDirection: 'row', justifyContent: 'center', gap: 8, marginVertical: 24 }, dot: { width: 10, height: 10, borderRadius: 5, backgroundColor: colors.border }, activeDot: { width: 26, backgroundColor: colors.primary },
   copy: { gap: 14, paddingHorizontal: 4 }, title: { color: colors.text, fontSize: 28, lineHeight: 31, fontWeight: '800', letterSpacing: -0.6 }, description: { color: colors.muted, fontSize: 16, lineHeight: 23 },
-  footer: { flexGrow: 1, justifyContent: 'flex-end', paddingTop: 40, gap: 12 }, error: { color: '#ffad61', fontSize: 14 },
+  footer: { flexGrow: 1, justifyContent: 'flex-end', paddingTop: 40, gap: 12 }, previous: { alignSelf: 'flex-start', paddingVertical: 8, paddingRight: 12 }, previousText: { color: colors.muted, fontSize: 15, fontWeight: '700' }, error: { color: '#ffad61', fontSize: 14 },
 })
