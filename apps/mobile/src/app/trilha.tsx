@@ -174,8 +174,8 @@ export default function TrailScreen() {
       <View style={[styles.navContainer, { paddingBottom: Math.max(insets.bottom, 12) }]}><View style={styles.nav}>
         <Pressable accessibilityRole="tab" accessibilityState={{ selected: true }} accessibilityLabel="Trilha" onPress={() => scroll.current?.scrollTo({ y: 0, animated: true })} style={styles.navItem}><View style={styles.activeMark} /><AppIcon name="route" color={colors.primary} /><Text style={[styles.navLabel, styles.yellow]}>Trilha</Text></Pressable>
         <Pressable accessibilityRole="tab" accessibilityLabel={`Reportar${reportsLocked ? ', conclua o primeiro módulo' : ''}`} onPress={() => openPanel('report')} style={styles.navItem}><View style={styles.reportIcon}><AppIcon name="bolt" color={colors.background} />{reportsLocked ? <View style={styles.tinyLock}><AppIcon name="lock" size={12} color={colors.primary} /></View> : null}</View><Text style={[styles.navLabel, styles.yellow]}>Reportar</Text></Pressable>
-        <Pressable accessibilityRole="tab" accessibilityLabel="Ranking" onPress={() => openPanel('ranking')} style={styles.navItem}><AppIcon name="trophy" /><Text style={styles.navLabel}>Ranking</Text></Pressable>
-        <Pressable accessibilityRole="tab" accessibilityLabel="Perfil" onPress={() => openPanel('profile')} style={styles.navItem}><AppIcon name="user" /><Text style={styles.navLabel}>Perfil</Text></Pressable>
+        <Pressable accessibilityRole="tab" accessibilityLabel="Ranking" onPress={() => router.push('/ranking')} style={styles.navItem}><AppIcon name="trophy" /><Text style={styles.navLabel}>Ranking</Text></Pressable>
+        <Pressable accessibilityRole="tab" accessibilityLabel="Perfil" onPress={() => router.push('/perfil')} style={styles.navItem}><AppIcon name="user" /><Text style={styles.navLabel}>Perfil</Text></Pressable>
       </View></View>
     </SafeAreaView>
     <ReportBlockedModal visible={panel === 'report' && reportsLocked} available={!!firstModule} minutes={firstModule?.durationMinutes} onClose={() => setPanel(null)} onModule={() => { if (firstModule) openModule(firstModule) }} />
