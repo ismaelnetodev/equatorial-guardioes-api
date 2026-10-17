@@ -12,6 +12,7 @@ import { trailsRoutes } from './modules/trails/trails.routes.js'
 import { progressRoutes } from './modules/progress/progress.routes.js'
 import { quizRoutes } from './modules/quiz/quiz.routes.js'
 import { reportsRoutes } from './modules/reports/reports.routes.js'
+import { communityRoutes } from './modules/community/community.routes.js'
 import { buildCorsOptions } from './lib/cors.js'
 import { neighborhoodsRoutes } from './modules/neighborhoods/neighborhoods.routes.js'
 
@@ -42,6 +43,7 @@ export async function buildApp(options: FastifyServerOptions = {}) {
         { name: 'Progress', description: 'Progresso e desbloqueio de módulos' },
         { name: 'Quiz', description: 'Pré-teste, treinamento e pós-teste dos módulos' },
         { name: 'Reports', description: 'Relatos do Guardião e acompanhamento de status' },
+        { name: 'Community', description: 'Ranking, recompensas, convites e perfil do Guardião' },
       ],
     },
   })
@@ -55,6 +57,7 @@ export async function buildApp(options: FastifyServerOptions = {}) {
   await app.register(progressRoutes, { prefix: '/api/v1/progress' })
   await app.register(quizRoutes, { prefix: '/api/v1/modules' })
   await app.register(reportsRoutes, { prefix: '/api/v1/relatos' })
+  await app.register(communityRoutes, { prefix: '/api/v1' })
 
   return app
 }

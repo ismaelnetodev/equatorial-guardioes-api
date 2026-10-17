@@ -88,19 +88,22 @@ exclusão da conta. O acesso direto ao banco deve ser restrito operacionalmente.
   fonte, sem configurar um benefício confirmado. O crédito depende de aprovação
   formal externa; o módulo não implementa um fluxo de aprovação.
 
-O repositório ainda não possui campanhas, validação de relatos, livro de
-transações de pontos, estornos, saldos, estoque operacional ou resgates. Este
-módulo administra as configurações; não executa essas operações nem altera o
-progresso/quiz existente. O orçamento é um parâmetro para a futura integração
-por campanha, não uma gestão de várias campanhas. A futura execução das regras
-deverá consultar os valores ativos no banco e tratar parâmetros pendentes antes
-de conceder benefícios. Os critérios de uso único, melhoria mensurável,
-validação humana e revisão de fraude continuam dependências dessa execução.
+O módulo admin continua responsável só pela configuração. A execução do livro de
+pontos, saldo, ranking, resgates e convites do learner fica no módulo
+**Community** (`/api/v1/ranking`, `/recompensas`, `/convidar`, `/perfil`), com
+`PointAccount` / `PointLedgerEntry` / `RewardRedemption` / `InviteAttribution`.
 
-Nenhuma rota aceita ajustes diretos de saldo. Alterar configuração não recalcula
-concessões ou estornos. Quando o livro de pontos for implementado, cada lançamento
-deverá preservar os valores aplicados no momento da operação; não deve derivar
-transações históricas dos valores atuais da configuração.
+Créditos (quiz, relatos, convite no módulo 0) aumentam `accumulated` e `balance`.
+Resgates debitam **somente** `balance` (`affectsAccumulated: false`), sem alterar
+nível nem ranking. O catálogo learner usa configs `kind=REWARD` ativas; o limite
+`redemption_validated_reports` exige relatos `RESOLVED` antes do resgate. Convites
+usam `invite_module0_reward` e `invite_reward_limit`; níveis usam
+`level_*_threshold` sobre pontos acumulados.
+
+Ainda não há campanhas, estoque operacional, estornos administrativos nem
+ajustes manuais de saldo. Alterar configuração não recalcula concessões
+históricas: cada lançamento do ledger preserva o valor aplicado no momento da
+operação.
 
 Os testes HTTP usam persistência simulada, como os demais testes do repositório;
 verificam autorização, validação, snapshots, rollback e conflitos. Eles não

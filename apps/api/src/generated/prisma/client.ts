@@ -47,6 +47,26 @@ export { Prisma }
  */
 export type User = Prisma.UserModel
 /**
+ * Model PointAccount
+ * 
+ */
+export type PointAccount = Prisma.PointAccountModel
+/**
+ * Model PointLedgerEntry
+ * 
+ */
+export type PointLedgerEntry = Prisma.PointLedgerEntryModel
+/**
+ * Model RewardRedemption
+ * 
+ */
+export type RewardRedemption = Prisma.RewardRedemptionModel
+/**
+ * Model InviteAttribution
+ * 
+ */
+export type InviteAttribution = Prisma.InviteAttributionModel
+/**
  * Model Neighborhood
  * 
  */

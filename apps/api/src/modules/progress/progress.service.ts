@@ -1,4 +1,5 @@
 import { publishedTrailWhere, publishedModuleWhere } from '../../lib/content-visibility.js'
+import { maybeAwardInviteOnModule0 } from '../../lib/invite-attribution.js'
 import { getPrisma } from '../../lib/prisma.js'
 import { getQuizCompletionStatus } from '../quiz/quiz.service.js'
 
@@ -50,6 +51,14 @@ export async function completeModule(userId: string, moduleId: string): Promise<
     if (quizStatus === 'unavailable') throw new ProgressError('QUIZ_NOT_IMPLEMENTED', 'A integração com o quiz ainda não está disponível.')
     if (quizStatus !== 'approved') throw new ProgressError('QUIZ_REQUIRED', 'A aprovação no quiz é obrigatória para concluir este módulo.')
   }
-  const completed = await getPrisma().moduleProgress.update({ where: { id: progress.id }, data: { completedAt: new Date() }, select: { completedAt: true } })
+  const completed = await getPrisma().$transaction(async (tx) => {
+    const updated = await tx.moduleProgress.update({
+      where: { id: progress.id },
+      data: { completedAt: new Date() },
+      select: { completedAt: true },
+    })
+    await maybeAwardInviteOnModule0(userId, moduleId, tx)
+    return updated
+  })
   return { ...state, status: 'completed', completedAt: completed.completedAt?.toISOString() ?? new Date().toISOString() }
 }

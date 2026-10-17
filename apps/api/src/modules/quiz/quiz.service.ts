@@ -1,4 +1,5 @@
 import { publishedModuleWhere, publishedTrailWhere } from '../../lib/content-visibility.js'
+import { creditPoints } from '../../lib/points-ledger.js'
 import { getPrisma } from '../../lib/prisma.js'
 import type {
   LearnState,
@@ -300,6 +301,16 @@ export async function submitPreTest(userId: string, moduleId: string, input: Sub
       where: { id: progress.id },
       data: { preTestCompletedAt: progress.preTestCompletedAt ?? new Date() },
     })
+    await creditPoints(
+      {
+        userId,
+        amount: PRE_TEST_POINTS,
+        reason: 'QUIZ_PRE',
+        sourceType: 'QuizAttempt',
+        sourceId: created.id,
+      },
+      tx,
+    )
     return created
   })
 
@@ -358,13 +369,29 @@ export async function getTraining(userId: string, moduleId: string) {
 export async function completeTraining(userId: string, moduleId: string) {
   const { progress } = await requireAccessibleModule(userId, moduleId)
   if (!progress.preTestCompletedAt) throw new QuizError('PRE_TEST_REQUIRED', 'Conclua o pré-teste antes do treinamento.')
-  const updated = await getPrisma().moduleProgress.update({
-    where: { id: progress.id },
-    data: {
-      trainingCompletedAt: progress.trainingCompletedAt ?? new Date(),
-      trainingPointsAwarded: progress.trainingCompletedAt ? progress.trainingPointsAwarded : TRAINING_POINTS,
-    },
-    select: { trainingPointsAwarded: true },
+  const awarding = !progress.trainingCompletedAt
+  const updated = await getPrisma().$transaction(async (tx) => {
+    const next = await tx.moduleProgress.update({
+      where: { id: progress.id },
+      data: {
+        trainingCompletedAt: progress.trainingCompletedAt ?? new Date(),
+        trainingPointsAwarded: progress.trainingCompletedAt ? progress.trainingPointsAwarded : TRAINING_POINTS,
+      },
+      select: { id: true, trainingPointsAwarded: true },
+    })
+    if (awarding && next.trainingPointsAwarded > 0) {
+      await creditPoints(
+        {
+          userId,
+          amount: next.trainingPointsAwarded,
+          reason: 'QUIZ_TRAINING',
+          sourceType: 'ModuleProgressTraining',
+          sourceId: next.id,
+        },
+        tx,
+      )
+    }
+    return next
   })
   return { moduleId, completed: true as const, pointsAwarded: updated.trainingPointsAwarded }
 }
@@ -477,17 +504,32 @@ export async function finishPostTest(userId: string, moduleId: string): Promise<
   const pointsAwarded = postPoints(correctCount, totalCount)
   const pre = await latestAttempt(progress.id, 'PRE')
 
-  const finished = await getPrisma().quizAttempt.update({
-    where: { id: attempt.id },
-    data: {
-      correctCount,
-      totalCount,
-      score,
-      isApproved,
-      pointsAwarded,
-      finishedAt: new Date(),
-    },
-    select: { id: true, correctCount: true, totalCount: true, isApproved: true, pointsAwarded: true },
+  const finished = await getPrisma().$transaction(async (tx) => {
+    const updated = await tx.quizAttempt.update({
+      where: { id: attempt.id },
+      data: {
+        correctCount,
+        totalCount,
+        score,
+        isApproved,
+        pointsAwarded,
+        finishedAt: new Date(),
+      },
+      select: { id: true, correctCount: true, totalCount: true, isApproved: true, pointsAwarded: true },
+    })
+    if (updated.pointsAwarded > 0) {
+      await creditPoints(
+        {
+          userId,
+          amount: updated.pointsAwarded,
+          reason: 'QUIZ_POST',
+          sourceType: 'QuizAttempt',
+          sourceId: updated.id,
+        },
+        tx,
+      )
+    }
+    return updated
   })
 
   const before = {

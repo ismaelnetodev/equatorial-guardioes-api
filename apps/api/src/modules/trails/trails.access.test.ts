@@ -3,7 +3,17 @@ import type { FastifyInstance } from 'fastify'
 import { buildApp } from '../../app.js'
 import { createSessionToken } from '../../lib/auth-session.js'
 
-const db = vi.hoisted(() => ({ user: { findUnique: vi.fn() }, trail: { findUnique: vi.fn() }, trailModule: { findUnique: vi.fn() }, moduleProgress: { upsert: vi.fn(), findUnique: vi.fn(), update: vi.fn() } }))
+const db = vi.hoisted(() => ({
+  user: { findUnique: vi.fn() },
+  trail: { findUnique: vi.fn(), findFirst: vi.fn() },
+  trailModule: { findUnique: vi.fn() },
+  moduleProgress: { upsert: vi.fn(), findUnique: vi.fn(), update: vi.fn() },
+  inviteAttribution: { findUnique: vi.fn(), update: vi.fn(), count: vi.fn() },
+  programConfiguration: { findUnique: vi.fn() },
+  pointAccount: { upsert: vi.fn(), update: vi.fn() },
+  pointLedgerEntry: { create: vi.fn(), findFirst: vi.fn() },
+  $transaction: vi.fn(),
+}))
 vi.mock('../../lib/prisma.js', () => ({ getPrisma: () => db }))
 const userId = '11111111-1111-4111-8111-111111111111'
 const trailId = '22222222-2222-4222-8222-222222222222'
@@ -26,6 +36,9 @@ beforeEach(async () => {
   db.moduleProgress.upsert.mockImplementation(async ({ create }) => { const record = { id: create.moduleId, startedAt: new Date(), completedAt: null, attempts: [] as never[] }; progress.set(create.moduleId, record); return record })
   db.moduleProgress.findUnique.mockImplementation(async ({ where }) => progress.get(where.userId_moduleId.moduleId) ?? null)
   db.moduleProgress.update.mockImplementation(async ({ where, data }) => { const record = progress.get(where.id)!; record.completedAt = data.completedAt; return record })
+  db.trail.findFirst.mockResolvedValue({ modules: [{ id: ids[0] }] })
+  db.inviteAttribution.findUnique.mockResolvedValue(null)
+  db.$transaction.mockImplementation(async (operation: (tx: typeof db) => Promise<unknown>) => operation(db))
   app = await buildApp({ logger: false })
 })
 afterEach(async () => { await app.close() })

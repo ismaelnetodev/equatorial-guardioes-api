@@ -1,4 +1,5 @@
 import { publishedModuleWhere, publishedTrailWhere } from '../../lib/content-visibility.js'
+import { creditPoints } from '../../lib/points-ledger.js'
 import { getPrisma } from '../../lib/prisma.js'
 import type {
   AdminReportStatusBody,
@@ -135,39 +136,52 @@ function toListItem(report: {
 export async function createReport(userId: string, input: CreateReport) {
   await assertModuleZeroCompleted(userId)
   const now = new Date()
-  const report = await getPrisma().report.create({
-    data: {
-      userId,
-      title: input.title.trim(),
-      description: input.description.trim(),
-      address: input.address.trim(),
-      neighborhood: input.neighborhood.trim(),
-      photoUrl: input.photoUrl ?? null,
-      latitude: input.latitude ?? null,
-      longitude: input.longitude ?? null,
-      urgency: input.urgency ?? 'MEDIUM',
-      status: 'SENT',
-      pointsAwarded: SEND_POINTS,
-      submittedAt: now,
-      timeline: {
-        create: [{ status: 'SENT', occurredAt: now }],
+  const report = await getPrisma().$transaction(async (tx) => {
+    const created = await tx.report.create({
+      data: {
+        userId,
+        title: input.title.trim(),
+        description: input.description.trim(),
+        address: input.address.trim(),
+        neighborhood: input.neighborhood.trim(),
+        photoUrl: input.photoUrl ?? null,
+        latitude: input.latitude ?? null,
+        longitude: input.longitude ?? null,
+        urgency: input.urgency ?? 'MEDIUM',
+        status: 'SENT',
+        pointsAwarded: SEND_POINTS,
+        submittedAt: now,
+        timeline: {
+          create: [{ status: 'SENT', occurredAt: now }],
+        },
       },
-    },
-    select: {
-      id: true,
-      title: true,
-      description: true,
-      address: true,
-      neighborhood: true,
-      photoUrl: true,
-      latitude: true,
-      longitude: true,
-      status: true,
-      urgency: true,
-      pointsAwarded: true,
-      submittedAt: true,
-      timeline: { orderBy: { occurredAt: 'asc' }, select: { status: true, occurredAt: true } },
-    },
+      select: {
+        id: true,
+        title: true,
+        description: true,
+        address: true,
+        neighborhood: true,
+        photoUrl: true,
+        latitude: true,
+        longitude: true,
+        status: true,
+        urgency: true,
+        pointsAwarded: true,
+        submittedAt: true,
+        timeline: { orderBy: { occurredAt: 'asc' }, select: { status: true, occurredAt: true } },
+      },
+    })
+    await creditPoints(
+      {
+        userId,
+        amount: SEND_POINTS,
+        reason: 'REPORT_SEND',
+        sourceType: 'ReportSend',
+        sourceId: created.id,
+      },
+      tx,
+    )
+    return created
   })
 
   return {
@@ -372,7 +386,7 @@ export async function updateAdminReportStatus(reportId: string, input: AdminRepo
         data: { reportId, status: input.status, occurredAt: now },
       })
     }
-    return tx.report.update({
+    const next = await tx.report.update({
       where: { id: reportId },
       data: {
         status: input.status,
@@ -394,6 +408,19 @@ export async function updateAdminReportStatus(reportId: string, input: AdminRepo
         submittedAt: true,
       },
     })
+    if (addingConfirmPoints) {
+      await creditPoints(
+        {
+          userId: report.userId,
+          amount: CONFIRM_POINTS,
+          reason: 'REPORT_CONFIRM',
+          sourceType: 'ReportConfirm',
+          sourceId: reportId,
+        },
+        tx,
+      )
+    }
+    return next
   })
 
   return {

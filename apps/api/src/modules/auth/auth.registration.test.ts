@@ -4,13 +4,22 @@ import { buildApp } from '../../app.js'
 import { Prisma } from '../../generated/prisma/client.js'
 import { registerUser } from './auth.service.js'
 
-const db = vi.hoisted(() => ({ user: { findFirst: vi.fn(), create: vi.fn() } }))
+const db = vi.hoisted(() => ({
+  user: { findFirst: vi.fn(), create: vi.fn() },
+  inviteAttribution: { create: vi.fn() },
+  $transaction: vi.fn(),
+}))
 vi.mock('../../lib/prisma.js', () => ({ getPrisma: () => db }))
 const duplicate = { code: 'CONTACT_ALREADY_REGISTERED', message: 'Este e-mail ou celular já está cadastrado.' }
 const credentials = { name: 'Teste Cadastro', password: 'senha-segura-123', neighborhood: 'Centro', acceptedTerms: true as const }
 const uniqueError = (field: string) => new Prisma.PrismaClientKnownRequestError('Unique constraint failed', { code: 'P2002', clientVersion: '7.10.0', meta: { target: [field] } })
 let app: FastifyInstance
-beforeEach(async () => { vi.resetAllMocks(); app = await buildApp({ logger: false }) })
+beforeEach(async () => {
+  vi.resetAllMocks()
+  db.$transaction.mockImplementation(async (operation: (tx: typeof db) => Promise<unknown>) => operation(db))
+  db.inviteAttribution.create.mockResolvedValue({ id: 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa' })
+  app = await buildApp({ logger: false })
+})
 afterEach(async () => { await app.close() })
 
 it('aceita uma senha de exatamente 8 caracteres no cadastro e no login', async () => {
