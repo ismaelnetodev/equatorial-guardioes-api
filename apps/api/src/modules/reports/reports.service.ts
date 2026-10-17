@@ -1,6 +1,5 @@
 import { Prisma } from '../../generated/prisma/client.js'
 import { publishedModuleWhere, publishedTrailWhere } from '../../lib/content-visibility.js'
-import { creditPoints } from '../../lib/points-ledger.js'
 import { getPrisma } from '../../lib/prisma.js'
 import type {
   AdminReportStatusBody,

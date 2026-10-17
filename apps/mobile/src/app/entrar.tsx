@@ -8,7 +8,7 @@ import { EnergyBrand } from '../components/energy-brand'
 import { EmergencyBanner } from '../components/emergency-banner'
 import { OfflineBanner } from '../components/offline-banner'
 import { login } from '../features/auth/auth.api'
-import { ApiError, errorMessage } from '../services/api'
+import { ApiError } from '../services/api'
 
 export default function LoginScreen() {
   const [contact, setContact] = useState('')

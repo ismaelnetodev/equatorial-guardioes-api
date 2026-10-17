@@ -9,7 +9,6 @@ import { colors } from '../components/ui'
 import { getProfile, type Profile } from '../features/community/community.api'
 import { ApiError } from '../services/api'
 import { clearAccessToken } from '../services/session'
-import GiftAsset from '../../assets/icon-gift.svg'
 
 const achievementBadges = [
   { title: 'Regra de ouro', icon: require('../../assets/trail-eye.png') },
@@ -88,19 +87,21 @@ export default function ProfileScreen() {
   return <>
     <ProfilePage reportUnlocked={Boolean(profile?.badges.modulesCompleted)}>
       <ScrollView contentContainerStyle={styles.content}>
-        <ImageBackground source={require('../../assets/profile-tile-dark.png')} resizeMode="cover" imageStyle={styles.heroImage} style={styles.hero}>
-          <View style={styles.heroTint} />
-          <View style={styles.identity}>
-            <View style={styles.avatar}><Text style={styles.initials}>{initialsFromName(profile?.name ?? '')}</Text></View>
-            <View style={styles.identityText}>
-              <Text numberOfLines={1} style={styles.name}>{profile?.name ?? 'Seu perfil'}</Text>
-              <Text style={styles.neighborhood}>{profile?.neighborhood ?? 'Guardiões da Energia'}</Text>
+        <View style={styles.heroFrame}>
+          <ImageBackground source={require('../../assets/profile-tile-dark.png')} resizeMode="cover" imageStyle={styles.heroImage} style={styles.hero}>
+            <View style={styles.heroTint} />
+            <View style={styles.identity}>
+              <View style={styles.avatar}><Text style={styles.initials}>{initialsFromName(profile?.name ?? '')}</Text></View>
+              <View style={styles.identityText}>
+                <Text numberOfLines={1} style={styles.name}>{profile?.name ?? 'Seu perfil'}</Text>
+                <Text style={styles.neighborhood}>{profile?.neighborhood ?? 'Guardiões da Energia'}</Text>
+              </View>
+              <Pressable accessibilityRole="button" accessibilityLabel="Editar perfil (indisponível)" disabled style={[styles.editButton, styles.editDisabled]}>
+                <ProfileSymbol name="edit" color={colors.text} size={19} />
+              </Pressable>
             </View>
-            <Pressable accessibilityRole="button" accessibilityLabel="Editar perfil (indisponível)" disabled style={[styles.editButton, styles.editDisabled]}>
-              <ProfileSymbol name="edit" color={colors.text} size={19} />
-            </Pressable>
-          </View>
-        </ImageBackground>
+          </ImageBackground>
+        </View>
 
         {loading ? <ActivityIndicator color={colors.primary} style={styles.state} accessibilityLabel="Carregando perfil" /> :
           error ? <View style={styles.state}>
@@ -133,7 +134,7 @@ export default function ProfileScreen() {
             <View style={styles.menu}>
               {menu.map((item, index) => (
                 <Pressable key={item.title} accessibilityRole="button" accessibilityLabel={`${item.title}${item.value ? `, ${item.value}` : ''}`} onPress={() => item.route && router.push(item.route)} style={[styles.menuRow, index === menu.length - 1 && styles.lastMenuRow]}>
-                  {item.icon === 'gift' ? <GiftAsset width={20} height={20} /> : <ProfileSymbol name={item.icon} size={20} />}
+                  <ProfileSymbol name={item.icon} size={20} />
                   <Text style={styles.menuTitle}>{item.title}</Text>
                   {item.value ? <Text style={styles.menuValue}>{item.value}</Text> : null}
                   <Text style={styles.chevron}>›</Text>
@@ -165,8 +166,9 @@ function Badge({ icon, title, earned, tone }: { icon: number; title: string; ear
 
 const styles = StyleSheet.create({
   content: { flexGrow: 1, paddingBottom: 22 },
-  hero: { minHeight: 153, justifyContent: 'center', paddingHorizontal: 20, backgroundColor: colors.background },
-  heroImage: { opacity: 1 },
+  heroFrame: { width: '100%', alignItems: 'center', paddingHorizontal: 18 },
+  hero: { width: '100%', maxWidth: 444, minHeight: 153, justifyContent: 'center', paddingHorizontal: 20, borderRadius: 18, overflow: 'hidden', backgroundColor: colors.background },
+  heroImage: { opacity: 1, borderRadius: 18 },
   heroTint: { ...StyleSheet.absoluteFill, backgroundColor: '#0B124014' },
   identity: { flexDirection: 'row', alignItems: 'center', gap: 11 },
   avatar: { width: 58, height: 58, borderRadius: 29, alignItems: 'center', justifyContent: 'center', backgroundColor: colors.primary },

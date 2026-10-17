@@ -4,12 +4,12 @@ import { router, useFocusEffect } from 'expo-router'
 import { Button, colors } from '../components/ui'
 import { ProfilePage } from '../components/profile-page'
 import { ProfileSymbol } from '../components/profile-symbol'
-import { getPendingImpact, listReports, markImpactSeen, type PendingImpact, type ReportsList } from '../features/reports/reports.api'
+import { getPendingReportImpact, listReports, markReportImpactSeen, type ReportImpact, type ReportsList } from '../features/reports/reports.api'
 import { ApiError, errorMessage } from '../services/api'
 
 export default function ReportsScreen() {
   const [data, setData] = useState<ReportsList | null>(null)
-  const [impact, setImpact] = useState<PendingImpact | null>(null)
+  const [impact, setImpact] = useState<ReportImpact | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
   const [impactError, setImpactError] = useState('')
@@ -32,7 +32,7 @@ export default function ReportsScreen() {
         setError(cause instanceof ApiError ? cause.message : 'Não foi possível carregar seus relatos.')
       })
       .finally(() => { if (!controller.signal.aborted) setLoading(false) })
-    getPendingImpact(controller.signal)
+    getPendingReportImpact(controller.signal)
       .then(result => { if (!controller.signal.aborted) setImpact(result) })
       .catch(cause => {
         if (controller.signal.aborted) return
@@ -50,7 +50,7 @@ export default function ReportsScreen() {
     setImpactBusy(true)
     setImpactError('')
     try {
-      await markImpactSeen(impact.reportId)
+      await markReportImpactSeen(impact.reportId)
       setImpact(null)
     } catch (cause) {
       if (cause instanceof ApiError && cause.status === 401) {

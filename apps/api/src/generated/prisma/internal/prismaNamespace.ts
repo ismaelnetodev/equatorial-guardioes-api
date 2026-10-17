@@ -437,7 +437,7 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
     omit: GlobalOmitOptions
   }
   meta: {
-    modelProps: "user" | "pointAccount" | "pointLedgerEntry" | "rewardRedemption" | "inviteAttribution" | "neighborhood" | "trail" | "trailModule" | "moduleProgress" | "quizQuestion" | "quizOption" | "quizAttempt" | "quizAnswer" | "trainingStep" | "trainingCard" | "report" | "reportTimelineEvent" | "programConfiguration" | "programConfigurationChange"
+    modelProps: "user" | "pointAccount" | "pointLedgerEntry" | "rewardRedemption" | "inviteAttribution" | "neighborhood" | "trail" | "trailModule" | "moduleProgress" | "quizQuestion" | "quizOption" | "quizAttempt" | "quizAnswer" | "trainingStep" | "trainingCard" | "report" | "reportTimelineEvent" | "programConfiguration" | "programConfigurationChange" | "reportLegacyPointsAudit" | "learningAward" | "finalExamAttempt" | "trailCertificate" | "learningLegacyPointsAudit" | "quizAttemptReconciliation"
     txIsolationLevel: TransactionIsolationLevel
   }
   model: {

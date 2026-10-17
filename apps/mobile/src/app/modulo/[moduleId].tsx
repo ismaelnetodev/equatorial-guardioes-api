@@ -27,9 +27,9 @@ function stageLabel(status: 'locked' | 'available' | 'completed', points?: numbe
 
 export default function ModuleScreen() {
   const params = useLocalSearchParams<{ moduleId: string; trailId: string }>()
-  const [learn, setLearn] = useState<LearnState | null>(null)
   const [module, setModule] = useState<TrailModule | null>(null)
   const [progress, setProgress] = useState<ModuleProgress | null>(null)
+  const [learn, setLearn] = useState<LearnState | null>(null)
   const [number, setNumber] = useState(0)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
@@ -55,12 +55,12 @@ export default function ModuleScreen() {
         const state = states.modules.find(item => item.moduleId === params.moduleId)
         if (!item || !state) throw new Error('Este módulo não está disponível nesta trilha.')
         let learnState: LearnState | null = null
-        if (state.status === 'in_progress' || state.status === 'completed') {
-          learnState = await getLearnState(params.moduleId, controller.signal)
+        if (state.requiresQuiz && state.status !== 'blocked' && state.status !== 'available') {
+          learnState = await getLearnState(item.id, controller.signal)
         }
         if (controller.signal.aborted) return
         setModule({ ...item, status: state.status }); setProgress(state); setNumber(index)
-        if (state.requiresQuiz && state.status !== 'blocked' && state.status !== 'available' && learnState) setLearn(learnState)
+        if (learnState) setLearn(learnState)
       } catch (cause) {
         if (controller.signal.aborted) return
         if (cause instanceof ApiError && cause.status === 401) { router.replace('/entrar'); return }
