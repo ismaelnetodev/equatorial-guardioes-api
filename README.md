@@ -178,6 +178,8 @@ O arquivo `apps/mobile/src/services/api.types.ts` é gerado automaticamente. Nã
 
 ## Banco de dados
 
+Para popular a tela de trilhas com conteúdo de demonstração, execute `npm run db:seed:demo` na raiz, usando o PostgreSQL configurado em `apps/api/.env`. O comando cria a trilha **Segurança no seu bairro**, com sete módulos ativos e publicados, textos para leitura e duração estimada. Os quizzes são opcionais nessa demonstração para permitir a conclusão pelo leitor atual. A carga é transacional e usa IDs fixos: novas execuções não duplicam a trilha nem sobrescrevem edições feitas no painel. Ela não cria progresso de usuários ou concede pontos. Após executar, atualize a tela `/trilha`; contas comuns começam com o primeiro módulo disponível e os seguintes bloqueados pela sequência existente. A conta `ADMIN` tem acesso de consulta a todos os módulos, conforme a regra já existente na API.
+
 O cadastro está em `/cadastrar`, acessível por “Criar conta” em `/entrar`. Após cadastrar, o app tenta autenticar e abre `/introducao`, com três etapas, sem o aviso de instalação na tela inicial. “Pular” e “Começar” abrem `/trilha` com sessão ou `/entrar` se a autenticação não foi concluída. O seletor consulta `GET /api/v1/neighborhoods/?municipalityCode=2111300`, busca por nome sem diferenciar acentos e permite informar “Outro bairro”. Nomes livres ficam no usuário, sem contaminar o catálogo de origem oficial. O cadastro envia `neighborhoodId` quando a escolha vem do catálogo; a API valida o município e utiliza o nome armazenado no banco.
 
 As migrations incluem a tabela `Neighborhood`, o vínculo opcional ao usuário e os dados do catálogo. `npm run db:deploy` recria tudo em um banco novo, sem depender de downloads nem de seed manual:
