@@ -1,5 +1,5 @@
 import { Redirect } from 'expo-router'
 
-export default function PreviousHomeScreen() {
+export default function HomeScreen() {
   return <Redirect href="/trilha" />
 }

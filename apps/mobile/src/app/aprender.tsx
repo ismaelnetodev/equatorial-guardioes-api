@@ -108,7 +108,7 @@ export default function LearnQuizScreen() {
       const result = await finishPostTest(params.moduleId)
       setPostResult(result)
       if (result.isApproved) {
-        try { await completeModule(params.moduleId) } catch { /* complete pode falhar se já concluído */ }
+        await completeModule(params.moduleId)
       }
     } catch (cause) {
       if (cause instanceof ApiError && cause.status === 401) { router.replace('/entrar'); return }
