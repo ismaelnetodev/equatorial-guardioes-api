@@ -16,7 +16,7 @@ export default function IntroductionScreen() {
   const [index, setIndex] = useState(0)
   const [finishing, setFinishing] = useState(false)
   const [error, setError] = useState('')
-  const scroll = useRef<ScrollView>(null)
+  const scroll = useRef<{ scrollTo: (options: { y?: number; animated?: boolean }) => void } | null>(null)
   const pending = useRef(false)
   const step = steps[index]!
 
@@ -44,7 +44,7 @@ export default function IntroductionScreen() {
 
   return <SafeAreaView style={styles.screen}>
     <StatusBar style="light" />
-    <ScrollView ref={scroll} contentContainerStyle={styles.content}>
+    <ScrollView ref={scroll as never} contentContainerStyle={styles.content}>
       <Pressable accessibilityRole="button" accessibilityLabel="Pular introdução" disabled={finishing} onPress={() => { void finish() }} hitSlop={12} style={styles.skip}><Text style={styles.skipText}>Pular</Text></Pressable>
       <Image source={step.image} resizeMode="contain" style={[styles.art, { aspectRatio: step.ratio }]} accessible accessibilityLabel={index === 0 ? 'Pipa presa na rede elétrica de uma rua do bairro.' : index === 1 ? 'Observe de longe. Afaste-se, mantenha distância. Avise pelo app ou 116.' : 'Selos de conquistas e recompensa de mais 10 pontos.'} />
       <View accessibilityLabel={`Introdução ${index + 1} de 3`} accessible style={styles.dots}>
