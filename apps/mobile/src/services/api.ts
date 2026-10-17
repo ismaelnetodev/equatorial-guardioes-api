@@ -6,7 +6,12 @@ export class ApiError extends Error {
   constructor(public readonly status: number, public readonly code: string, message: string) { super(message) }
 }
 
+export class NetworkError extends Error {
+  constructor() { super('Não foi possível conectar. Verifique sua conexão e tente novamente.'); this.name = 'NetworkError' }
+}
+
 export function errorMessage(cause: unknown, fallback = 'Não foi possível concluir a solicitação. Tente novamente.'): string {
+  if (cause instanceof NetworkError) return cause.message
   if (cause instanceof ApiError) return cause.message
   if (cause instanceof TypeError) return 'Não foi possível conectar. Verifique sua conexão e tente novamente.'
   return fallback
@@ -18,7 +23,10 @@ export async function apiRequest<T>(path: string, options: RequestInit = {}): Pr
   headers.set('Accept', 'application/json')
   if (options.body) headers.set('Content-Type', 'application/json')
   if (token) headers.set('Authorization', 'Bearer ' + token)
-  const response = await fetch(apiUrl + path, { ...options, headers })
+  const response = await fetch(apiUrl + path, { ...options, headers }).catch((cause: unknown) => {
+    if (options.signal?.aborted) throw cause
+    throw new NetworkError()
+  })
   if (!response.ok) {
     if (response.status === 401) await clearAccessToken()
     if (response.status >= 500) {

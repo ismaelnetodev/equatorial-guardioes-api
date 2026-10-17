@@ -1,3 +1,4 @@
+import { ContentSkeleton } from '../../components/content-skeleton'
 import { useState } from 'react'
 import { useFonts, Archivo_400Regular, Archivo_700Bold, Archivo_800ExtraBold } from '@expo-google-fonts/archivo'
 import { ActivityIndicator, Image, Modal, Platform, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native'
@@ -30,7 +31,7 @@ export function QuizQuestionScreen({ questions, index, selected, feedback, post,
   const buttonTitle = finalExam && index === questions.totalCount - 1 ? 'Enviar prova final' : revealed ? index === questions.totalCount - 1 ? 'Ver resultado' : 'Próxima pergunta' : !question ? 'Finalizar pós-teste' : 'Confirmar resposta'
   const action = <Pressable accessibilityRole="button" accessibilityState={{ disabled: busy || !!question && !selected, busy }} disabled={busy || !!question && !selected} onPress={onConfirm} style={({ pressed }) => [styles.button, { opacity: busy || pressed ? 0.7 : 1 }, !!question && !selected && styles.buttonDisabled]}>{busy ? <ActivityIndicator color={palette.background} /> : <Text style={styles.buttonText}>{buttonTitle}</Text>}</Pressable>
 
-  if (!fontsLoaded && !fontError) return <SafeAreaView style={[styles.screen, { justifyContent: 'center' }]}><ActivityIndicator color={palette.yellow} /></SafeAreaView>
+  if (!fontsLoaded && !fontError) return <SafeAreaView style={{ flex: 1, backgroundColor: '#0B1240' }}><ScrollView contentContainerStyle={{ padding: 20 }}><ContentSkeleton variant="quiz" /></ScrollView></SafeAreaView>
 
   return <SafeAreaView style={styles.screen} edges={['top', 'left', 'right']}><StatusBar style="light" />
     <ScrollView contentContainerStyle={styles.page} keyboardShouldPersistTaps="handled">

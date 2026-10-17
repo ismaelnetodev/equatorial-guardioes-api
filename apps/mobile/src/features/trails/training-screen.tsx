@@ -1,3 +1,4 @@
+import { ContentSkeleton } from '../../components/content-skeleton'
 import { useState } from 'react'
 import { useFonts, Archivo_400Regular, Archivo_700Bold, Archivo_800ExtraBold } from '@expo-google-fonts/archivo'
 import { ActivityIndicator, Image, Modal, Platform, Pressable, ScrollView, StyleSheet, Text, View, useWindowDimensions } from 'react-native'
@@ -37,7 +38,7 @@ export function TrainingScreen({ training, index, busy, error, onBack, onPreviou
   const avoid = step?.kind === 'DO_NOT'
   const last = index >= training.steps.length - 1
   const nextTitle = !step ? 'Voltar ao módulo' : !last ? 'Próximo' : training.completed ? 'Voltar ao módulo' : 'Concluir treinamento'
-  if (!loaded && !fontError) return <SafeAreaView style={styles.loading}><ActivityIndicator color={c.yellow} /></SafeAreaView>
+  if (!loaded && !fontError) return <SafeAreaView style={{ flex: 1, backgroundColor: '#0B1240' }}><ScrollView contentContainerStyle={{ padding: 20 }}><ContentSkeleton variant="training" /></ScrollView></SafeAreaView>
 
   function illustration(zoom = false) {
     return <View style={[styles.scene, zoom && [styles.zoomScene, { width: Math.max(160, Math.min(viewport.width - 40, (viewport.height - 160) * 320 / 250, 640)) }]]}>

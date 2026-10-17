@@ -1,5 +1,7 @@
+import { LoadFailure, useLoadFailureKind } from '../components/load-failure'
+import { ContentSkeleton } from '../components/content-skeleton'
 import { useCallback, useState } from 'react'
-import { ActivityIndicator, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native'
+import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native'
 import { router, useFocusEffect } from 'expo-router'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { StatusBar } from 'expo-status-bar'
@@ -12,6 +14,7 @@ export default function RankingScreen() {
   const [ranking, setRanking] = useState<Ranking | null>(null)
   const [profile, setProfile] = useState<Profile | null>(null)
   const [loading, setLoading] = useState(true)
+  const { offline, recordFailure } = useLoadFailureKind()
   const [error, setError] = useState('')
   const [attempt, setAttempt] = useState(0)
 
@@ -25,7 +28,7 @@ export default function RankingScreen() {
         setRanking(rankingResult)
         setProfile(profileResult)
       })
-      .catch(cause => {
+      .catch(cause => { recordFailure(cause);
         if (controller.signal.aborted) return
         if (cause instanceof ApiError && cause.status === 401) {
           router.replace('/entrar')
@@ -45,8 +48,8 @@ export default function RankingScreen() {
           <Pressable accessibilityRole="button" accessibilityLabel="Voltar à trilha" onPress={() => router.replace('/trilha')} style={styles.back}><Text style={styles.backText}>‹</Text></Pressable>
           <Text accessibilityRole="header" style={styles.title}>Ranking do bairro</Text>
           <Text style={styles.description}>{ranking?.yourContribution.neighborhood ?? 'Seu bairro'}</Text>
-          {loading ? <ActivityIndicator color={colors.primary} style={styles.state} accessibilityLabel="Carregando ranking" /> :
-            error ? <View style={styles.state}><Text accessibilityRole="alert" style={styles.description}>{error}</Text><Button title="Tentar novamente" onPress={() => setAttempt(value => value + 1)} /></View> :
+          {loading ? <ContentSkeleton variant="ranking" label="Carregando ranking" /> :
+            error ? <LoadFailure offline={offline} onRetry={() => setAttempt(value => value + 1)} /> :
             ranking ? <>
               <View style={styles.contribution}>
                 <Text style={styles.contributionLabel}>Sua contribuição no bairro</Text>

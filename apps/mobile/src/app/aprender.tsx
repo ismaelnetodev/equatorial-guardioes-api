@@ -1,7 +1,9 @@
+import { LoadFailure, useLoadFailureKind } from '../components/load-failure'
+import { ContentSkeleton } from '../components/content-skeleton'
 import { useCallback, useState } from 'react'
 import { router, useFocusEffect, useLocalSearchParams } from 'expo-router'
 import { StatusBar } from 'expo-status-bar'
-import { ActivityIndicator, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native'
+import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { Button, colors } from '../components/ui'
 import {
@@ -28,6 +30,8 @@ export default function LearnQuizScreen() {
   const [index, setIndex] = useState(0)
   const [loading, setLoading] = useState(true)
   const [busy, setBusy] = useState(false)
+  const [attempt, setAttempt] = useState(0)
+  const { offline, recordFailure } = useLoadFailureKind()
   const [error, setError] = useState('')
   const [preResult, setPreResult] = useState<PreTestResult | null>(null)
   const [postFeedback, setPostFeedback] = useState<{ title: string; body: string; isCorrect: boolean } | null>(null)
@@ -44,7 +48,7 @@ export default function LearnQuizScreen() {
           ? await getPreTestQuestions(params.moduleId, controller.signal)
           : await getPostTestQuestions(params.moduleId, controller.signal)
         if (!controller.signal.aborted) setQuiz(data)
-      } catch (cause) {
+      } catch (cause) { recordFailure(cause);
         if (controller.signal.aborted) return
         if (cause instanceof ApiError && cause.status === 401) { router.replace('/entrar'); return }
         setError(cause instanceof ApiError ? cause.message : 'Não foi possível carregar o quiz.')
@@ -54,7 +58,7 @@ export default function LearnQuizScreen() {
     }
     void load()
     return () => controller.abort()
-  }, [params.moduleId, phase]))
+  }, [params.moduleId, phase, attempt]))
 
   const question = quiz?.questions[index]
   const selected = question ? answers[question.id] : undefined
@@ -76,7 +80,7 @@ export default function LearnQuizScreen() {
     setBusy(true); setError('')
     try {
       setPreResult(await submitPreTest(params.moduleId, payload))
-    } catch (cause) {
+    } catch (cause) { recordFailure(cause);
       if (cause instanceof ApiError && cause.status === 401) { router.replace('/entrar'); return }
       setError(cause instanceof ApiError ? cause.message : cause instanceof Error ? cause.message : 'Não foi possível enviar o pré-teste.')
     } finally { setBusy(false) }
@@ -89,7 +93,7 @@ export default function LearnQuizScreen() {
       const feedback = await submitPostAnswer(params.moduleId, question.id, optionId)
       setAnswers(current => ({ ...current, [question.id]: optionId }))
       setPostFeedback({ title: feedback.feedback.title, body: feedback.feedback.body, isCorrect: feedback.isCorrect })
-    } catch (cause) {
+    } catch (cause) { recordFailure(cause);
       if (cause instanceof ApiError && cause.status === 401) { router.replace('/entrar'); return }
       setError(cause instanceof ApiError ? cause.message : 'Não foi possível registrar a resposta.')
     } finally { setBusy(false) }
@@ -110,7 +114,7 @@ export default function LearnQuizScreen() {
       if (result.isApproved) {
         await completeModule(params.moduleId)
       }
-    } catch (cause) {
+    } catch (cause) { recordFailure(cause);
       if (cause instanceof ApiError && cause.status === 401) { router.replace('/entrar'); return }
       setError(cause instanceof ApiError ? cause.message : 'Não foi possível finalizar o pós-teste.')
     } finally { setBusy(false) }
@@ -124,10 +128,7 @@ export default function LearnQuizScreen() {
       <View style={styles.spacer} />
     </View>
     <ScrollView contentContainerStyle={styles.content}>
-      {loading ? <ActivityIndicator color={colors.primary} accessibilityLabel="Carregando quiz" /> : error && !quiz ? <>
-        <Text accessibilityRole="alert" style={styles.error}>{error}</Text>
-        <Button title="Voltar" onPress={back} />
-      </> : preResult ? <>
+      {loading ? <ContentSkeleton variant="quiz" label="Carregando quiz" /> : error && !quiz ? <LoadFailure offline={offline} onRetry={() => setAttempt(value => value + 1)} /> : preResult ? <>
         <Text style={styles.heading}>{preResult.title}</Text>
         <Text style={styles.description}>{preResult.message}</Text>
         <Text style={styles.meta}>+{preResult.pointsAwarded} pts · {preResult.correctCount}/{preResult.totalCount}</Text>

@@ -1,7 +1,9 @@
+import { LoadFailure, useLoadFailureKind } from '../../components/load-failure'
+import { ContentSkeleton } from '../../components/content-skeleton'
 import { useFonts, Archivo_400Regular, Archivo_700Bold, Archivo_800ExtraBold } from '@expo-google-fonts/archivo'
 import { useEffect, useState } from 'react'
 import { router } from 'expo-router'
-import { ActivityIndicator, Image, Pressable, RefreshControl, ScrollView, StyleSheet, Text, View } from 'react-native'
+import { Image, Pressable, RefreshControl, ScrollView, StyleSheet, Text, View } from 'react-native'
 import Svg, { Circle, Path } from 'react-native-svg'
 import { AppIcon } from '../../components/app-icon'
 import { Button } from '../../components/ui'
@@ -42,6 +44,7 @@ export function MyReportsScreen({ onBack, onCreateReport, refreshKey = 0 }: { on
   const [data, setData] = useState<Reports | null>(null)
   const [impact, setImpact] = useState<ReportImpact | null>(null)
   const [loading, setLoading] = useState(true)
+  const { offline, recordFailure } = useLoadFailureKind()
   const [error, setError] = useState('')
   const [impactError, setImpactError] = useState('')
   const [impactBusy, setImpactBusy] = useState(false)
@@ -52,7 +55,7 @@ export function MyReportsScreen({ onBack, onCreateReport, refreshKey = 0 }: { on
     setLoading(true); setError('')
     void listReports(controller.signal).then(result => {
       if (!controller.signal.aborted) setData(result)
-    }).catch((cause: unknown) => {
+    }).catch((cause: unknown) => { recordFailure(cause);
       if (controller.signal.aborted) return
       if (cause instanceof ApiError && cause.status === 401) { router.replace('/entrar'); return }
       setError(errorMessage(cause))
@@ -83,7 +86,7 @@ export function MyReportsScreen({ onBack, onCreateReport, refreshKey = 0 }: { on
     }
   }
 
-  if (!fontsLoaded && !fontError) return <View style={styles.state}><ActivityIndicator color="#FFBB12" /></View>
+  if (!fontsLoaded && !fontError) return <View style={{ padding: 20 }}><ContentSkeleton variant="reports" label="Carregando seus relatos" /></View>
 
   return <View style={styles.screen}>
     <ScrollView style={styles.scroll} contentContainerStyle={styles.page} refreshControl={<RefreshControl refreshing={loading} onRefresh={() => setAttempt(value => value + 1)} tintColor="#FFBB12" />}>
@@ -91,7 +94,7 @@ export function MyReportsScreen({ onBack, onCreateReport, refreshKey = 0 }: { on
         <Pressable accessibilityRole="button" accessibilityLabel="Voltar à trilha" onPress={onBack} style={styles.back}><View style={styles.chevron} /></Pressable>
         <Text accessibilityRole="header" style={styles.heading}>Meus relatos</Text>
       </View>
-      {loading ? <View style={styles.state}><ActivityIndicator color="#FFBB12" accessibilityLabel="Carregando seus relatos" /></View> : error ? <View style={styles.state}><Text accessibilityRole="alert" style={styles.description}>{error}</Text><Button title="Tentar novamente" onPress={() => setAttempt(value => value + 1)} /></View> : data?.reports.length === 0 ? <View style={styles.empty}>
+      {loading ? <ContentSkeleton variant="reports" label="Carregando seus relatos" /> : error ? <LoadFailure offline={offline} onRetry={() => setAttempt(value => value + 1)} /> : data?.reports.length === 0 ? <View style={styles.empty}>
         <Image source={require('../../../assets/reports-empty.png')} accessible={false} style={styles.illustration} resizeMode="contain" />
         <Text accessibilityRole="header" style={styles.title}>Nenhum relato ainda</Text>
         <Text style={styles.description}>Quando vir um risco na rua, fotografe de longe e reporte. Seu bairro agradece.</Text>

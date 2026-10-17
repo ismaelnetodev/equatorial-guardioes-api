@@ -1,7 +1,9 @@
+import { LoadFailure, useLoadFailureKind } from '../../components/load-failure'
+import { ContentSkeleton } from '../../components/content-skeleton'
 import { useCallback, useRef, useState } from 'react'
 import { router, useFocusEffect, useLocalSearchParams } from 'expo-router'
 import { StatusBar } from 'expo-status-bar'
-import { ActivityIndicator, ImageBackground, Modal, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native'
+import { ImageBackground, Modal, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { AppIcon } from '../../components/app-icon'
 import { Button, colors } from '../../components/ui'
@@ -32,6 +34,7 @@ export default function ModuleScreen() {
   const [learn, setLearn] = useState<LearnState | null>(null)
   const [number, setNumber] = useState(0)
   const [loading, setLoading] = useState(true)
+  const { offline, recordFailure } = useLoadFailureKind()
   const [error, setError] = useState('')
   const [actionError, setActionError] = useState('')
   const [attempt, setAttempt] = useState(0)
@@ -61,7 +64,7 @@ export default function ModuleScreen() {
         if (controller.signal.aborted) return
         setModule({ ...item, status: state.status }); setProgress(state); setNumber(index)
         if (learnState) setLearn(learnState)
-      } catch (cause) {
+      } catch (cause) { recordFailure(cause);
         if (controller.signal.aborted) return
         if (cause instanceof ApiError && cause.status === 401) { router.replace('/entrar'); return }
         setError(errorMessage(cause, 'Não foi possível carregar o módulo.'))
@@ -104,7 +107,7 @@ export default function ModuleScreen() {
     try {
       await ensureStarted()
       router.push({ pathname: '/aprender', params: { moduleId: params.moduleId, trailId: params.trailId, phase } })
-    } catch (cause) { handleActionError(cause) }
+    } catch (cause) { recordFailure(cause); handleActionError(cause) }
     finally { pending.current = false; setBusy(false) }
   }
   async function openTraining() {
@@ -126,7 +129,7 @@ export default function ModuleScreen() {
       }
       if (requiresQuiz) { const phase = learn?.preTest.status !== 'completed' ? 'pre' : learn?.training.status !== 'completed' ? 'training' : 'pos'; openStage(phase, phase === 'pos' && learn?.postTest.isApproved != null); return }
       setReader(true); scroll.current?.scrollTo({ y: 0, animated: false })
-    } catch (cause) { handleActionError(cause) }
+    } catch (cause) { recordFailure(cause); handleActionError(cause) }
     finally { pending.current = false; setBusy(false) }
   }
   function openStage(phase: 'pre' | 'training' | 'pos', result = false) {
@@ -145,7 +148,7 @@ export default function ModuleScreen() {
       setProgress(state); setModule(current => current ? { ...current, status: state.status } : null)
       router.replace({ pathname: '/modulo/conclusao', params: { moduleId: module.id, trailId: params.trailId } })
       setReader(false); scroll.current?.scrollTo({ y: 0, animated: false })
-    } catch (cause) { handleActionError(cause) }
+    } catch (cause) { recordFailure(cause); handleActionError(cause) }
     finally { pending.current = false; setBusy(false) }
   }
 
@@ -153,7 +156,7 @@ export default function ModuleScreen() {
     <StatusBar style="light" />
     <ScrollView ref={scroll as never} contentContainerStyle={styles.content}>
       <View style={styles.header}><Pressable accessibilityRole="button" accessibilityLabel={reader ? 'Voltar ao detalhe do módulo' : 'Voltar para trilha'} onPress={back} disabled={busy} hitSlop={12}><Text style={styles.back}>‹</Text></Pressable><Pressable accessibilityRole="button" accessibilityLabel="Ajuda e segurança" onPress={() => setHelp(true)} hitSlop={12}><AppIcon name="help" color={colors.text} /></Pressable></View>
-      {loading ? <ActivityIndicator color={colors.primary} accessibilityLabel="Carregando módulo" style={styles.loading} /> : error ? <View style={styles.section}><Text accessibilityRole="alert" style={styles.description}>{error}</Text><Button title="Tentar novamente" onPress={() => setAttempt(value => value + 1)} /><Button title="Voltar para trilha" outline onPress={() => router.replace('/trilha')} /></View> : module ? <>
+      {loading ? <ContentSkeleton variant="module" label="Carregando módulo" /> : error ? <LoadFailure offline={offline} onRetry={() => setAttempt(value => value + 1)} /> : module ? <>
         <ImageBackground source={require('../../../assets/module-pattern.png')} resizeMode="cover" style={styles.hero} imageStyle={styles.heroImage}>
           <View style={styles.moduleIcon}><AppIcon name={blocked ? 'lock' : number === 0 ? 'eye' : number === 2 ? 'pole' : 'bolt'} size={40} color={colors.background} /></View><View style={styles.heroCopy}><Text style={styles.eyebrow}>MÓDULO {number}</Text><Text accessibilityRole="header" style={styles.title}>{module.title}</Text></View>
         </ImageBackground>

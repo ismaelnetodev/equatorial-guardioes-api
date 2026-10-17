@@ -1,5 +1,7 @@
+import { LoadFailure, useLoadFailureKind } from '../../components/load-failure'
+import { ContentSkeleton } from '../../components/content-skeleton'
 import { useCallback, useState } from 'react'
-import { ActivityIndicator, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native'
+import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native'
 import { router, useFocusEffect, useLocalSearchParams } from 'expo-router'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { StatusBar } from 'expo-status-bar'
@@ -13,6 +15,7 @@ export default function TrainingScreen() {
   const [stepIndex, setStepIndex] = useState(0)
   const [loading, setLoading] = useState(true)
   const [busy, setBusy] = useState(false)
+  const { offline, recordFailure } = useLoadFailureKind()
   const [error, setError] = useState('')
   const [attempt, setAttempt] = useState(0)
 
@@ -30,7 +33,7 @@ export default function TrainingScreen() {
         if (controller.signal.aborted) return
         setTraining(result)
         setStepIndex(0)
-      } catch (cause) {
+      } catch (cause) { recordFailure(cause);
         if (controller.signal.aborted) return
         if (cause instanceof ApiError && cause.status === 401) {
           router.replace('/entrar')
@@ -55,7 +58,7 @@ export default function TrainingScreen() {
     try {
       const result = await completeTraining(moduleId)
       setTraining(current => current ? { ...current, completed: result.completed, pointsAwarded: result.pointsAwarded } : current)
-    } catch (cause) {
+    } catch (cause) { recordFailure(cause);
       if (cause instanceof ApiError && cause.status === 401) {
         router.replace('/entrar')
         return
@@ -83,8 +86,8 @@ export default function TrainingScreen() {
           <Text style={styles.topTitle}>TREINAMENTO</Text>
           <View style={styles.topSpacer} />
         </View>
-        {loading ? <ActivityIndicator color={colors.primary} accessibilityLabel="Carregando treinamento" style={styles.state} /> :
-          error && !training ? <View style={styles.state}><Text accessibilityRole="alert" style={styles.description}>{error}</Text><Button title="Tentar novamente" onPress={() => setAttempt(value => value + 1)} /></View> :
+        {loading ? <ContentSkeleton variant="training" label="Carregando treinamento" /> :
+          error && !training ? <LoadFailure offline={offline} onRetry={() => setAttempt(value => value + 1)} /> :
           training ? <>
             <Text accessibilityRole="header" style={styles.title}>{step?.title ?? 'Treinamento do módulo'}</Text>
             <View style={styles.progressRow}>

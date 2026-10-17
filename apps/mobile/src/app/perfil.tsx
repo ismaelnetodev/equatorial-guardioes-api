@@ -1,5 +1,7 @@
+import { LoadFailure, useLoadFailureKind } from '../components/load-failure'
+import { ContentSkeleton } from '../components/content-skeleton'
 import { useCallback, useState } from 'react'
-import { ActivityIndicator, Image, ImageBackground, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native'
+import { Image, ImageBackground, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native'
 import { Path, Svg } from 'react-native-svg'
 import { router, useFocusEffect } from 'expo-router'
 import { ProfilePage } from '../components/profile-page'
@@ -36,6 +38,7 @@ type ProfileDestination = {
 export default function ProfileScreen() {
   const [profile, setProfile] = useState<Profile | null>(null)
   const [loading, setLoading] = useState(true)
+  const { offline, recordFailure } = useLoadFailureKind()
   const [error, setError] = useState('')
   const [attempt, setAttempt] = useState(0)
   const [logoutBusy, setLogoutBusy] = useState(false)
@@ -47,7 +50,7 @@ export default function ProfileScreen() {
     setError('')
     getProfile(controller.signal)
       .then(userProfile => { if (!controller.signal.aborted) setProfile(userProfile) })
-      .catch(cause => {
+      .catch(cause => { recordFailure(cause);
         if (controller.signal.aborted) return
         if (cause instanceof ApiError && cause.status === 401) {
           router.replace('/entrar')
@@ -103,11 +106,8 @@ export default function ProfileScreen() {
           </ImageBackground>
         </View>
 
-        {loading ? <ActivityIndicator color={colors.primary} style={styles.state} accessibilityLabel="Carregando perfil" /> :
-          error ? <View style={styles.state}>
-            <Text accessibilityRole="alert" style={styles.error}>{error}</Text>
-            <Pressable accessibilityRole="button" onPress={() => setAttempt(value => value + 1)}><Text style={styles.retry}>Tentar novamente</Text></Pressable>
-          </View> : profile ? <>
+        {loading ? <ContentSkeleton variant="profile" label="Carregando perfil" /> :
+          error ? <LoadFailure offline={offline} onRetry={() => setAttempt(value => value + 1)} /> : profile ? <>
             <View style={styles.summary}>
               <View style={styles.summaryItem}><Text numberOfLines={1} style={styles.level}>{profile.level.name}</Text><Text style={styles.summaryLabel}>nível</Text></View>
               <View style={styles.summaryDivider} />

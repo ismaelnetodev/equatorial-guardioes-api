@@ -1,5 +1,6 @@
+import { ContentSkeleton } from '../../components/content-skeleton'
 import { useFonts, Archivo_400Regular, Archivo_700Bold, Archivo_800ExtraBold } from '@expo-google-fonts/archivo'
-import { ActivityIndicator, Image, Platform, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native'
+import { Image, Platform, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { StatusBar } from 'expo-status-bar'
 import { AppIcon } from '../../components/app-icon'
@@ -12,7 +13,7 @@ const points = (value: number) => value > 0 ? `+${value}` : String(value)
 export function ModuleCompletionScreen({ data, onTrail, onReport }: Props) {
   const [loaded, fontError] = useFonts({ Archivo_400Regular, Archivo_700Bold, Archivo_800ExtraBold })
   const progress = data.totalModules > 0 ? Math.min(100, data.completedModules / data.totalModules * 100) : 0
-  if (!loaded && !fontError) return <SafeAreaView style={styles.loading}><ActivityIndicator color={c.yellow} /></SafeAreaView>
+  if (!loaded && !fontError) return <SafeAreaView style={{ flex: 1, backgroundColor: '#0B1240' }}><ScrollView contentContainerStyle={{ padding: 20 }}><ContentSkeleton variant="result" /></ScrollView></SafeAreaView>
   return <SafeAreaView edges={['top', 'left', 'right']} style={styles.screen}><StatusBar style="light" />
     <ScrollView contentContainerStyle={styles.page}>
       <Image source={require('../../../assets/module-completion-hero.png')} resizeMode="contain" accessible={false} style={styles.hero} />

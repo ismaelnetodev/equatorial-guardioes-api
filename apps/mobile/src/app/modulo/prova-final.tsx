@@ -1,6 +1,8 @@
+import { LoadFailure, useLoadFailureKind } from '../../components/load-failure'
+import { ContentSkeleton } from '../../components/content-skeleton'
 import { useCallback, useRef, useState } from 'react'
 import { router, useFocusEffect, useLocalSearchParams } from 'expo-router'
-import { ActivityIndicator, ScrollView, Share, Text, View } from 'react-native'
+import { ScrollView, Share, Text, View } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { colors } from '../../components/ui'
 import { Action, Card, Hint, Title, ui, useAction } from '../../features/admin/admin.ui'
@@ -15,9 +17,10 @@ export default function FinalExamScreen() {
   const [result, setResult] = useState<FinalResult | null>(null)
   const [index, setIndex] = useState(0)
   const [answers, setAnswers] = useState<Record<string, string>>({})
+  const { offline, recordFailure } = useLoadFailureKind()
   const [error, setError] = useState('')
   const scroll = useRef<ScrollView>(null)
-  const fail = (cause: unknown) => { if (cause instanceof ApiError && cause.status === 401) router.replace('/entrar'); else setError(errorMessage(cause)) }
+  const fail = (cause: unknown) => { recordFailure(cause); if (cause instanceof ApiError && cause.status === 401) router.replace('/entrar'); else setError(errorMessage(cause)) }
   const { busy, run } = useAction(fail)
   const refresh = async () => { setError(''); await refreshLearningSummary(); setState(await getTrailCompletion(trailId)) }
   useFocusEffect(useCallback(() => { void run(refresh) }, [trailId]))
@@ -36,8 +39,8 @@ export default function FinalExamScreen() {
   const certificate = state?.certificate
   return <SafeAreaView style={{ flex: 1, backgroundColor: colors.background }}><ScrollView ref={scroll} contentContainerStyle={{ maxWidth: 600, width: '100%', alignSelf: 'center', padding: 20, gap: 18 }}>
     <Action title="‹ Voltar à trilha" onPress={() => router.replace({ pathname: '/trilha', params: { trailId } })} /><Title>{state?.title ?? 'Conclusão da trilha'}</Title>
-    {error ? <Text accessibilityRole="alert" style={{ color: '#ffbb80' }}>{error}</Text> : null}
-    {!state ? <ActivityIndicator color={colors.primary} /> : <>
+    {error ? <LoadFailure offline={offline} retrying={busy} onRetry={() => { void run(() => refresh()) }} /> : null}
+    {!state ? !error ? <ContentSkeleton variant="module" label="Carregando conclusão da trilha" /> : null : <>
       <Card><Title>{passed ? 'Prova final aprovada!' : 'Prova final'}</Title><Hint>{state.completedModules} de {state.totalModules} módulos concluídos.</Hint><Hint>A aprovação exige {state.finalExam.minimumPercent}% de acertos. A pontuação da prova final é concedida uma única vez, conforme a regra do programa.</Hint>
         {status === 'MODULES_PENDING' ? <Hint>Conclua os módulos para liberar a prova final.</Hint> : null}
         {status === 'WAITING' ? <Hint>A prova será liberada em {new Date(state.finalExam.availableAt!).toLocaleString('pt-BR')}. O prazo começa na conclusão do último módulo.</Hint> : null}
