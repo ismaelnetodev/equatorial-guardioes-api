@@ -6,7 +6,6 @@ import { SafeAreaView } from 'react-native-safe-area-context'
 import { AppIcon } from '../../components/app-icon'
 import { Button, colors } from '../../components/ui'
 import { EmergencyBanner } from '../../components/emergency-banner'
-import { completeTraining, getLearnState, type LearnState } from '../../features/learn/learn.api'
 import { completeModule, getTrail, getTrailProgress, startModule, type TrailModule, type TrailProgress } from '../../features/trails/trails.api'
 import { ApiError, errorMessage } from '../../services/api'
 import { getAccessToken } from '../../services/session'
@@ -29,7 +28,6 @@ function stageLabel(status: 'locked' | 'available' | 'completed', points?: numbe
 
 export default function ModuleScreen() {
   const params = useLocalSearchParams<{ moduleId: string; trailId: string }>()
-  const [learn, setLearn] = useState<LearnState | null>(null)
   const [module, setModule] = useState<TrailModule | null>(null)
   const [progress, setProgress] = useState<ModuleProgress | null>(null)
   const [learn, setLearn] = useState<LearnState | null>(null)
@@ -57,10 +55,6 @@ export default function ModuleScreen() {
         const item = modules[index]
         const state = states.modules.find(item => item.moduleId === params.moduleId)
         if (!item || !state) throw new Error('Este módulo não está disponível nesta trilha.')
-        let learnState: LearnState | null = null
-        if (state.status === 'in_progress' || state.status === 'completed') {
-          learnState = await getLearnState(params.moduleId, controller.signal)
-        }
         if (controller.signal.aborted) return
         setModule({ ...item, status: state.status }); setProgress(state); setNumber(index)
         if (state.requiresQuiz && state.status !== 'blocked' && state.status !== 'available') {
@@ -168,7 +162,7 @@ export default function ModuleScreen() {
           <Text accessibilityRole="header" style={styles.readerTitle}>Treinamento</Text>
           <Text selectable style={styles.reading}>{module.content || 'O conteúdo deste módulo ainda não está disponível.'}</Text>
 
-          <View style={styles.footer}>{completed ? <Button title="Voltar ao módulo" onPress={back} /> : <Button title="Concluir treinamento" loading={busy} disabled={requiresQuiz || !module.content} onPress={() => { void finish() }} />}</View>
+          <View style={styles.footer}>{completed ? <Button title="Voltar ao módulo" onPress={back} /> : <Button title="Concluir treinamento" loading={busy} disabled={requiresQuiz || !module.content} onPress={() => { void finishTraining() }} />}</View>
         </> : <>
           <Text style={styles.description}>{module.description}</Text>
           {blocked ? <View style={styles.section}><Text style={styles.description}>Conclua os módulos anteriores para liberar este conteúdo.</Text><Button title="Voltar para trilha" onPress={back} /></View> : <>

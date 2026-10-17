@@ -3,12 +3,12 @@ import type { FastifyInstance } from 'fastify'
 import { buildApp } from '../../app.js'
 import { createSessionToken } from '../../lib/auth-session.js'
 
-const db = vi.hoisted(() => ({ $transaction: vi.fn(), programConfiguration: { findUnique: vi.fn() }, learningAward: { create: vi.fn(), findMany: vi.fn() }, user: { findUnique: vi.fn() }, trail: { findUnique: vi.fn() }, trailModule: { findUnique: vi.fn() }, moduleProgress: { findUniqueOrThrow: vi.fn(), upsert: vi.fn(), findUnique: vi.fn(), update: vi.fn() } }))
 const db = vi.hoisted(() => ({
+  learningAward: { create: vi.fn(), findMany: vi.fn() },
   user: { findUnique: vi.fn() },
   trail: { findUnique: vi.fn(), findFirst: vi.fn() },
   trailModule: { findUnique: vi.fn() },
-  moduleProgress: { upsert: vi.fn(), findUnique: vi.fn(), update: vi.fn() },
+  moduleProgress: { findUniqueOrThrow: vi.fn(), upsert: vi.fn(), findUnique: vi.fn(), update: vi.fn() },
   inviteAttribution: { findUnique: vi.fn(), update: vi.fn(), count: vi.fn() },
   programConfiguration: { findUnique: vi.fn() },
   pointAccount: { upsert: vi.fn(), update: vi.fn() },
