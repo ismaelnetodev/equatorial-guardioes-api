@@ -862,6 +862,7 @@ export interface paths {
                         content?: string;
                         durationMinutes?: number | null;
                         requiresQuiz?: boolean;
+                        /** @description Campo legado; aprovação usa quiz_pass_score no painel de pontos e limites. */
                         quizMinimumScore?: number | null;
                     };
                 };
@@ -1002,6 +1003,7 @@ export interface paths {
                         content?: string;
                         durationMinutes?: number | null;
                         requiresQuiz?: boolean;
+                        /** @description Campo legado; aprovação usa quiz_pass_score no painel de pontos e limites. */
                         quizMinimumScore?: number | null;
                     };
                 };
@@ -1489,7 +1491,7 @@ export interface paths {
                 };
             };
         };
-        /** Substitui todas as perguntas do quiz do módulo */
+        /** Substitui perguntas do quiz somente se o módulo não possuir tentativas */
         put: {
             parameters: {
                 query?: never;
@@ -2046,6 +2048,7 @@ export interface paths {
                 content: {
                     "application/json": {
                         status: "SENT" | "RECEIVED" | "IN_ANALYSIS" | "RESOLVED" | "NOT_CONFIRMED";
+                        confirmedRisk?: "LOW" | "MEDIUM" | "HIGH";
                     };
                 };
             };
@@ -3357,6 +3360,461 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/trails/{trailId}/completion": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Estado da prova final e certificado da trilha */
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    trailId: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            /** Format: uuid */
+                            trailId: string;
+                            title: string;
+                            completedModules: number;
+                            totalModules: number;
+                            finalExam: {
+                                status: "APPROVED" | "MODULES_PENDING" | "QUESTIONS_PENDING" | "WAITING" | "RETRY_WAITING" | "AVAILABLE";
+                                /** Format: date-time */
+                                availableAt: string | null;
+                                /** Format: date-time */
+                                retryAt: string | null;
+                                totalQuestions: number;
+                                minimumPercent: number;
+                                lastResult: {
+                                    correctCount: number;
+                                    totalCount: number;
+                                    minimumCorrect: number;
+                                    isApproved: boolean;
+                                    pointsAwarded: number;
+                                } | null;
+                            };
+                            certificate: {
+                                /** Format: uuid */
+                                id: string;
+                                holderName: string;
+                                trailTitle: string;
+                                /** Format: date-time */
+                                issuedAt: string;
+                                badge: string;
+                            } | null;
+                            canIssueCertificate: boolean;
+                        };
+                    };
+                };
+                /** @description Default Response */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            code: string;
+                            message: string;
+                        };
+                    };
+                };
+                /** @description Default Response */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            code: string;
+                            message: string;
+                        };
+                    };
+                };
+                /** @description Default Response */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            code: string;
+                            message: string;
+                        };
+                    };
+                };
+                /** @description Default Response */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            code: string;
+                            message: string;
+                        };
+                    };
+                };
+                /** @description Default Response */
+                422: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            code: string;
+                            message: string;
+                        };
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/trails/{trailId}/certificate": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Emite certificado após módulos concluídos e prova final aprovada */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    trailId: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            /** Format: uuid */
+                            id: string;
+                            holderName: string;
+                            trailTitle: string;
+                            /** Format: date-time */
+                            issuedAt: string;
+                            badge: string;
+                        };
+                    };
+                };
+                /** @description Default Response */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            code: string;
+                            message: string;
+                        };
+                    };
+                };
+                /** @description Default Response */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            code: string;
+                            message: string;
+                        };
+                    };
+                };
+                /** @description Default Response */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            code: string;
+                            message: string;
+                        };
+                    };
+                };
+                /** @description Default Response */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            code: string;
+                            message: string;
+                        };
+                    };
+                };
+                /** @description Default Response */
+                422: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            code: string;
+                            message: string;
+                        };
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/trails/{trailId}/final-exam": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Lista a prova final da trilha sem gabarito */
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    trailId: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            /** Format: uuid */
+                            trailId: string;
+                            totalCount: number;
+                            minimumCorrect: number;
+                            questions: {
+                                /** Format: uuid */
+                                id: string;
+                                statement: string;
+                                order: number;
+                                imageUrl: string | null;
+                                options: {
+                                    /** Format: uuid */
+                                    id: string;
+                                    text: string;
+                                    order: number;
+                                }[];
+                            }[];
+                        };
+                    };
+                };
+                /** @description Default Response */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            code: string;
+                            message: string;
+                        };
+                    };
+                };
+                /** @description Default Response */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            code: string;
+                            message: string;
+                        };
+                    };
+                };
+                /** @description Default Response */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            code: string;
+                            message: string;
+                        };
+                    };
+                };
+                /** @description Default Response */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            code: string;
+                            message: string;
+                        };
+                    };
+                };
+                /** @description Default Response */
+                422: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            code: string;
+                            message: string;
+                        };
+                    };
+                };
+            };
+        };
+        put?: never;
+        /** Corrige a prova final e concede pontos uma única vez */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    trailId: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": {
+                        answers: {
+                            /** Format: uuid */
+                            questionId: string;
+                            /** Format: uuid */
+                            optionId: string;
+                        }[];
+                    };
+                };
+            };
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            /** Format: uuid */
+                            trailId: string;
+                            totalCount: number;
+                            minimumCorrect: number;
+                            /** Format: uuid */
+                            attemptId: string;
+                            correctCount: number;
+                            isApproved: boolean;
+                            pointsAwarded: number;
+                        };
+                    };
+                };
+                /** @description Default Response */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            code: string;
+                            message: string;
+                        };
+                    };
+                };
+                /** @description Default Response */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            code: string;
+                            message: string;
+                        };
+                    };
+                };
+                /** @description Default Response */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            code: string;
+                            message: string;
+                        };
+                    };
+                };
+                /** @description Default Response */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            code: string;
+                            message: string;
+                        };
+                    };
+                };
+                /** @description Default Response */
+                422: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            code: string;
+                            message: string;
+                        };
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/trails/": {
         parameters: {
             query?: never;
@@ -3558,6 +4016,189 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/progress/learning": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Saldo de pontos liberados e pendentes do aprendizado */
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            totalPoints: number;
+                            pendingPoints: number;
+                            modulePoints: number;
+                            dailyModuleLimit: number | null;
+                            dailyPointsLimit: number | null;
+                            /** Format: date-time */
+                            nextReleaseAt: string | null;
+                        };
+                    };
+                };
+                /** @description Default Response */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            code: string;
+                            message: string;
+                        };
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/progress/learning/history": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Extrato de concessões do aprendizado do usuário */
+        get: {
+            parameters: {
+                query?: {
+                    offset?: number;
+                    limit?: number;
+                };
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            /** Format: uuid */
+                            id: string;
+                            ruleKey: string;
+                            description: string;
+                            /** Format: uuid */
+                            moduleId: string | null;
+                            /** Format: uuid */
+                            trailId: string | null;
+                            points: number;
+                            status: "GRANTED" | "PENDING";
+                            /** Format: date-time */
+                            createdAt: string;
+                            /** Format: date-time */
+                            grantedAt: string | null;
+                        }[];
+                    };
+                };
+                /** @description Default Response */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            code: string;
+                            message: string;
+                        };
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/progress/learning-awards/claim": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            pointsReleased: number;
+                        };
+                    };
+                };
+                /** @description Default Response */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            code: string;
+                            message: string;
+                        };
+                    };
+                };
+                /** @description Default Response */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            code: string;
+                            message: string;
+                        };
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/progress/trails/{trailId}": {
         parameters: {
             query?: never;
@@ -3592,6 +4233,7 @@ export interface paths {
                                 title: string;
                                 order: number;
                                 status: "blocked" | "available" | "in_progress" | "completed";
+                                readingSeconds: number;
                                 requiresQuiz: boolean;
                                 /** Format: date-time */
                                 startedAt: string | null;
@@ -3668,6 +4310,7 @@ export interface paths {
                             title: string;
                             order: number;
                             status: "blocked" | "available" | "in_progress" | "completed";
+                            readingSeconds: number;
                             requiresQuiz: boolean;
                             /** Format: date-time */
                             startedAt: string | null;
@@ -3753,6 +4396,7 @@ export interface paths {
                             title: string;
                             order: number;
                             status: "blocked" | "available" | "in_progress" | "completed";
+                            readingSeconds: number;
                             requiresQuiz: boolean;
                             /** Format: date-time */
                             startedAt: string | null;
@@ -3864,6 +4508,10 @@ export interface paths {
                                 minimumCorrect: number;
                             };
                             totalPoints: number;
+                            moduleCompletion: {
+                                pointsAwarded: number;
+                                pendingPoints: number;
+                            };
                         };
                     };
                 };
@@ -4634,6 +5282,8 @@ export interface paths {
                 content: {
                     "application/json": {
                         /** Format: uuid */
+                        attemptId: string;
+                        /** Format: uuid */
                         questionId: string;
                         /** Format: uuid */
                         optionId: string;
@@ -4744,7 +5394,7 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /** Finaliza o pós-teste e calcula aprovação */
+        /** Finaliza a tentativa indicada do pós-teste e calcula aprovação */
         post: {
             parameters: {
                 query?: never;
@@ -4754,7 +5404,14 @@ export interface paths {
                 };
                 cookie?: never;
             };
-            requestBody?: never;
+            requestBody: {
+                content: {
+                    "application/json": {
+                        /** Format: uuid */
+                        attemptId: string;
+                    };
+                };
+            };
             responses: {
                 /** @description Default Response */
                 200: {
@@ -4773,6 +5430,10 @@ export interface paths {
                             minimumCorrect: number;
                             pointsAwarded: number;
                             totalPoints: number;
+                            moduleCompletion: {
+                                pointsAwarded: number;
+                                pendingPoints: number;
+                            };
                             before: {
                                 correctCount: number;
                                 totalCount: number;
@@ -4896,6 +5557,10 @@ export interface paths {
                             minimumCorrect: number;
                             pointsAwarded: number;
                             totalPoints: number;
+                            moduleCompletion: {
+                                pointsAwarded: number;
+                                pendingPoints: number;
+                            };
                             before: {
                                 correctCount: number;
                                 totalCount: number;
@@ -5241,7 +5906,7 @@ export interface paths {
                             message: string;
                             pointsAwarded: number;
                             neighborhood: string;
-                        };
+                        } | null;
                     };
                 };
                 /** @description Default Response */

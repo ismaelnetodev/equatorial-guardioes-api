@@ -33,7 +33,7 @@ export const reportsRoutes: FastifyPluginAsyncTypebox = async (app) => {
       ...common,
       summary: 'Consulta mensagem de impacto pendente',
       response: {
-        200: schema.impactMessageSchema,
+        200: schema.pendingImpactResponseSchema,
         ...errors,
       },
     },

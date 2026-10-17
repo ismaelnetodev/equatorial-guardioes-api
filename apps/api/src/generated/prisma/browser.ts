@@ -112,3 +112,33 @@ export type ProgramConfiguration = Prisma.ProgramConfigurationModel
  * 
  */
 export type ProgramConfigurationChange = Prisma.ProgramConfigurationChangeModel
+/**
+ * Model ReportLegacyPointsAudit
+ * 
+ */
+export type ReportLegacyPointsAudit = Prisma.ReportLegacyPointsAuditModel
+/**
+ * Model LearningAward
+ * 
+ */
+export type LearningAward = Prisma.LearningAwardModel
+/**
+ * Model FinalExamAttempt
+ * 
+ */
+export type FinalExamAttempt = Prisma.FinalExamAttemptModel
+/**
+ * Model TrailCertificate
+ * 
+ */
+export type TrailCertificate = Prisma.TrailCertificateModel
+/**
+ * Model LearningLegacyPointsAudit
+ * 
+ */
+export type LearningLegacyPointsAudit = Prisma.LearningLegacyPointsAuditModel
+/**
+ * Model QuizAttemptReconciliation
+ * 
+ */
+export type QuizAttemptReconciliation = Prisma.QuizAttemptReconciliationModel

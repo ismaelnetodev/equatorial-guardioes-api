@@ -1,3 +1,4 @@
+import { errorMessage } from '../services/api'
 import { useRef, useState } from 'react'
 import { router } from 'expo-router'
 import { StatusBar } from 'expo-status-bar'
@@ -43,7 +44,7 @@ export default function RegistrationScreen() {
       }
       router.replace('/introducao')
     } catch (cause) {
-      setError(cause instanceof TypeError ? 'Não foi possível conectar à API. Verifique sua conexão e tente novamente.' : cause instanceof Error ? cause.message : 'Não foi possível criar sua conta. Tente novamente.')
+      setError(errorMessage(cause, 'Não foi possível criar sua conta. Tente novamente.'))
     } finally { pending.current = false; setLoading(false) }
   }
   return <SafeAreaView style={styles.screen}>

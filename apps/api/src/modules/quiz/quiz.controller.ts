@@ -1,7 +1,9 @@
+import { LearningError } from '../quiz/learning-rules.service.js'
 import type { FastifyReply, FastifyRequest } from 'fastify'
 import { AuthenticationError, getAuthenticatedUser } from '../../lib/auth-user.js'
 import type {
   ModuleParams,
+  FinishPostTest,
   SubmitPostAnswer,
   SubmitPreTest,
 } from './quiz.schemas.js'
@@ -14,6 +16,7 @@ function statusFor(code: QuizError['code']): number {
 }
 
 function sendError(reply: FastifyReply, error: unknown) {
+  if (error instanceof LearningError) return reply.status(409).send({ code: error.code, message: error.message })
   if (error instanceof AuthenticationError) {
     return reply.status(401).send({ code: 'UNAUTHENTICATED', message: error.message })
   }
@@ -69,8 +72,8 @@ export async function submitPostAnswerController(request: FastifyRequest<{ Param
   return withAuth(request, reply, (userId) => submitPostAnswer(userId, request.params.moduleId, request.body))
 }
 
-export async function finishPostTestController(request: FastifyRequest<{ Params: ModuleParams }>, reply: FastifyReply) {
-  return withAuth(request, reply, (userId) => finishPostTest(userId, request.params.moduleId))
+export async function finishPostTestController(request: FastifyRequest<{ Params: ModuleParams; Body: FinishPostTest }>, reply: FastifyReply) {
+  return withAuth(request, reply, (userId) => finishPostTest(userId, request.params.moduleId, request.body))
 }
 
 export async function getPostTestResultController(request: FastifyRequest<{ Params: ModuleParams }>, reply: FastifyReply) {

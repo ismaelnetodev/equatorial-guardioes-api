@@ -9,7 +9,7 @@ import { AdminTrails } from '../features/admin/admin-trails'
 import { AdminAccount, AdminConfigurations, AdminHistory } from '../features/admin/admin-configurations'
 import { listTrails } from '../features/admin/admin.api'
 import { Action, Card, Field, Hint, Title, ui, useAction } from '../features/admin/admin.ui'
-import { ApiError } from '../services/api'
+import { ApiError, errorMessage } from '../services/api'
 import { clearAccessToken, getAccessToken } from '../services/session'
 
 type Tab = 'trails' | 'rules' | 'rewards' | 'limits' | 'history' | 'account'
@@ -28,7 +28,7 @@ export default function AdminScreen() {
   const [password, setPassword] = useState('')
   const [error, setError] = useState('')
   const reportError = (cause: unknown) => {
-    setError(cause instanceof Error ? cause.message : 'Não foi possível concluir a operação.')
+    setError(errorMessage(cause, 'Não foi possível concluir a operação.'))
     if (cause instanceof ApiError && (cause.status === 401 || cause.status === 403)) { setAuthorized(false); void clearAccessToken() }
   }
   const { busy, run } = useAction(reportError)

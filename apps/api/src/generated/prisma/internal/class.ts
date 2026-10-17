@@ -377,6 +377,66 @@ export interface PrismaClient<
     * ```
     */
   get programConfigurationChange(): Prisma.ProgramConfigurationChangeDelegate<ExtArgs, { omit: OmitOpts }>;
+
+  /**
+   * `prisma.reportLegacyPointsAudit`: Exposes CRUD operations for the **ReportLegacyPointsAudit** model.
+    * Example usage:
+    * ```ts
+    * // Fetch zero or more ReportLegacyPointsAudits
+    * const reportLegacyPointsAudits = await prisma.reportLegacyPointsAudit.findMany()
+    * ```
+    */
+  get reportLegacyPointsAudit(): Prisma.ReportLegacyPointsAuditDelegate<ExtArgs, { omit: OmitOpts }>;
+
+  /**
+   * `prisma.learningAward`: Exposes CRUD operations for the **LearningAward** model.
+    * Example usage:
+    * ```ts
+    * // Fetch zero or more LearningAwards
+    * const learningAwards = await prisma.learningAward.findMany()
+    * ```
+    */
+  get learningAward(): Prisma.LearningAwardDelegate<ExtArgs, { omit: OmitOpts }>;
+
+  /**
+   * `prisma.finalExamAttempt`: Exposes CRUD operations for the **FinalExamAttempt** model.
+    * Example usage:
+    * ```ts
+    * // Fetch zero or more FinalExamAttempts
+    * const finalExamAttempts = await prisma.finalExamAttempt.findMany()
+    * ```
+    */
+  get finalExamAttempt(): Prisma.FinalExamAttemptDelegate<ExtArgs, { omit: OmitOpts }>;
+
+  /**
+   * `prisma.trailCertificate`: Exposes CRUD operations for the **TrailCertificate** model.
+    * Example usage:
+    * ```ts
+    * // Fetch zero or more TrailCertificates
+    * const trailCertificates = await prisma.trailCertificate.findMany()
+    * ```
+    */
+  get trailCertificate(): Prisma.TrailCertificateDelegate<ExtArgs, { omit: OmitOpts }>;
+
+  /**
+   * `prisma.learningLegacyPointsAudit`: Exposes CRUD operations for the **LearningLegacyPointsAudit** model.
+    * Example usage:
+    * ```ts
+    * // Fetch zero or more LearningLegacyPointsAudits
+    * const learningLegacyPointsAudits = await prisma.learningLegacyPointsAudit.findMany()
+    * ```
+    */
+  get learningLegacyPointsAudit(): Prisma.LearningLegacyPointsAuditDelegate<ExtArgs, { omit: OmitOpts }>;
+
+  /**
+   * `prisma.quizAttemptReconciliation`: Exposes CRUD operations for the **QuizAttemptReconciliation** model.
+    * Example usage:
+    * ```ts
+    * // Fetch zero or more QuizAttemptReconciliations
+    * const quizAttemptReconciliations = await prisma.quizAttemptReconciliation.findMany()
+    * ```
+    */
+  get quizAttemptReconciliation(): Prisma.QuizAttemptReconciliationDelegate<ExtArgs, { omit: OmitOpts }>;
 }
 
 export function getPrismaClientClass(): PrismaClientConstructor {

@@ -242,10 +242,13 @@ model QuizAttempt {
   score         Float
   isApproved    Boolean
   pointsAwarded Int          @default(0)
+  minimumCorrect Int?
+  supersededAt DateTime?
   finishedAt    DateTime?
   submittedAt   DateTime     @default(now())
   answers       QuizAnswer[]
 
+  // Índice único parcial de POST aberto mantido em SQL na migration 20261017040000.
   @@index([progressId, phase, submittedAt])
 }
 
@@ -254,9 +257,9 @@ model QuizAnswer {
   attemptId  String       @db.Uuid
   attempt    QuizAttempt  @relation(fields: [attemptId], references: [id], onDelete: Cascade)
   questionId String       @db.Uuid
-  question   QuizQuestion @relation(fields: [questionId], references: [id], onDelete: Cascade)
+  question   QuizQuestion @relation(fields: [questionId], references: [id], onDelete: Restrict)
   optionId   String       @db.Uuid
-  option     QuizOption   @relation(fields: [optionId], references: [id], onDelete: Cascade)
+  option     QuizOption   @relation(fields: [optionId], references: [id], onDelete: Restrict)
   isCorrect  Boolean
   answeredAt DateTime     @default(now())
 
@@ -309,6 +312,8 @@ model Report {
   status        ReportStatus          @default(SENT)
   urgency       ReportUrgency         @default(MEDIUM)
   pointsAwarded Int                   @default(0)
+  confirmedRisk ReportUrgency?
+  validatedAt   DateTime?
   impactSeenAt  DateTime?
   submittedAt   DateTime              @default(now())
   timeline      ReportTimelineEvent[]
@@ -317,6 +322,7 @@ model Report {
 
   @@index([userId, submittedAt])
   @@index([status, submittedAt])
+  @@index([userId, validatedAt])
 }
 
 model ReportTimelineEvent {
@@ -362,4 +368,73 @@ model ProgramConfigurationChange {
 
   @@index([kind, key, createdAt])
   @@index([createdAt, id])
+}
+
+// Snapshot de reconciliação dos pontos concedidos antes da validação v2.
+model ReportLegacyPointsAudit {
+  reportId String @id @db.Uuid
+  userId String? @db.Uuid
+  status ReportStatus?
+  urgency ReportUrgency?
+  pointsAwarded Int?
+  reconciledAt DateTime? @db.Timestamptz(6)
+}
+
+// Snapshot por evento; sem FK para preservar a auditoria após exclusão de conteúdo.
+model LearningAward {
+  id String @id @default(uuid()) @db.Uuid
+  userId String @db.Uuid
+  ruleKey String
+  sourceId String
+  moduleId String? @db.Uuid
+  trailId String? @db.Uuid
+  points Int
+  grantedAt DateTime?
+  createdAt DateTime @default(now())
+
+  @@unique([userId, ruleKey, sourceId])
+  @@index([userId, ruleKey, grantedAt])
+}
+
+model FinalExamAttempt {
+  id String @id @default(uuid()) @db.Uuid
+  userId String @db.Uuid
+  trailId String @db.Uuid
+  correctCount Int
+  totalCount Int
+  minimumCorrect Int
+  isApproved Boolean
+  pointsAwarded Int
+  submittedAt DateTime @default(now())
+
+  @@index([userId, trailId, submittedAt])
+}
+
+// Snapshots da conclusão, sem FK editorial para preservar o certificado emitido.
+model TrailCertificate {
+  id String @id @default(uuid()) @db.Uuid
+  userId String @db.Uuid
+  trailId String @db.Uuid
+  holderName String
+  trailTitle String
+  issuedAt DateTime @default(now())
+
+  @@unique([userId, trailId])
+}
+
+model LearningLegacyPointsAudit {
+  sourceId String @db.Uuid
+  sourceType String
+  points Int
+  reconciledAt DateTime @default(now())
+
+  @@id([sourceType, sourceId])
+}
+
+// Snapshot sem FK para preservar a auditoria da reconciliação de duplicatas.
+model QuizAttemptReconciliation {
+  attemptId String @id @db.Uuid
+  retainedAttemptId String @db.Uuid
+  previousState Json
+  reconciledAt DateTime @default(now())
 }

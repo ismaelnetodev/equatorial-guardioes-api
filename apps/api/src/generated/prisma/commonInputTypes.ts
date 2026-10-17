@@ -383,6 +383,13 @@ export type EnumReportUrgencyFilter<$PrismaModel = never> = {
   not?: Prisma.NestedEnumReportUrgencyFilter<$PrismaModel> | $Enums.ReportUrgency
 }
 
+export type EnumReportUrgencyNullableFilter<$PrismaModel = never> = {
+  equals?: $Enums.ReportUrgency | Prisma.EnumReportUrgencyFieldRefInput<$PrismaModel> | null
+  in?: $Enums.ReportUrgency[] | Prisma.ListEnumReportUrgencyFieldRefInput<$PrismaModel> | null
+  notIn?: $Enums.ReportUrgency[] | Prisma.ListEnumReportUrgencyFieldRefInput<$PrismaModel> | null
+  not?: Prisma.NestedEnumReportUrgencyNullableFilter<$PrismaModel> | $Enums.ReportUrgency | null
+}
+
 export type FloatNullableWithAggregatesFilter<$PrismaModel = never> = {
   equals?: number | Prisma.FloatFieldRefInput<$PrismaModel> | null
   in?: number[] | Prisma.ListFloatFieldRefInput<$PrismaModel> | null
@@ -417,6 +424,16 @@ export type EnumReportUrgencyWithAggregatesFilter<$PrismaModel = never> = {
   _count?: Prisma.NestedIntFilter<$PrismaModel>
   _min?: Prisma.NestedEnumReportUrgencyFilter<$PrismaModel>
   _max?: Prisma.NestedEnumReportUrgencyFilter<$PrismaModel>
+}
+
+export type EnumReportUrgencyNullableWithAggregatesFilter<$PrismaModel = never> = {
+  equals?: $Enums.ReportUrgency | Prisma.EnumReportUrgencyFieldRefInput<$PrismaModel> | null
+  in?: $Enums.ReportUrgency[] | Prisma.ListEnumReportUrgencyFieldRefInput<$PrismaModel> | null
+  notIn?: $Enums.ReportUrgency[] | Prisma.ListEnumReportUrgencyFieldRefInput<$PrismaModel> | null
+  not?: Prisma.NestedEnumReportUrgencyNullableWithAggregatesFilter<$PrismaModel> | $Enums.ReportUrgency | null
+  _count?: Prisma.NestedIntNullableFilter<$PrismaModel>
+  _min?: Prisma.NestedEnumReportUrgencyNullableFilter<$PrismaModel>
+  _max?: Prisma.NestedEnumReportUrgencyNullableFilter<$PrismaModel>
 }
 
 export type EnumProgramConfigurationKindFilter<$PrismaModel = never> = {
@@ -563,6 +580,23 @@ export type UuidNullableWithAggregatesFilter<$PrismaModel = never> = {
   _count?: Prisma.NestedIntNullableFilter<$PrismaModel>
   _min?: Prisma.NestedStringNullableFilter<$PrismaModel>
   _max?: Prisma.NestedStringNullableFilter<$PrismaModel>
+}
+
+export type EnumReportStatusNullableFilter<$PrismaModel = never> = {
+  equals?: $Enums.ReportStatus | Prisma.EnumReportStatusFieldRefInput<$PrismaModel> | null
+  in?: $Enums.ReportStatus[] | Prisma.ListEnumReportStatusFieldRefInput<$PrismaModel> | null
+  notIn?: $Enums.ReportStatus[] | Prisma.ListEnumReportStatusFieldRefInput<$PrismaModel> | null
+  not?: Prisma.NestedEnumReportStatusNullableFilter<$PrismaModel> | $Enums.ReportStatus | null
+}
+
+export type EnumReportStatusNullableWithAggregatesFilter<$PrismaModel = never> = {
+  equals?: $Enums.ReportStatus | Prisma.EnumReportStatusFieldRefInput<$PrismaModel> | null
+  in?: $Enums.ReportStatus[] | Prisma.ListEnumReportStatusFieldRefInput<$PrismaModel> | null
+  notIn?: $Enums.ReportStatus[] | Prisma.ListEnumReportStatusFieldRefInput<$PrismaModel> | null
+  not?: Prisma.NestedEnumReportStatusNullableWithAggregatesFilter<$PrismaModel> | $Enums.ReportStatus | null
+  _count?: Prisma.NestedIntNullableFilter<$PrismaModel>
+  _min?: Prisma.NestedEnumReportStatusNullableFilter<$PrismaModel>
+  _max?: Prisma.NestedEnumReportStatusNullableFilter<$PrismaModel>
 }
 
 export type NestedUuidFilter<$PrismaModel = never> = {
@@ -923,6 +957,13 @@ export type NestedEnumReportUrgencyFilter<$PrismaModel = never> = {
   not?: Prisma.NestedEnumReportUrgencyFilter<$PrismaModel> | $Enums.ReportUrgency
 }
 
+export type NestedEnumReportUrgencyNullableFilter<$PrismaModel = never> = {
+  equals?: $Enums.ReportUrgency | Prisma.EnumReportUrgencyFieldRefInput<$PrismaModel> | null
+  in?: $Enums.ReportUrgency[] | Prisma.ListEnumReportUrgencyFieldRefInput<$PrismaModel> | null
+  notIn?: $Enums.ReportUrgency[] | Prisma.ListEnumReportUrgencyFieldRefInput<$PrismaModel> | null
+  not?: Prisma.NestedEnumReportUrgencyNullableFilter<$PrismaModel> | $Enums.ReportUrgency | null
+}
+
 export type NestedFloatNullableWithAggregatesFilter<$PrismaModel = never> = {
   equals?: number | Prisma.FloatFieldRefInput<$PrismaModel> | null
   in?: number[] | Prisma.ListFloatFieldRefInput<$PrismaModel> | null
@@ -957,6 +998,16 @@ export type NestedEnumReportUrgencyWithAggregatesFilter<$PrismaModel = never> = 
   _count?: Prisma.NestedIntFilter<$PrismaModel>
   _min?: Prisma.NestedEnumReportUrgencyFilter<$PrismaModel>
   _max?: Prisma.NestedEnumReportUrgencyFilter<$PrismaModel>
+}
+
+export type NestedEnumReportUrgencyNullableWithAggregatesFilter<$PrismaModel = never> = {
+  equals?: $Enums.ReportUrgency | Prisma.EnumReportUrgencyFieldRefInput<$PrismaModel> | null
+  in?: $Enums.ReportUrgency[] | Prisma.ListEnumReportUrgencyFieldRefInput<$PrismaModel> | null
+  notIn?: $Enums.ReportUrgency[] | Prisma.ListEnumReportUrgencyFieldRefInput<$PrismaModel> | null
+  not?: Prisma.NestedEnumReportUrgencyNullableWithAggregatesFilter<$PrismaModel> | $Enums.ReportUrgency | null
+  _count?: Prisma.NestedIntNullableFilter<$PrismaModel>
+  _min?: Prisma.NestedEnumReportUrgencyNullableFilter<$PrismaModel>
+  _max?: Prisma.NestedEnumReportUrgencyNullableFilter<$PrismaModel>
 }
 
 export type NestedEnumProgramConfigurationKindFilter<$PrismaModel = never> = {
@@ -1047,6 +1098,23 @@ export type NestedUuidNullableWithAggregatesFilter<$PrismaModel = never> = {
   _count?: Prisma.NestedIntNullableFilter<$PrismaModel>
   _min?: Prisma.NestedStringNullableFilter<$PrismaModel>
   _max?: Prisma.NestedStringNullableFilter<$PrismaModel>
+}
+
+export type NestedEnumReportStatusNullableFilter<$PrismaModel = never> = {
+  equals?: $Enums.ReportStatus | Prisma.EnumReportStatusFieldRefInput<$PrismaModel> | null
+  in?: $Enums.ReportStatus[] | Prisma.ListEnumReportStatusFieldRefInput<$PrismaModel> | null
+  notIn?: $Enums.ReportStatus[] | Prisma.ListEnumReportStatusFieldRefInput<$PrismaModel> | null
+  not?: Prisma.NestedEnumReportStatusNullableFilter<$PrismaModel> | $Enums.ReportStatus | null
+}
+
+export type NestedEnumReportStatusNullableWithAggregatesFilter<$PrismaModel = never> = {
+  equals?: $Enums.ReportStatus | Prisma.EnumReportStatusFieldRefInput<$PrismaModel> | null
+  in?: $Enums.ReportStatus[] | Prisma.ListEnumReportStatusFieldRefInput<$PrismaModel> | null
+  notIn?: $Enums.ReportStatus[] | Prisma.ListEnumReportStatusFieldRefInput<$PrismaModel> | null
+  not?: Prisma.NestedEnumReportStatusNullableWithAggregatesFilter<$PrismaModel> | $Enums.ReportStatus | null
+  _count?: Prisma.NestedIntNullableFilter<$PrismaModel>
+  _min?: Prisma.NestedEnumReportStatusNullableFilter<$PrismaModel>
+  _max?: Prisma.NestedEnumReportStatusNullableFilter<$PrismaModel>
 }
 
 

@@ -1,3 +1,4 @@
+import { Prisma } from '../../generated/prisma/client.js'
 import { publishedModuleWhere, publishedTrailWhere } from '../../lib/content-visibility.js'
 import { creditPoints } from '../../lib/points-ledger.js'
 import { getPrisma } from '../../lib/prisma.js'
@@ -8,8 +9,6 @@ import type {
   ReportUrgencyCode,
 } from './reports.schemas.js'
 
-const SEND_POINTS = 10
-const CONFIRM_POINTS = 40
 
 const STATUS_META: Record<ReportStatusCode, { label: string; iconHint: string }> = {
   SENT: { label: 'Enviado', iconHint: 'check' },
@@ -33,7 +32,8 @@ export class ReportError extends Error {
       | 'REPORTS_LOCKED'
       | 'REPORT_NOT_FOUND'
       | 'IMPACT_NOT_AVAILABLE'
-      | 'INVALID_STATUS_TRANSITION',
+      | 'INVALID_STATUS_TRANSITION'
+      | 'REPORT_CONFLICT',
     message: string,
   ) {
     super(message)
@@ -49,10 +49,9 @@ function urgencyView(code: ReportUrgencyCode) {
 }
 
 function pointsHint(pointsAwarded: number, status: ReportStatusCode): string {
-  if (status === 'RESOLVED' || pointsAwarded >= SEND_POINTS + CONFIRM_POINTS) {
-    return `+${SEND_POINTS} pts por enviar · +${CONFIRM_POINTS} confirmados`
-  }
-  return `+${SEND_POINTS} pts por enviar · +${CONFIRM_POINTS} se confirmado`
+  if (status === 'NOT_CONFIRMED') return 'Relato não confirmado: sem pontos.'
+  if (status === 'RESOLVED') return pointsAwarded + ' pts concedidos após validação.'
+  return 'Pontos após validação da equipe, conforme risco e limites.'
 }
 
 async function assertModuleZeroCompleted(userId: string): Promise<void> {
@@ -136,24 +135,22 @@ function toListItem(report: {
 export async function createReport(userId: string, input: CreateReport) {
   await assertModuleZeroCompleted(userId)
   const now = new Date()
-  const report = await getPrisma().$transaction(async (tx) => {
-    const created = await tx.report.create({
-      data: {
-        userId,
-        title: input.title.trim(),
-        description: input.description.trim(),
-        address: input.address.trim(),
-        neighborhood: input.neighborhood.trim(),
-        photoUrl: input.photoUrl ?? null,
-        latitude: input.latitude ?? null,
-        longitude: input.longitude ?? null,
-        urgency: input.urgency ?? 'MEDIUM',
-        status: 'SENT',
-        pointsAwarded: SEND_POINTS,
-        submittedAt: now,
-        timeline: {
-          create: [{ status: 'SENT', occurredAt: now }],
-        },
+  const report = await getPrisma().report.create({
+    data: {
+      userId,
+      title: input.title.trim(),
+      description: input.description.trim(),
+      address: input.address.trim(),
+      neighborhood: input.neighborhood.trim(),
+      photoUrl: input.photoUrl ?? null,
+      latitude: input.latitude ?? null,
+      longitude: input.longitude ?? null,
+      urgency: input.urgency ?? 'MEDIUM',
+      status: 'SENT',
+      pointsAwarded: 0,
+      submittedAt: now,
+      timeline: {
+        create: [{ status: 'SENT', occurredAt: now }],
       },
       select: {
         id: true,
@@ -285,7 +282,7 @@ export async function getPendingImpact(userId: string) {
     reportId: report.id,
     title: 'Seu relato ajudou o seu bairro',
     message: `Seu relato foi confirmado e pode ajudar a evitar um desligamento na ${report.neighborhood}.`,
-    pointsAwarded: Math.max(CONFIRM_POINTS, report.pointsAwarded - SEND_POINTS),
+    pointsAwarded: report.pointsAwarded,
     neighborhood: report.neighborhood,
   }
 }
@@ -354,87 +351,103 @@ export async function listAdminReports(status?: ReportStatusCode) {
 }
 
 export async function updateAdminReportStatus(reportId: string, input: AdminReportStatusBody) {
-  const report = await getPrisma().report.findUnique({
-    where: { id: reportId },
-    select: {
-      id: true,
-      userId: true,
-      title: true,
-      description: true,
-      address: true,
-      neighborhood: true,
-      photoUrl: true,
-      status: true,
-      urgency: true,
-      pointsAwarded: true,
-      impactSeenAt: true,
-      submittedAt: true,
-    },
-  })
-  if (!report) throw new ReportError('REPORT_NOT_FOUND', 'Relato não encontrado.')
-  if (!canTransition(report.status, input.status)) {
-    throw new ReportError('INVALID_STATUS_TRANSITION', 'Transição de status inválida para este relato.')
-  }
-
-  const now = new Date()
-  const addingConfirmPoints = input.status === 'RESOLVED' && report.status !== 'RESOLVED'
-  const nextPoints = addingConfirmPoints ? report.pointsAwarded + CONFIRM_POINTS : report.pointsAwarded
-
-  const updated = await getPrisma().$transaction(async (tx) => {
-    if (report.status !== input.status) {
-      await tx.reportTimelineEvent.create({
-        data: { reportId, status: input.status, occurredAt: now },
-      })
-    }
-    const next = await tx.report.update({
-      where: { id: reportId },
-      data: {
-        status: input.status,
-        pointsAwarded: nextPoints,
-        ...(addingConfirmPoints ? { impactSeenAt: null } : {}),
-      },
-      select: {
-        id: true,
-        userId: true,
-        title: true,
-        description: true,
-        address: true,
-        neighborhood: true,
-        photoUrl: true,
-        status: true,
-        urgency: true,
-        pointsAwarded: true,
-        impactSeenAt: true,
-        submittedAt: true,
-      },
-    })
-    if (addingConfirmPoints) {
-      await creditPoints(
-        {
-          userId: report.userId,
-          amount: CONFIRM_POINTS,
-          reason: 'REPORT_CONFIRM',
-          sourceType: 'ReportConfirm',
-          sourceId: reportId,
+  try {
+    const updated = await getPrisma().$transaction(async (tx) => {
+      const report = await tx.report.findUnique({
+        where: { id: reportId },
+        select: {
+          id: true,
+          userId: true,
+          title: true,
+          description: true,
+          address: true,
+          neighborhood: true,
+          photoUrl: true,
+          status: true,
+          urgency: true,
+          pointsAwarded: true,
+          impactSeenAt: true,
+          submittedAt: true,
         },
-        tx,
-      )
-    }
-    return next
-  })
+      })
+      if (!report) throw new ReportError('REPORT_NOT_FOUND', 'Relato não encontrado.')
+      if (!canTransition(report.status, input.status)) {
+        throw new ReportError('INVALID_STATUS_TRANSITION', 'Transição de status inválida para este relato.')
+      }
 
-  return {
-    id: updated.id,
-    userId: updated.userId,
-    title: updated.title,
-    description: updated.description,
-    address: updated.address,
-    neighborhood: updated.neighborhood,
-    photoUrl: updated.photoUrl,
-    status: statusView(updated.status),
-    urgency: urgencyView(updated.urgency),
-    pointsAwarded: updated.pointsAwarded,
-    impactSeenAt: updated.impactSeenAt?.toISOString() ?? null,
-    submittedAt: updated.submittedAt.toISOString(),
+      const now = new Date()
+      const validating = input.status === 'RESOLVED' && report.status !== 'RESOLVED'
+      if (validating && !input.confirmedRisk) throw new ReportError('INVALID_STATUS_TRANSITION', 'Informe o risco confirmado pela equipe.')
+      if (input.confirmedRisk && !validating) throw new ReportError('INVALID_STATUS_TRANSITION', 'O risco só pode ser informado na primeira resolução.')
+      let nextPoints = report.pointsAwarded
+      if (validating) {
+        const keys = ['report_' + input.confirmedRisk!.toLowerCase(), 'reports_daily', 'reports_monthly']
+        const configurations = await tx.programConfiguration.findMany({ where: { key: { in: keys } } })
+        const rule = configurations.find(row => row.key === keys[0] && row.kind === 'RULE')
+        const limits = keys.slice(1).map(key => configurations.find(row => row.key === key && row.kind === 'LIMIT'))
+        if (!rule || rule.value === null || limits.some(limit => !limit || (limit.isActive && limit.value === null))) {
+          throw new ReportError('INVALID_STATUS_TRANSITION', 'Configure as regras e limites antes de validar.')
+        }
+        // Dia e mês da concessão em Fortaleza (UTC-3).
+        const local = new Date(now.getTime() - 10800000)
+        const day = new Date(Date.UTC(local.getUTCFullYear(), local.getUTCMonth(), local.getUTCDate(), 3))
+        const month = new Date(Date.UTC(local.getUTCFullYear(), local.getUTCMonth(), 1, 3))
+        const tomorrow = new Date(day.getTime() + 86400000)
+        const nextMonth = new Date(Date.UTC(local.getUTCFullYear(), local.getUTCMonth() + 1, 1, 3))
+        let eligible = rule.isActive
+        for (const [index, limit] of limits.entries()) {
+          if (limit?.isActive) {
+            const count = await tx.report.count({ where: { userId: report.userId, pointsAwarded: { gt: 0 }, validatedAt: { gte: index === 0 ? day : month, lt: index === 0 ? tomorrow : nextMonth } } })
+            if (count >= limit.value!) eligible = false
+          }
+        }
+        nextPoints = eligible ? rule.value : 0
+      }
+      if (input.status === 'NOT_CONFIRMED') nextPoints = 0
+      if (report.status !== input.status) {
+        await tx.reportTimelineEvent.create({
+          data: { reportId, status: input.status, occurredAt: now },
+        })
+      }
+      return tx.report.update({
+        where: { id: reportId },
+        data: {
+          status: input.status,
+          pointsAwarded: nextPoints,
+          ...(validating ? { impactSeenAt: null, validatedAt: now, confirmedRisk: input.confirmedRisk } : {}),
+        },
+        select: {
+          id: true,
+          userId: true,
+          title: true,
+          description: true,
+          address: true,
+          neighborhood: true,
+          photoUrl: true,
+          status: true,
+          urgency: true,
+          pointsAwarded: true,
+          impactSeenAt: true,
+          submittedAt: true,
+        },
+      })
+    }, { isolationLevel: 'Serializable' })
+    return {
+      id: updated.id,
+      userId: updated.userId,
+      title: updated.title,
+      description: updated.description,
+      address: updated.address,
+      neighborhood: updated.neighborhood,
+      photoUrl: updated.photoUrl,
+      status: statusView(updated.status),
+      urgency: urgencyView(updated.urgency),
+      pointsAwarded: updated.pointsAwarded,
+      impactSeenAt: updated.impactSeenAt?.toISOString() ?? null,
+      submittedAt: updated.submittedAt.toISOString(),
+    }
+  } catch (error) {
+    if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === 'P2034') throw new ReportError('REPORT_CONFLICT', 'Atualização concorrente. Consulte o relato e tente novamente.')
+    throw error
   }
 }

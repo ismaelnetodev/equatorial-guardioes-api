@@ -1,8 +1,11 @@
+import type { Prisma } from '../../generated/prisma/client.js'
+import { assertRetry, awardOnce, configuration, learningTransaction, minimumCorrect, moduleAwards } from './learning-rules.service.js'
 import { publishedModuleWhere, publishedTrailWhere } from '../../lib/content-visibility.js'
 import { creditPoints } from '../../lib/points-ledger.js'
 import { getPrisma } from '../../lib/prisma.js'
 import type {
   LearnState,
+  FinishPostTest,
   PostAnswerFeedback,
   PostTestResult,
   PreTestResult,
@@ -17,10 +20,6 @@ export interface QuizCompletionContext {
 
 export type QuizCompletionStatus = 'approved' | 'not_approved' | 'unavailable'
 
-const PRE_TEST_POINTS = 5
-const TRAINING_POINTS = 10
-const POST_TEST_MAX_POINTS = 20
-const DEFAULT_MINIMUM_SCORE = 0.7
 
 export class QuizError extends Error {
   constructor(
@@ -50,15 +49,14 @@ type PublicQuestion = {
   options: PublicOption[]
 }
 
-async function requireAccessibleModule(userId: string, moduleId: string) {
-  const module = await getPrisma().trailModule.findUnique({
+async function requireAccessibleModule(userId: string, moduleId: string, db: Prisma.TransactionClient = getPrisma()) {
+  const module = await db.trailModule.findUnique({
     where: { id: moduleId, ...publishedModuleWhere, trail: publishedTrailWhere },
     select: {
       id: true,
       trailId: true,
       isActive: true,
       requiresQuiz: true,
-      quizMinimumScore: true,
       quizQuestions: {
         orderBy: { order: 'asc' },
         select: {
@@ -75,7 +73,7 @@ async function requireAccessibleModule(userId: string, moduleId: string) {
   })
   if (!module || !module.isActive) throw new QuizError('MODULE_NOT_FOUND', 'Módulo não encontrado.')
 
-  const trail = await getPrisma().trail.findUnique({
+  const trail = await db.trail.findUnique({
     where: { id: module.trailId, ...publishedTrailWhere },
     select: {
       id: true,
@@ -101,7 +99,7 @@ async function requireAccessibleModule(userId: string, moduleId: string) {
     previousCompleted = previousCompleted && Boolean(item.progressRecords[0]?.completedAt)
   }
 
-  const progress = await getPrisma().moduleProgress.findUnique({
+  const progress = await db.moduleProgress.findUnique({
     where: { userId_moduleId: { userId, moduleId } },
     select: {
       id: true,
@@ -117,7 +115,7 @@ async function requireAccessibleModule(userId: string, moduleId: string) {
   return { module, progress }
 }
 
-function toPublicQuestions(
+export function toPublicQuestions(
   questions: Array<{
     id: string
     statement: string
@@ -139,17 +137,7 @@ function toPublicQuestions(
   }))
 }
 
-function minimumCorrect(totalCount: number, quizMinimumScore: number | null): number {
-  const ratio = quizMinimumScore ?? DEFAULT_MINIMUM_SCORE
-  return Math.max(1, Math.ceil(totalCount * ratio))
-}
-
-function postPoints(correctCount: number, totalCount: number): number {
-  if (totalCount <= 0) return 0
-  return Math.round((correctCount / totalCount) * POST_TEST_MAX_POINTS)
-}
-
-function gradeAnswers(
+export function gradeAnswers(
   questions: Array<{ id: string; options: Array<{ id: string; isCorrect: boolean }> }>,
   answers: Array<{ questionId: string; optionId: string }>,
 ) {
@@ -178,16 +166,17 @@ function gradeAnswers(
   return { graded, correctCount, totalCount: questions.length, score: correctCount / questions.length }
 }
 
-async function latestAttempt(progressId: string, phase: 'PRE' | 'POST') {
-  return getPrisma().quizAttempt.findFirst({
-    where: { progressId, phase, finishedAt: { not: null } },
-    orderBy: { submittedAt: 'desc' },
+async function latestAttempt(progressId: string, phase: 'PRE' | 'POST', db: Prisma.TransactionClient = getPrisma()) {
+  return db.quizAttempt.findFirst({
+    where: { progressId, phase, finishedAt: { not: null }, supersededAt: null },
+    orderBy: { submittedAt: phase === 'PRE' ? 'asc' : 'desc' },
     select: {
       id: true,
       correctCount: true,
       totalCount: true,
       score: true,
       isApproved: true,
+      minimumCorrect: true,
       pointsAwarded: true,
       finishedAt: true,
       submittedAt: true,
@@ -195,10 +184,10 @@ async function latestAttempt(progressId: string, phase: 'PRE' | 'POST') {
   })
 }
 
-async function openPostAttempt(progressId: string) {
-  return getPrisma().quizAttempt.findFirst({
-    where: { progressId, phase: 'POST', finishedAt: null },
-    orderBy: { submittedAt: 'desc' },
+async function openPostAttempt(progressId: string, db: Prisma.TransactionClient = getPrisma(), attemptId?: string) {
+  return db.quizAttempt.findFirst({
+    where: { progressId, phase: 'POST', finishedAt: null, supersededAt: null, ...(attemptId ? { id: attemptId } : {}) },
+    orderBy: [{ submittedAt: 'desc' }, { id: 'desc' }],
     select: {
       id: true,
       correctCount: true,
@@ -218,8 +207,9 @@ export async function getQuizCompletionStatus(context: QuizCompletionContext): P
     select: { id: true },
   })
   if (!progress) return 'not_approved'
+  const threshold = await configuration(getPrisma(), 'quiz_pass_score', 'LIMIT')
   const approved = await getPrisma().quizAttempt.findFirst({
-    where: { progressId: progress.id, phase: 'POST', isApproved: true, finishedAt: { not: null } },
+    where: { progressId: progress.id, phase: 'POST', supersededAt: null, score: { gte: threshold.isActive ? threshold.value! / 100 : 0 }, totalCount: { gt: 0 }, finishedAt: { not: null } },
     select: { id: true },
   })
   return approved ? 'approved' : 'not_approved'
@@ -228,13 +218,14 @@ export async function getQuizCompletionStatus(context: QuizCompletionContext): P
 export async function getLearnState(userId: string, moduleId: string): Promise<LearnState> {
   const { module, progress } = await requireAccessibleModule(userId, moduleId)
   const totalCount = module.quizQuestions.length
-  const minCorrect = minimumCorrect(totalCount || 1, module.quizMinimumScore)
+  const minCorrect = await minimumCorrect(getPrisma(), totalCount || 1)
   const pre = await latestAttempt(progress.id, 'PRE')
   const post = await latestAttempt(progress.id, 'POST')
 
   const preDone = Boolean(progress.preTestCompletedAt)
   const trainingDone = Boolean(progress.trainingCompletedAt)
-  const postApproved = Boolean(post?.isApproved)
+  const awards = await moduleAwards(getPrisma(), userId, moduleId)
+  const postApproved = Boolean(post && post.correctCount >= minCorrect)
 
   return {
     moduleId,
@@ -252,11 +243,12 @@ export async function getLearnState(userId: string, moduleId: string): Promise<L
       status: !trainingDone ? 'locked' : postApproved ? 'completed' : 'available',
       correctCount: post?.correctCount ?? null,
       totalCount: post?.totalCount ?? (totalCount || null),
-      isApproved: post ? post.isApproved : null,
+      isApproved: post ? postApproved : null,
       pointsAwarded: post?.pointsAwarded ?? 0,
       minimumCorrect: minCorrect,
     },
-    totalPoints: (pre?.pointsAwarded ?? 0) + progress.trainingPointsAwarded + (post?.pointsAwarded ?? 0),
+    moduleCompletion: awards.moduleCompletion,
+    totalPoints: awards.moduleCompletion.pointsAwarded + awards.quizPoints,
   }
 }
 
@@ -272,11 +264,12 @@ export async function getPreTestQuestions(userId: string, moduleId: string) {
 }
 
 export async function submitPreTest(userId: string, moduleId: string, input: SubmitPreTest): Promise<PreTestResult> {
-  const { module, progress } = await requireAccessibleModule(userId, moduleId)
-  if (module.quizQuestions.length === 0) throw new QuizError('QUIZ_EMPTY', 'Este módulo ainda não possui perguntas de quiz.')
-  const { graded, correctCount, totalCount, score } = gradeAnswers(module.quizQuestions, input.answers)
-
-  const attempt = await getPrisma().$transaction(async (tx) => {
+  const attempt = await learningTransaction(async (tx) => {
+    const { module, progress } = await requireAccessibleModule(userId, moduleId, tx)
+    if (module.quizQuestions.length === 0) throw new QuizError('QUIZ_EMPTY', 'Este módulo ainda não possui perguntas de quiz.')
+    const { graded, correctCount, totalCount, score } = gradeAnswers(module.quizQuestions, input.answers)
+    const fresh = await tx.moduleProgress.findUniqueOrThrow({ where: { id: progress.id } })
+    if (fresh.preTestCompletedAt) throw new QuizError('ANSWER_ALREADY_SUBMITTED', 'O pré-teste inicial já foi registrado.')
     const created = await tx.quizAttempt.create({
       data: {
         progressId: progress.id,
@@ -285,7 +278,7 @@ export async function submitPreTest(userId: string, moduleId: string, input: Sub
         totalCount,
         score,
         isApproved: true,
-        pointsAwarded: PRE_TEST_POINTS,
+        pointsAwarded: 0,
         finishedAt: new Date(),
         answers: {
           create: graded.map((item) => ({
@@ -369,208 +362,183 @@ export async function getTraining(userId: string, moduleId: string) {
 export async function completeTraining(userId: string, moduleId: string) {
   const { progress } = await requireAccessibleModule(userId, moduleId)
   if (!progress.preTestCompletedAt) throw new QuizError('PRE_TEST_REQUIRED', 'Conclua o pré-teste antes do treinamento.')
-  const awarding = !progress.trainingCompletedAt
-  const updated = await getPrisma().$transaction(async (tx) => {
-    const next = await tx.moduleProgress.update({
+  const updated = await learningTransaction(async tx => {
+    const fresh = await tx.moduleProgress.findUniqueOrThrow({ where: { id: progress.id } })
+    return tx.moduleProgress.update({
       where: { id: progress.id },
-      data: {
-        trainingCompletedAt: progress.trainingCompletedAt ?? new Date(),
-        trainingPointsAwarded: progress.trainingCompletedAt ? progress.trainingPointsAwarded : TRAINING_POINTS,
-      },
-      select: { id: true, trainingPointsAwarded: true },
+      data: { trainingCompletedAt: fresh.trainingCompletedAt ?? new Date(), trainingPointsAwarded: 0 },
+      select: { trainingPointsAwarded: true },
     })
-    if (awarding && next.trainingPointsAwarded > 0) {
-      await creditPoints(
-        {
-          userId,
-          amount: next.trainingPointsAwarded,
-          reason: 'QUIZ_TRAINING',
-          sourceType: 'ModuleProgressTraining',
-          sourceId: next.id,
-        },
-        tx,
-      )
-    }
-    return next
   })
   return { moduleId, completed: true as const, pointsAwarded: updated.trainingPointsAwarded }
 }
 
 export async function getPostTestQuestions(userId: string, moduleId: string) {
-  const { module, progress } = await requireAccessibleModule(userId, moduleId)
-  if (!progress.trainingCompletedAt) throw new QuizError('TRAINING_REQUIRED', 'Conclua o treinamento antes do pós-teste.')
-  if (module.quizQuestions.length === 0) throw new QuizError('QUIZ_EMPTY', 'Este módulo ainda não possui perguntas de quiz.')
+  return learningTransaction(async tx => {
+    const { module, progress } = await requireAccessibleModule(userId, moduleId, tx)
+    if (!progress.trainingCompletedAt) throw new QuizError('TRAINING_REQUIRED', 'Conclua o treinamento antes do pós-teste.')
+    if (module.quizQuestions.length === 0) throw new QuizError('QUIZ_EMPTY', 'Este módulo ainda não possui perguntas de quiz.')
 
-  let attempt = await openPostAttempt(progress.id)
-  if (!attempt) {
-    attempt = await getPrisma().quizAttempt.create({
-      data: {
-        progressId: progress.id,
-        phase: 'POST',
-        correctCount: 0,
-        totalCount: module.quizQuestions.length,
-        score: 0,
-        isApproved: false,
-        pointsAwarded: 0,
-        finishedAt: null,
-      },
-      select: { id: true, correctCount: true, totalCount: true, answers: true },
-    })
-  }
+    let attempt = await openPostAttempt(progress.id, tx)
+    if (!attempt) {
+      const previous = await latestAttempt(progress.id, 'POST', tx)
+      await assertRetry(tx, previous?.finishedAt ?? null, new Date())
+      attempt = await tx.quizAttempt.create({
+        data: {
+          progressId: progress.id,
+          phase: 'POST',
+          correctCount: 0,
+          totalCount: module.quizQuestions.length,
+          score: 0,
+          isApproved: false,
+          pointsAwarded: 0,
+          finishedAt: null,
+        },
+        select: { id: true, correctCount: true, totalCount: true, answers: true },
+      })
+    }
 
-  return {
-    moduleId,
-    phase: 'POST' as const,
-    attemptId: attempt.id,
-    answeredCount: attempt.answers.length,
-    totalCount: module.quizQuestions.length,
-    questions: toPublicQuestions(module.quizQuestions),
-  }
+    return {
+      moduleId,
+      phase: 'POST' as const,
+      attemptId: attempt.id,
+      answeredCount: attempt.answers.length,
+      totalCount: module.quizQuestions.length,
+      questions: toPublicQuestions(module.quizQuestions),
+    }
+  })
 }
 
 export async function submitPostAnswer(userId: string, moduleId: string, input: SubmitPostAnswer): Promise<PostAnswerFeedback> {
-  const { module, progress } = await requireAccessibleModule(userId, moduleId)
-  if (!progress.trainingCompletedAt) throw new QuizError('TRAINING_REQUIRED', 'Conclua o treinamento antes do pós-teste.')
-  const question = module.quizQuestions.find((item) => item.id === input.questionId)
-  if (!question) throw new QuizError('INVALID_ANSWERS', 'Pergunta não encontrada neste módulo.')
-  const selected = question.options.find((item) => item.id === input.optionId)
-  if (!selected) throw new QuizError('INVALID_ANSWERS', 'Alternativa inválida para esta pergunta.')
-  const correct = question.options.find((item) => item.isCorrect)
-  if (!correct) throw new QuizError('QUIZ_EMPTY', 'A pergunta não possui alternativa correta configurada.')
+  return learningTransaction(async tx => {
+    const { module, progress } = await requireAccessibleModule(userId, moduleId, tx)
+    if (!progress.trainingCompletedAt) throw new QuizError('TRAINING_REQUIRED', 'Conclua o treinamento antes do pós-teste.')
+    const question = module.quizQuestions.find((item) => item.id === input.questionId)
+    if (!question) throw new QuizError('INVALID_ANSWERS', 'Pergunta não encontrada neste módulo.')
+    const selected = question.options.find((item) => item.id === input.optionId)
+    if (!selected) throw new QuizError('INVALID_ANSWERS', 'Alternativa inválida para esta pergunta.')
+    const correct = question.options.find((item) => item.isCorrect)
+    if (!correct) throw new QuizError('QUIZ_EMPTY', 'A pergunta não possui alternativa correta configurada.')
 
-  let attempt = await openPostAttempt(progress.id)
-  if (!attempt) {
-    attempt = await getPrisma().quizAttempt.create({
+    const attempt = await openPostAttempt(progress.id, tx, input.attemptId)
+    if (!attempt) throw new QuizError('ATTEMPT_NOT_FOUND', 'Tentativa aberta não encontrada para este usuário e módulo.')
+
+    if (attempt.answers.some((item) => item.questionId === input.questionId)) {
+      throw new QuizError('ANSWER_ALREADY_SUBMITTED', 'Esta pergunta já foi respondida nesta tentativa.')
+    }
+
+    const isCorrect = selected.isCorrect
+    const created = await tx.quizAnswer.create({
       data: {
-        progressId: progress.id,
-        phase: 'POST',
-        correctCount: 0,
-        totalCount: module.quizQuestions.length,
-        score: 0,
-        isApproved: false,
-        pointsAwarded: 0,
-        finishedAt: null,
+        attemptId: attempt.id,
+        questionId: input.questionId,
+        optionId: input.optionId,
+        isCorrect,
       },
-      select: { id: true, correctCount: true, totalCount: true, answers: true },
+      select: { id: true },
     })
-  }
+    void created
 
-  if (attempt.answers.some((item) => item.questionId === input.questionId)) {
-    throw new QuizError('ANSWER_ALREADY_SUBMITTED', 'Esta pergunta já foi respondida nesta tentativa.')
-  }
-
-  const isCorrect = selected.isCorrect
-  const created = await getPrisma().quizAnswer.create({
-    data: {
+    return {
       attemptId: attempt.id,
       questionId: input.questionId,
-      optionId: input.optionId,
+      selectedOptionId: input.optionId,
+      correctOptionId: correct.id,
       isCorrect,
-    },
-    select: { id: true },
+      feedbackKind: isCorrect ? 'correct' : 'incorrect',
+      feedback: {
+        title: question.explanationTitle,
+        body: question.explanationBody,
+      },
+      answeredCount: attempt.answers.length + 1,
+      totalCount: module.quizQuestions.length,
+    }
   })
-  void created
-
-  return {
-    attemptId: attempt.id,
-    questionId: input.questionId,
-    selectedOptionId: input.optionId,
-    correctOptionId: correct.id,
-    isCorrect,
-    feedbackKind: isCorrect ? 'correct' : 'incorrect',
-    feedback: {
-      title: question.explanationTitle,
-      body: question.explanationBody,
-    },
-    answeredCount: attempt.answers.length + 1,
-    totalCount: module.quizQuestions.length,
-  }
 }
 
-export async function finishPostTest(userId: string, moduleId: string): Promise<PostTestResult> {
-  const { module, progress } = await requireAccessibleModule(userId, moduleId)
-  if (!progress.trainingCompletedAt) throw new QuizError('TRAINING_REQUIRED', 'Conclua o treinamento antes do pós-teste.')
-  const attempt = await openPostAttempt(progress.id)
-  if (!attempt) throw new QuizError('ATTEMPT_NOT_FOUND', 'Inicie o pós-teste antes de finalizar.')
-  if (attempt.answers.length !== module.quizQuestions.length) {
-    throw new QuizError('ATTEMPT_INCOMPLETE', 'Responda todas as perguntas antes de finalizar o pós-teste.')
-  }
+export async function finishPostTest(userId: string, moduleId: string, input: FinishPostTest): Promise<PostTestResult> {
+  return learningTransaction(async tx => {
+    const { module, progress } = await requireAccessibleModule(userId, moduleId, tx)
+    if (!progress.trainingCompletedAt) throw new QuizError('TRAINING_REQUIRED', 'Conclua o treinamento antes do pós-teste.')
+    if (!module.quizQuestions.length) throw new QuizError('QUIZ_EMPTY', 'Este módulo ainda não possui perguntas de quiz.')
+    const attempt = await openPostAttempt(progress.id, tx, input.attemptId)
+    if (!attempt) throw new QuizError('ATTEMPT_NOT_FOUND', 'Inicie o pós-teste antes de finalizar.')
+    if (attempt.answers.length !== module.quizQuestions.length) {
+      throw new QuizError('ATTEMPT_INCOMPLETE', 'Responda todas as perguntas antes de finalizar o pós-teste.')
+    }
 
-  const correctCount = attempt.answers.filter((item) => item.isCorrect).length
-  const totalCount = module.quizQuestions.length
-  const score = correctCount / totalCount
-  const minCorrect = minimumCorrect(totalCount, module.quizMinimumScore)
-  const isApproved = correctCount >= minCorrect
-  const pointsAwarded = postPoints(correctCount, totalCount)
-  const pre = await latestAttempt(progress.id, 'PRE')
+    const correctCount = attempt.answers.filter((item) => item.isCorrect).length
+    const totalCount = module.quizQuestions.length
+    const score = correctCount / totalCount
+    const minCorrect = await minimumCorrect(tx, totalCount)
+    const isApproved = correctCount >= minCorrect
+    const pre = await latestAttempt(progress.id, 'PRE', tx)
 
-  const finished = await getPrisma().$transaction(async (tx) => {
-    const updated = await tx.quizAttempt.update({
+    let pointsAwarded = 0
+    const now = new Date()
+    if (isApproved) pointsAwarded += await awardOnce(tx, { userId, ruleKey: 'module_quiz', sourceId: moduleId, moduleId, trailId: module.trailId }, now)
+    if (pre && pre.totalCount > 0 && correctCount * pre.totalCount > pre.correctCount * totalCount) {
+      const limit = await configuration(tx, 'post_test_improvement_awards', 'LIMIT')
+      const count = await tx.learningAward.count({ where: { userId, ruleKey: 'post_test_improvement' } })
+      if (!limit.isActive || count < limit.value!) pointsAwarded += await awardOnce(tx, { userId, ruleKey: 'post_test_improvement', sourceId: 'once', moduleId, trailId: module.trailId }, now)
+    }
+    const finished = await tx.quizAttempt.update({
       where: { id: attempt.id },
       data: {
         correctCount,
         totalCount,
         score,
         isApproved,
+        minimumCorrect: minCorrect,
         pointsAwarded,
         finishedAt: new Date(),
       },
       select: { id: true, correctCount: true, totalCount: true, isApproved: true, pointsAwarded: true },
     })
-    if (updated.pointsAwarded > 0) {
-      await creditPoints(
-        {
-          userId,
-          amount: updated.pointsAwarded,
-          reason: 'QUIZ_POST',
-          sourceType: 'QuizAttempt',
-          sourceId: updated.id,
-        },
-        tx,
-      )
+
+    const before = {
+      correctCount: pre?.correctCount ?? 0,
+      totalCount: pre?.totalCount ?? totalCount,
     }
-    return updated
+    const after = { correctCount: finished.correctCount, totalCount: finished.totalCount }
+    const prePoints = pre?.pointsAwarded ?? 0
+    const trainingPoints = progress.trainingPointsAwarded
+    const awards = await moduleAwards(tx, userId, moduleId)
+    const totalPoints = awards.moduleCompletion.pointsAwarded + awards.quizPoints
+
+    return {
+      moduleId,
+      attemptId: finished.id,
+      correctCount: finished.correctCount,
+      totalCount: finished.totalCount,
+      isApproved: finished.isApproved,
+      minimumCorrect: minCorrect,
+      pointsAwarded: finished.pointsAwarded,
+      totalPoints,
+      moduleCompletion: awards.moduleCompletion,
+      before,
+      after,
+      title: finished.isApproved ? 'Você aprendeu!' : 'Quase lá!',
+      message: finished.isApproved
+        ? `${finished.correctCount} de ${finished.totalCount} no pós-teste`
+        : `${finished.correctCount} de ${finished.totalCount} no pós-teste. Para concluir, acerte ${minCorrect}.`,
+      reviewHint: finished.isApproved ? null : 'Revise o treinamento e as explicações das respostas antes de tentar novamente.',
+      pointsBreakdown: {
+        preTest: prePoints,
+        training: trainingPoints,
+        postTest: awards.quizPoints,
+      },
+    }
   })
-
-  const before = {
-    correctCount: pre?.correctCount ?? 0,
-    totalCount: pre?.totalCount ?? totalCount,
-  }
-  const after = { correctCount: finished.correctCount, totalCount: finished.totalCount }
-  const prePoints = pre?.pointsAwarded ?? 0
-  const trainingPoints = progress.trainingPointsAwarded
-  const totalPoints = prePoints + trainingPoints + finished.pointsAwarded
-
-  return {
-    moduleId,
-    attemptId: finished.id,
-    correctCount: finished.correctCount,
-    totalCount: finished.totalCount,
-    isApproved: finished.isApproved,
-    minimumCorrect: minCorrect,
-    pointsAwarded: finished.pointsAwarded,
-    totalPoints,
-    before,
-    after,
-    title: finished.isApproved ? 'Você aprendeu!' : 'Quase lá!',
-    message: finished.isApproved
-      ? `${finished.correctCount} de ${finished.totalCount} no pós-teste`
-      : `${finished.correctCount} de ${finished.totalCount} no pós-teste. Para concluir, acerte ${minCorrect}.`,
-    reviewHint: finished.isApproved ? null : 'Revise a etapa “O que NÃO fazer”. É onde mais gente erra.',
-    pointsBreakdown: {
-      preTest: prePoints,
-      training: trainingPoints,
-      postTest: finished.pointsAwarded,
-    },
-  }
 }
 
 export async function getPostTestResult(userId: string, moduleId: string): Promise<PostTestResult> {
-  const { module, progress } = await requireAccessibleModule(userId, moduleId)
+  const { progress } = await requireAccessibleModule(userId, moduleId)
   const attempt = await latestAttempt(progress.id, 'POST')
   if (!attempt) throw new QuizError('ATTEMPT_NOT_FOUND', 'Pós-teste ainda não foi concluído.')
   const totalCount = attempt.totalCount
-  const minCorrect = minimumCorrect(totalCount, module.quizMinimumScore)
+  const awards = await moduleAwards(getPrisma(), userId, moduleId)
+  const minCorrect = attempt.minimumCorrect ?? await minimumCorrect(getPrisma(), totalCount)
   const pre = await latestAttempt(progress.id, 'PRE')
   const prePoints = pre?.pointsAwarded ?? 0
   const trainingPoints = progress.trainingPointsAwarded
@@ -582,7 +550,8 @@ export async function getPostTestResult(userId: string, moduleId: string): Promi
     isApproved: attempt.isApproved,
     minimumCorrect: minCorrect,
     pointsAwarded: attempt.pointsAwarded,
-    totalPoints: prePoints + trainingPoints + attempt.pointsAwarded,
+    moduleCompletion: awards.moduleCompletion,
+    totalPoints: awards.moduleCompletion.pointsAwarded + awards.quizPoints,
     before: {
       correctCount: pre?.correctCount ?? 0,
       totalCount: pre?.totalCount ?? totalCount,
@@ -595,11 +564,11 @@ export async function getPostTestResult(userId: string, moduleId: string): Promi
     message: attempt.isApproved
       ? `${attempt.correctCount} de ${attempt.totalCount} no pós-teste`
       : `${attempt.correctCount} de ${attempt.totalCount} no pós-teste. Para concluir, acerte ${minCorrect}.`,
-    reviewHint: attempt.isApproved ? null : 'Revise a etapa “O que NÃO fazer”. É onde mais gente erra.',
+    reviewHint: attempt.isApproved ? null : 'Revise o treinamento e as explicações das respostas antes de tentar novamente.',
     pointsBreakdown: {
       preTest: prePoints,
       training: trainingPoints,
-      postTest: attempt.pointsAwarded,
+      postTest: awards.quizPoints,
     },
   }
 }

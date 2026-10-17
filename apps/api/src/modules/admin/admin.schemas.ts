@@ -21,7 +21,7 @@ export const createModuleSchema = Type.Object({
   content: Type.Optional(content),
   durationMinutes: Type.Optional(duration),
   requiresQuiz: Type.Optional(Type.Boolean()),
-  quizMinimumScore: Type.Optional(Type.Union([Type.Number({ minimum: 0, maximum: 1 }), Type.Null()])),
+  quizMinimumScore: Type.Optional(Type.Union([Type.Number({ minimum: 0, maximum: 1, description: 'Campo legado; aprovação usa quiz_pass_score no painel de pontos e limites.' }), Type.Null()])),
 }, { additionalProperties: false })
 export const updateModuleSchema = Type.Partial(createModuleSchema, { additionalProperties: false, minProperties: 1 })
 export type CreateModule = Static<typeof createModuleSchema>

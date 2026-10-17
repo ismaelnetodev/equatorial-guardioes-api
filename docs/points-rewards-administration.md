@@ -88,6 +88,15 @@ exclusão da conta. O acesso direto ao banco deve ser restrito operacionalmente.
   fonte, sem configurar um benefício confirmado. O crédito depende de aprovação
   formal externa; o módulo não implementa um fluxo de aprovação.
 
+O aprendizado e os relatos executam as regras e os limites administrativos
+conforme o README. LearningAward preserva concessões do aprendizado e seus
+valores aplicados. Campanhas, estornos, saldo consolidado, estoque operacional e
+resgates continuam pendentes. O orçamento é um parâmetro para futura integração
+por campanha. Revisão de fraude e critérios das operações ainda não implementadas
+continuam dependências dessas integrações.
+
+Nenhuma rota aceita ajustes diretos de saldo. Alterar configuração não recalcula
+concessões ou estornos. O aprendizado já registra concessões em LearningAward, preservando os valores aplicados no momento da operação; as demais integrações também devem preservar snapshots históricos.
 O módulo admin continua responsável só pela configuração. A execução do livro de
 pontos, saldo, ranking, resgates e convites do learner fica no módulo
 **Community** (`/api/v1/ranking`, `/recompensas`, `/convidar`, `/perfil`), com
