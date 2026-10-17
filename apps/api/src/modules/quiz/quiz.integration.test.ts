@@ -14,12 +14,16 @@ const progressRecordId = '88888888-8888-4888-8888-888888888888'
 
 const db = vi.hoisted(() => ({
   user: { findUnique: vi.fn() },
-  trail: { findUnique: vi.fn() },
+  trail: { findUnique: vi.fn(), findFirst: vi.fn() },
   trailModule: { findUnique: vi.fn() },
   moduleProgress: { findUnique: vi.fn(), update: vi.fn() },
   quizAttempt: { findFirst: vi.fn(), create: vi.fn(), update: vi.fn() },
   quizAnswer: { create: vi.fn() },
   trainingStep: { findMany: vi.fn() },
+  pointAccount: { upsert: vi.fn(), update: vi.fn() },
+  pointLedgerEntry: { create: vi.fn(), findFirst: vi.fn() },
+  inviteAttribution: { findUnique: vi.fn(), update: vi.fn(), count: vi.fn() },
+  programConfiguration: { findUnique: vi.fn() },
   $transaction: vi.fn(),
 }))
 vi.mock('../../lib/prisma.js', () => ({ getPrisma: () => db }))
@@ -135,6 +139,12 @@ beforeEach(async () => {
     pointsAwarded: data['pointsAwarded'],
   }))
   db.quizAnswer.create.mockResolvedValue({ id: '55555555-5555-4555-8555-555555555555' })
+  db.pointAccount.upsert.mockResolvedValue({ userId, accumulated: 0, balance: 0 })
+  db.pointAccount.update.mockResolvedValue({ userId, accumulated: 5, balance: 5 })
+  db.pointLedgerEntry.create.mockResolvedValue({ id: '66666666-6666-4666-8666-666666666666' })
+  db.pointLedgerEntry.findFirst.mockResolvedValue(null)
+  db.trail.findFirst.mockResolvedValue({ modules: [{ id: moduleId }] })
+  db.inviteAttribution.findUnique.mockResolvedValue(null)
   db.$transaction.mockImplementation(async (operation: (tx: typeof db) => Promise<unknown>) => operation(db))
   app = await buildApp({ logger: false })
 })

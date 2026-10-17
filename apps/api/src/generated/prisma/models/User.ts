@@ -241,6 +241,11 @@ export type UserWhereInput = {
   neighborhoodRecord?: Prisma.XOR<Prisma.NeighborhoodNullableScalarRelationFilter, Prisma.NeighborhoodWhereInput> | null
   moduleProgresses?: Prisma.ModuleProgressListRelationFilter
   reports?: Prisma.ReportListRelationFilter
+  pointAccount?: Prisma.XOR<Prisma.PointAccountNullableScalarRelationFilter, Prisma.PointAccountWhereInput> | null
+  pointLedger?: Prisma.PointLedgerEntryListRelationFilter
+  redemptions?: Prisma.RewardRedemptionListRelationFilter
+  invitesSent?: Prisma.InviteAttributionListRelationFilter
+  invitedBy?: Prisma.XOR<Prisma.InviteAttributionNullableScalarRelationFilter, Prisma.InviteAttributionWhereInput> | null
 }
 
 export type UserOrderByWithRelationInput = {
@@ -259,12 +264,18 @@ export type UserOrderByWithRelationInput = {
   neighborhoodRecord?: Prisma.NeighborhoodOrderByWithRelationInput
   moduleProgresses?: Prisma.ModuleProgressOrderByRelationAggregateInput
   reports?: Prisma.ReportOrderByRelationAggregateInput
+  pointAccount?: Prisma.PointAccountOrderByWithRelationInput
+  pointLedger?: Prisma.PointLedgerEntryOrderByRelationAggregateInput
+  redemptions?: Prisma.RewardRedemptionOrderByRelationAggregateInput
+  invitesSent?: Prisma.InviteAttributionOrderByRelationAggregateInput
+  invitedBy?: Prisma.InviteAttributionOrderByWithRelationInput
 }
 
 export type UserWhereUniqueInput = Prisma.AtLeast<{
   id?: string
   email?: string
   cellphone?: string
+  inviteCode?: string
   AND?: Prisma.UserWhereInput | Prisma.UserWhereInput[]
   OR?: Prisma.UserWhereInput[]
   NOT?: Prisma.UserWhereInput | Prisma.UserWhereInput[]
@@ -273,14 +284,18 @@ export type UserWhereUniqueInput = Prisma.AtLeast<{
   passwordHash?: Prisma.StringFilter<"User"> | string
   neighborhood?: Prisma.StringFilter<"User"> | string
   neighborhoodId?: Prisma.StringNullableFilter<"User"> | string | null
-  inviteCode?: Prisma.StringNullableFilter<"User"> | string | null
   termsAcceptedAt?: Prisma.DateTimeFilter<"User"> | Date | string
   createdAt?: Prisma.DateTimeFilter<"User"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"User"> | Date | string
   neighborhoodRecord?: Prisma.XOR<Prisma.NeighborhoodNullableScalarRelationFilter, Prisma.NeighborhoodWhereInput> | null
   moduleProgresses?: Prisma.ModuleProgressListRelationFilter
   reports?: Prisma.ReportListRelationFilter
-}, "id" | "email" | "cellphone">
+  pointAccount?: Prisma.XOR<Prisma.PointAccountNullableScalarRelationFilter, Prisma.PointAccountWhereInput> | null
+  pointLedger?: Prisma.PointLedgerEntryListRelationFilter
+  redemptions?: Prisma.RewardRedemptionListRelationFilter
+  invitesSent?: Prisma.InviteAttributionListRelationFilter
+  invitedBy?: Prisma.XOR<Prisma.InviteAttributionNullableScalarRelationFilter, Prisma.InviteAttributionWhereInput> | null
+}, "id" | "email" | "cellphone" | "inviteCode">
 
 export type UserOrderByWithAggregationInput = {
   id?: Prisma.SortOrder
@@ -333,6 +348,11 @@ export type UserCreateInput = {
   neighborhoodRecord?: Prisma.NeighborhoodCreateNestedOneWithoutUsersInput
   moduleProgresses?: Prisma.ModuleProgressCreateNestedManyWithoutUserInput
   reports?: Prisma.ReportCreateNestedManyWithoutUserInput
+  pointAccount?: Prisma.PointAccountCreateNestedOneWithoutUserInput
+  pointLedger?: Prisma.PointLedgerEntryCreateNestedManyWithoutUserInput
+  redemptions?: Prisma.RewardRedemptionCreateNestedManyWithoutUserInput
+  invitesSent?: Prisma.InviteAttributionCreateNestedManyWithoutInviterInput
+  invitedBy?: Prisma.InviteAttributionCreateNestedOneWithoutInviteeInput
 }
 
 export type UserUncheckedCreateInput = {
@@ -350,6 +370,11 @@ export type UserUncheckedCreateInput = {
   updatedAt?: Date | string
   moduleProgresses?: Prisma.ModuleProgressUncheckedCreateNestedManyWithoutUserInput
   reports?: Prisma.ReportUncheckedCreateNestedManyWithoutUserInput
+  pointAccount?: Prisma.PointAccountUncheckedCreateNestedOneWithoutUserInput
+  pointLedger?: Prisma.PointLedgerEntryUncheckedCreateNestedManyWithoutUserInput
+  redemptions?: Prisma.RewardRedemptionUncheckedCreateNestedManyWithoutUserInput
+  invitesSent?: Prisma.InviteAttributionUncheckedCreateNestedManyWithoutInviterInput
+  invitedBy?: Prisma.InviteAttributionUncheckedCreateNestedOneWithoutInviteeInput
 }
 
 export type UserUpdateInput = {
@@ -367,6 +392,11 @@ export type UserUpdateInput = {
   neighborhoodRecord?: Prisma.NeighborhoodUpdateOneWithoutUsersNestedInput
   moduleProgresses?: Prisma.ModuleProgressUpdateManyWithoutUserNestedInput
   reports?: Prisma.ReportUpdateManyWithoutUserNestedInput
+  pointAccount?: Prisma.PointAccountUpdateOneWithoutUserNestedInput
+  pointLedger?: Prisma.PointLedgerEntryUpdateManyWithoutUserNestedInput
+  redemptions?: Prisma.RewardRedemptionUpdateManyWithoutUserNestedInput
+  invitesSent?: Prisma.InviteAttributionUpdateManyWithoutInviterNestedInput
+  invitedBy?: Prisma.InviteAttributionUpdateOneWithoutInviteeNestedInput
 }
 
 export type UserUncheckedUpdateInput = {
@@ -384,6 +414,11 @@ export type UserUncheckedUpdateInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   moduleProgresses?: Prisma.ModuleProgressUncheckedUpdateManyWithoutUserNestedInput
   reports?: Prisma.ReportUncheckedUpdateManyWithoutUserNestedInput
+  pointAccount?: Prisma.PointAccountUncheckedUpdateOneWithoutUserNestedInput
+  pointLedger?: Prisma.PointLedgerEntryUncheckedUpdateManyWithoutUserNestedInput
+  redemptions?: Prisma.RewardRedemptionUncheckedUpdateManyWithoutUserNestedInput
+  invitesSent?: Prisma.InviteAttributionUncheckedUpdateManyWithoutInviterNestedInput
+  invitedBy?: Prisma.InviteAttributionUncheckedUpdateOneWithoutInviteeNestedInput
 }
 
 export type UserCreateManyInput = {
@@ -475,6 +510,11 @@ export type UserMinOrderByAggregateInput = {
   updatedAt?: Prisma.SortOrder
 }
 
+export type UserScalarRelationFilter = {
+  is?: Prisma.UserWhereInput
+  isNot?: Prisma.UserWhereInput
+}
+
 export type UserListRelationFilter = {
   every?: Prisma.UserWhereInput
   some?: Prisma.UserWhereInput
@@ -483,11 +523,6 @@ export type UserListRelationFilter = {
 
 export type UserOrderByRelationAggregateInput = {
   _count?: Prisma.SortOrder
-}
-
-export type UserScalarRelationFilter = {
-  is?: Prisma.UserWhereInput
-  isNot?: Prisma.UserWhereInput
 }
 
 export type StringFieldUpdateOperationsInput = {
@@ -504,6 +539,76 @@ export type NullableStringFieldUpdateOperationsInput = {
 
 export type DateTimeFieldUpdateOperationsInput = {
   set?: Date | string
+}
+
+export type UserCreateNestedOneWithoutPointAccountInput = {
+  create?: Prisma.XOR<Prisma.UserCreateWithoutPointAccountInput, Prisma.UserUncheckedCreateWithoutPointAccountInput>
+  connectOrCreate?: Prisma.UserCreateOrConnectWithoutPointAccountInput
+  connect?: Prisma.UserWhereUniqueInput
+}
+
+export type UserUpdateOneRequiredWithoutPointAccountNestedInput = {
+  create?: Prisma.XOR<Prisma.UserCreateWithoutPointAccountInput, Prisma.UserUncheckedCreateWithoutPointAccountInput>
+  connectOrCreate?: Prisma.UserCreateOrConnectWithoutPointAccountInput
+  upsert?: Prisma.UserUpsertWithoutPointAccountInput
+  connect?: Prisma.UserWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.UserUpdateToOneWithWhereWithoutPointAccountInput, Prisma.UserUpdateWithoutPointAccountInput>, Prisma.UserUncheckedUpdateWithoutPointAccountInput>
+}
+
+export type UserCreateNestedOneWithoutPointLedgerInput = {
+  create?: Prisma.XOR<Prisma.UserCreateWithoutPointLedgerInput, Prisma.UserUncheckedCreateWithoutPointLedgerInput>
+  connectOrCreate?: Prisma.UserCreateOrConnectWithoutPointLedgerInput
+  connect?: Prisma.UserWhereUniqueInput
+}
+
+export type UserUpdateOneRequiredWithoutPointLedgerNestedInput = {
+  create?: Prisma.XOR<Prisma.UserCreateWithoutPointLedgerInput, Prisma.UserUncheckedCreateWithoutPointLedgerInput>
+  connectOrCreate?: Prisma.UserCreateOrConnectWithoutPointLedgerInput
+  upsert?: Prisma.UserUpsertWithoutPointLedgerInput
+  connect?: Prisma.UserWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.UserUpdateToOneWithWhereWithoutPointLedgerInput, Prisma.UserUpdateWithoutPointLedgerInput>, Prisma.UserUncheckedUpdateWithoutPointLedgerInput>
+}
+
+export type UserCreateNestedOneWithoutRedemptionsInput = {
+  create?: Prisma.XOR<Prisma.UserCreateWithoutRedemptionsInput, Prisma.UserUncheckedCreateWithoutRedemptionsInput>
+  connectOrCreate?: Prisma.UserCreateOrConnectWithoutRedemptionsInput
+  connect?: Prisma.UserWhereUniqueInput
+}
+
+export type UserUpdateOneRequiredWithoutRedemptionsNestedInput = {
+  create?: Prisma.XOR<Prisma.UserCreateWithoutRedemptionsInput, Prisma.UserUncheckedCreateWithoutRedemptionsInput>
+  connectOrCreate?: Prisma.UserCreateOrConnectWithoutRedemptionsInput
+  upsert?: Prisma.UserUpsertWithoutRedemptionsInput
+  connect?: Prisma.UserWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.UserUpdateToOneWithWhereWithoutRedemptionsInput, Prisma.UserUpdateWithoutRedemptionsInput>, Prisma.UserUncheckedUpdateWithoutRedemptionsInput>
+}
+
+export type UserCreateNestedOneWithoutInvitesSentInput = {
+  create?: Prisma.XOR<Prisma.UserCreateWithoutInvitesSentInput, Prisma.UserUncheckedCreateWithoutInvitesSentInput>
+  connectOrCreate?: Prisma.UserCreateOrConnectWithoutInvitesSentInput
+  connect?: Prisma.UserWhereUniqueInput
+}
+
+export type UserCreateNestedOneWithoutInvitedByInput = {
+  create?: Prisma.XOR<Prisma.UserCreateWithoutInvitedByInput, Prisma.UserUncheckedCreateWithoutInvitedByInput>
+  connectOrCreate?: Prisma.UserCreateOrConnectWithoutInvitedByInput
+  connect?: Prisma.UserWhereUniqueInput
+}
+
+export type UserUpdateOneRequiredWithoutInvitesSentNestedInput = {
+  create?: Prisma.XOR<Prisma.UserCreateWithoutInvitesSentInput, Prisma.UserUncheckedCreateWithoutInvitesSentInput>
+  connectOrCreate?: Prisma.UserCreateOrConnectWithoutInvitesSentInput
+  upsert?: Prisma.UserUpsertWithoutInvitesSentInput
+  connect?: Prisma.UserWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.UserUpdateToOneWithWhereWithoutInvitesSentInput, Prisma.UserUpdateWithoutInvitesSentInput>, Prisma.UserUncheckedUpdateWithoutInvitesSentInput>
+}
+
+export type UserUpdateOneRequiredWithoutInvitedByNestedInput = {
+  create?: Prisma.XOR<Prisma.UserCreateWithoutInvitedByInput, Prisma.UserUncheckedCreateWithoutInvitedByInput>
+  connectOrCreate?: Prisma.UserCreateOrConnectWithoutInvitedByInput
+  upsert?: Prisma.UserUpsertWithoutInvitedByInput
+  connect?: Prisma.UserWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.UserUpdateToOneWithWhereWithoutInvitedByInput, Prisma.UserUpdateWithoutInvitedByInput>, Prisma.UserUncheckedUpdateWithoutInvitedByInput>
 }
 
 export type UserCreateNestedManyWithoutNeighborhoodRecordInput = {
@@ -576,6 +681,506 @@ export type UserUpdateOneRequiredWithoutReportsNestedInput = {
   update?: Prisma.XOR<Prisma.XOR<Prisma.UserUpdateToOneWithWhereWithoutReportsInput, Prisma.UserUpdateWithoutReportsInput>, Prisma.UserUncheckedUpdateWithoutReportsInput>
 }
 
+export type UserCreateWithoutPointAccountInput = {
+  id?: string
+  role?: $Enums.UserRole
+  name: string
+  email?: string | null
+  cellphone?: string | null
+  passwordHash: string
+  neighborhood: string
+  inviteCode?: string | null
+  termsAcceptedAt: Date | string
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  neighborhoodRecord?: Prisma.NeighborhoodCreateNestedOneWithoutUsersInput
+  moduleProgresses?: Prisma.ModuleProgressCreateNestedManyWithoutUserInput
+  reports?: Prisma.ReportCreateNestedManyWithoutUserInput
+  pointLedger?: Prisma.PointLedgerEntryCreateNestedManyWithoutUserInput
+  redemptions?: Prisma.RewardRedemptionCreateNestedManyWithoutUserInput
+  invitesSent?: Prisma.InviteAttributionCreateNestedManyWithoutInviterInput
+  invitedBy?: Prisma.InviteAttributionCreateNestedOneWithoutInviteeInput
+}
+
+export type UserUncheckedCreateWithoutPointAccountInput = {
+  id?: string
+  role?: $Enums.UserRole
+  name: string
+  email?: string | null
+  cellphone?: string | null
+  passwordHash: string
+  neighborhood: string
+  neighborhoodId?: string | null
+  inviteCode?: string | null
+  termsAcceptedAt: Date | string
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  moduleProgresses?: Prisma.ModuleProgressUncheckedCreateNestedManyWithoutUserInput
+  reports?: Prisma.ReportUncheckedCreateNestedManyWithoutUserInput
+  pointLedger?: Prisma.PointLedgerEntryUncheckedCreateNestedManyWithoutUserInput
+  redemptions?: Prisma.RewardRedemptionUncheckedCreateNestedManyWithoutUserInput
+  invitesSent?: Prisma.InviteAttributionUncheckedCreateNestedManyWithoutInviterInput
+  invitedBy?: Prisma.InviteAttributionUncheckedCreateNestedOneWithoutInviteeInput
+}
+
+export type UserCreateOrConnectWithoutPointAccountInput = {
+  where: Prisma.UserWhereUniqueInput
+  create: Prisma.XOR<Prisma.UserCreateWithoutPointAccountInput, Prisma.UserUncheckedCreateWithoutPointAccountInput>
+}
+
+export type UserUpsertWithoutPointAccountInput = {
+  update: Prisma.XOR<Prisma.UserUpdateWithoutPointAccountInput, Prisma.UserUncheckedUpdateWithoutPointAccountInput>
+  create: Prisma.XOR<Prisma.UserCreateWithoutPointAccountInput, Prisma.UserUncheckedCreateWithoutPointAccountInput>
+  where?: Prisma.UserWhereInput
+}
+
+export type UserUpdateToOneWithWhereWithoutPointAccountInput = {
+  where?: Prisma.UserWhereInput
+  data: Prisma.XOR<Prisma.UserUpdateWithoutPointAccountInput, Prisma.UserUncheckedUpdateWithoutPointAccountInput>
+}
+
+export type UserUpdateWithoutPointAccountInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  role?: Prisma.EnumUserRoleFieldUpdateOperationsInput | $Enums.UserRole
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  email?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  cellphone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  passwordHash?: Prisma.StringFieldUpdateOperationsInput | string
+  neighborhood?: Prisma.StringFieldUpdateOperationsInput | string
+  inviteCode?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  termsAcceptedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  neighborhoodRecord?: Prisma.NeighborhoodUpdateOneWithoutUsersNestedInput
+  moduleProgresses?: Prisma.ModuleProgressUpdateManyWithoutUserNestedInput
+  reports?: Prisma.ReportUpdateManyWithoutUserNestedInput
+  pointLedger?: Prisma.PointLedgerEntryUpdateManyWithoutUserNestedInput
+  redemptions?: Prisma.RewardRedemptionUpdateManyWithoutUserNestedInput
+  invitesSent?: Prisma.InviteAttributionUpdateManyWithoutInviterNestedInput
+  invitedBy?: Prisma.InviteAttributionUpdateOneWithoutInviteeNestedInput
+}
+
+export type UserUncheckedUpdateWithoutPointAccountInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  role?: Prisma.EnumUserRoleFieldUpdateOperationsInput | $Enums.UserRole
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  email?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  cellphone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  passwordHash?: Prisma.StringFieldUpdateOperationsInput | string
+  neighborhood?: Prisma.StringFieldUpdateOperationsInput | string
+  neighborhoodId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  inviteCode?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  termsAcceptedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  moduleProgresses?: Prisma.ModuleProgressUncheckedUpdateManyWithoutUserNestedInput
+  reports?: Prisma.ReportUncheckedUpdateManyWithoutUserNestedInput
+  pointLedger?: Prisma.PointLedgerEntryUncheckedUpdateManyWithoutUserNestedInput
+  redemptions?: Prisma.RewardRedemptionUncheckedUpdateManyWithoutUserNestedInput
+  invitesSent?: Prisma.InviteAttributionUncheckedUpdateManyWithoutInviterNestedInput
+  invitedBy?: Prisma.InviteAttributionUncheckedUpdateOneWithoutInviteeNestedInput
+}
+
+export type UserCreateWithoutPointLedgerInput = {
+  id?: string
+  role?: $Enums.UserRole
+  name: string
+  email?: string | null
+  cellphone?: string | null
+  passwordHash: string
+  neighborhood: string
+  inviteCode?: string | null
+  termsAcceptedAt: Date | string
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  neighborhoodRecord?: Prisma.NeighborhoodCreateNestedOneWithoutUsersInput
+  moduleProgresses?: Prisma.ModuleProgressCreateNestedManyWithoutUserInput
+  reports?: Prisma.ReportCreateNestedManyWithoutUserInput
+  pointAccount?: Prisma.PointAccountCreateNestedOneWithoutUserInput
+  redemptions?: Prisma.RewardRedemptionCreateNestedManyWithoutUserInput
+  invitesSent?: Prisma.InviteAttributionCreateNestedManyWithoutInviterInput
+  invitedBy?: Prisma.InviteAttributionCreateNestedOneWithoutInviteeInput
+}
+
+export type UserUncheckedCreateWithoutPointLedgerInput = {
+  id?: string
+  role?: $Enums.UserRole
+  name: string
+  email?: string | null
+  cellphone?: string | null
+  passwordHash: string
+  neighborhood: string
+  neighborhoodId?: string | null
+  inviteCode?: string | null
+  termsAcceptedAt: Date | string
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  moduleProgresses?: Prisma.ModuleProgressUncheckedCreateNestedManyWithoutUserInput
+  reports?: Prisma.ReportUncheckedCreateNestedManyWithoutUserInput
+  pointAccount?: Prisma.PointAccountUncheckedCreateNestedOneWithoutUserInput
+  redemptions?: Prisma.RewardRedemptionUncheckedCreateNestedManyWithoutUserInput
+  invitesSent?: Prisma.InviteAttributionUncheckedCreateNestedManyWithoutInviterInput
+  invitedBy?: Prisma.InviteAttributionUncheckedCreateNestedOneWithoutInviteeInput
+}
+
+export type UserCreateOrConnectWithoutPointLedgerInput = {
+  where: Prisma.UserWhereUniqueInput
+  create: Prisma.XOR<Prisma.UserCreateWithoutPointLedgerInput, Prisma.UserUncheckedCreateWithoutPointLedgerInput>
+}
+
+export type UserUpsertWithoutPointLedgerInput = {
+  update: Prisma.XOR<Prisma.UserUpdateWithoutPointLedgerInput, Prisma.UserUncheckedUpdateWithoutPointLedgerInput>
+  create: Prisma.XOR<Prisma.UserCreateWithoutPointLedgerInput, Prisma.UserUncheckedCreateWithoutPointLedgerInput>
+  where?: Prisma.UserWhereInput
+}
+
+export type UserUpdateToOneWithWhereWithoutPointLedgerInput = {
+  where?: Prisma.UserWhereInput
+  data: Prisma.XOR<Prisma.UserUpdateWithoutPointLedgerInput, Prisma.UserUncheckedUpdateWithoutPointLedgerInput>
+}
+
+export type UserUpdateWithoutPointLedgerInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  role?: Prisma.EnumUserRoleFieldUpdateOperationsInput | $Enums.UserRole
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  email?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  cellphone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  passwordHash?: Prisma.StringFieldUpdateOperationsInput | string
+  neighborhood?: Prisma.StringFieldUpdateOperationsInput | string
+  inviteCode?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  termsAcceptedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  neighborhoodRecord?: Prisma.NeighborhoodUpdateOneWithoutUsersNestedInput
+  moduleProgresses?: Prisma.ModuleProgressUpdateManyWithoutUserNestedInput
+  reports?: Prisma.ReportUpdateManyWithoutUserNestedInput
+  pointAccount?: Prisma.PointAccountUpdateOneWithoutUserNestedInput
+  redemptions?: Prisma.RewardRedemptionUpdateManyWithoutUserNestedInput
+  invitesSent?: Prisma.InviteAttributionUpdateManyWithoutInviterNestedInput
+  invitedBy?: Prisma.InviteAttributionUpdateOneWithoutInviteeNestedInput
+}
+
+export type UserUncheckedUpdateWithoutPointLedgerInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  role?: Prisma.EnumUserRoleFieldUpdateOperationsInput | $Enums.UserRole
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  email?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  cellphone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  passwordHash?: Prisma.StringFieldUpdateOperationsInput | string
+  neighborhood?: Prisma.StringFieldUpdateOperationsInput | string
+  neighborhoodId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  inviteCode?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  termsAcceptedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  moduleProgresses?: Prisma.ModuleProgressUncheckedUpdateManyWithoutUserNestedInput
+  reports?: Prisma.ReportUncheckedUpdateManyWithoutUserNestedInput
+  pointAccount?: Prisma.PointAccountUncheckedUpdateOneWithoutUserNestedInput
+  redemptions?: Prisma.RewardRedemptionUncheckedUpdateManyWithoutUserNestedInput
+  invitesSent?: Prisma.InviteAttributionUncheckedUpdateManyWithoutInviterNestedInput
+  invitedBy?: Prisma.InviteAttributionUncheckedUpdateOneWithoutInviteeNestedInput
+}
+
+export type UserCreateWithoutRedemptionsInput = {
+  id?: string
+  role?: $Enums.UserRole
+  name: string
+  email?: string | null
+  cellphone?: string | null
+  passwordHash: string
+  neighborhood: string
+  inviteCode?: string | null
+  termsAcceptedAt: Date | string
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  neighborhoodRecord?: Prisma.NeighborhoodCreateNestedOneWithoutUsersInput
+  moduleProgresses?: Prisma.ModuleProgressCreateNestedManyWithoutUserInput
+  reports?: Prisma.ReportCreateNestedManyWithoutUserInput
+  pointAccount?: Prisma.PointAccountCreateNestedOneWithoutUserInput
+  pointLedger?: Prisma.PointLedgerEntryCreateNestedManyWithoutUserInput
+  invitesSent?: Prisma.InviteAttributionCreateNestedManyWithoutInviterInput
+  invitedBy?: Prisma.InviteAttributionCreateNestedOneWithoutInviteeInput
+}
+
+export type UserUncheckedCreateWithoutRedemptionsInput = {
+  id?: string
+  role?: $Enums.UserRole
+  name: string
+  email?: string | null
+  cellphone?: string | null
+  passwordHash: string
+  neighborhood: string
+  neighborhoodId?: string | null
+  inviteCode?: string | null
+  termsAcceptedAt: Date | string
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  moduleProgresses?: Prisma.ModuleProgressUncheckedCreateNestedManyWithoutUserInput
+  reports?: Prisma.ReportUncheckedCreateNestedManyWithoutUserInput
+  pointAccount?: Prisma.PointAccountUncheckedCreateNestedOneWithoutUserInput
+  pointLedger?: Prisma.PointLedgerEntryUncheckedCreateNestedManyWithoutUserInput
+  invitesSent?: Prisma.InviteAttributionUncheckedCreateNestedManyWithoutInviterInput
+  invitedBy?: Prisma.InviteAttributionUncheckedCreateNestedOneWithoutInviteeInput
+}
+
+export type UserCreateOrConnectWithoutRedemptionsInput = {
+  where: Prisma.UserWhereUniqueInput
+  create: Prisma.XOR<Prisma.UserCreateWithoutRedemptionsInput, Prisma.UserUncheckedCreateWithoutRedemptionsInput>
+}
+
+export type UserUpsertWithoutRedemptionsInput = {
+  update: Prisma.XOR<Prisma.UserUpdateWithoutRedemptionsInput, Prisma.UserUncheckedUpdateWithoutRedemptionsInput>
+  create: Prisma.XOR<Prisma.UserCreateWithoutRedemptionsInput, Prisma.UserUncheckedCreateWithoutRedemptionsInput>
+  where?: Prisma.UserWhereInput
+}
+
+export type UserUpdateToOneWithWhereWithoutRedemptionsInput = {
+  where?: Prisma.UserWhereInput
+  data: Prisma.XOR<Prisma.UserUpdateWithoutRedemptionsInput, Prisma.UserUncheckedUpdateWithoutRedemptionsInput>
+}
+
+export type UserUpdateWithoutRedemptionsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  role?: Prisma.EnumUserRoleFieldUpdateOperationsInput | $Enums.UserRole
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  email?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  cellphone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  passwordHash?: Prisma.StringFieldUpdateOperationsInput | string
+  neighborhood?: Prisma.StringFieldUpdateOperationsInput | string
+  inviteCode?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  termsAcceptedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  neighborhoodRecord?: Prisma.NeighborhoodUpdateOneWithoutUsersNestedInput
+  moduleProgresses?: Prisma.ModuleProgressUpdateManyWithoutUserNestedInput
+  reports?: Prisma.ReportUpdateManyWithoutUserNestedInput
+  pointAccount?: Prisma.PointAccountUpdateOneWithoutUserNestedInput
+  pointLedger?: Prisma.PointLedgerEntryUpdateManyWithoutUserNestedInput
+  invitesSent?: Prisma.InviteAttributionUpdateManyWithoutInviterNestedInput
+  invitedBy?: Prisma.InviteAttributionUpdateOneWithoutInviteeNestedInput
+}
+
+export type UserUncheckedUpdateWithoutRedemptionsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  role?: Prisma.EnumUserRoleFieldUpdateOperationsInput | $Enums.UserRole
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  email?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  cellphone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  passwordHash?: Prisma.StringFieldUpdateOperationsInput | string
+  neighborhood?: Prisma.StringFieldUpdateOperationsInput | string
+  neighborhoodId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  inviteCode?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  termsAcceptedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  moduleProgresses?: Prisma.ModuleProgressUncheckedUpdateManyWithoutUserNestedInput
+  reports?: Prisma.ReportUncheckedUpdateManyWithoutUserNestedInput
+  pointAccount?: Prisma.PointAccountUncheckedUpdateOneWithoutUserNestedInput
+  pointLedger?: Prisma.PointLedgerEntryUncheckedUpdateManyWithoutUserNestedInput
+  invitesSent?: Prisma.InviteAttributionUncheckedUpdateManyWithoutInviterNestedInput
+  invitedBy?: Prisma.InviteAttributionUncheckedUpdateOneWithoutInviteeNestedInput
+}
+
+export type UserCreateWithoutInvitesSentInput = {
+  id?: string
+  role?: $Enums.UserRole
+  name: string
+  email?: string | null
+  cellphone?: string | null
+  passwordHash: string
+  neighborhood: string
+  inviteCode?: string | null
+  termsAcceptedAt: Date | string
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  neighborhoodRecord?: Prisma.NeighborhoodCreateNestedOneWithoutUsersInput
+  moduleProgresses?: Prisma.ModuleProgressCreateNestedManyWithoutUserInput
+  reports?: Prisma.ReportCreateNestedManyWithoutUserInput
+  pointAccount?: Prisma.PointAccountCreateNestedOneWithoutUserInput
+  pointLedger?: Prisma.PointLedgerEntryCreateNestedManyWithoutUserInput
+  redemptions?: Prisma.RewardRedemptionCreateNestedManyWithoutUserInput
+  invitedBy?: Prisma.InviteAttributionCreateNestedOneWithoutInviteeInput
+}
+
+export type UserUncheckedCreateWithoutInvitesSentInput = {
+  id?: string
+  role?: $Enums.UserRole
+  name: string
+  email?: string | null
+  cellphone?: string | null
+  passwordHash: string
+  neighborhood: string
+  neighborhoodId?: string | null
+  inviteCode?: string | null
+  termsAcceptedAt: Date | string
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  moduleProgresses?: Prisma.ModuleProgressUncheckedCreateNestedManyWithoutUserInput
+  reports?: Prisma.ReportUncheckedCreateNestedManyWithoutUserInput
+  pointAccount?: Prisma.PointAccountUncheckedCreateNestedOneWithoutUserInput
+  pointLedger?: Prisma.PointLedgerEntryUncheckedCreateNestedManyWithoutUserInput
+  redemptions?: Prisma.RewardRedemptionUncheckedCreateNestedManyWithoutUserInput
+  invitedBy?: Prisma.InviteAttributionUncheckedCreateNestedOneWithoutInviteeInput
+}
+
+export type UserCreateOrConnectWithoutInvitesSentInput = {
+  where: Prisma.UserWhereUniqueInput
+  create: Prisma.XOR<Prisma.UserCreateWithoutInvitesSentInput, Prisma.UserUncheckedCreateWithoutInvitesSentInput>
+}
+
+export type UserCreateWithoutInvitedByInput = {
+  id?: string
+  role?: $Enums.UserRole
+  name: string
+  email?: string | null
+  cellphone?: string | null
+  passwordHash: string
+  neighborhood: string
+  inviteCode?: string | null
+  termsAcceptedAt: Date | string
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  neighborhoodRecord?: Prisma.NeighborhoodCreateNestedOneWithoutUsersInput
+  moduleProgresses?: Prisma.ModuleProgressCreateNestedManyWithoutUserInput
+  reports?: Prisma.ReportCreateNestedManyWithoutUserInput
+  pointAccount?: Prisma.PointAccountCreateNestedOneWithoutUserInput
+  pointLedger?: Prisma.PointLedgerEntryCreateNestedManyWithoutUserInput
+  redemptions?: Prisma.RewardRedemptionCreateNestedManyWithoutUserInput
+  invitesSent?: Prisma.InviteAttributionCreateNestedManyWithoutInviterInput
+}
+
+export type UserUncheckedCreateWithoutInvitedByInput = {
+  id?: string
+  role?: $Enums.UserRole
+  name: string
+  email?: string | null
+  cellphone?: string | null
+  passwordHash: string
+  neighborhood: string
+  neighborhoodId?: string | null
+  inviteCode?: string | null
+  termsAcceptedAt: Date | string
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  moduleProgresses?: Prisma.ModuleProgressUncheckedCreateNestedManyWithoutUserInput
+  reports?: Prisma.ReportUncheckedCreateNestedManyWithoutUserInput
+  pointAccount?: Prisma.PointAccountUncheckedCreateNestedOneWithoutUserInput
+  pointLedger?: Prisma.PointLedgerEntryUncheckedCreateNestedManyWithoutUserInput
+  redemptions?: Prisma.RewardRedemptionUncheckedCreateNestedManyWithoutUserInput
+  invitesSent?: Prisma.InviteAttributionUncheckedCreateNestedManyWithoutInviterInput
+}
+
+export type UserCreateOrConnectWithoutInvitedByInput = {
+  where: Prisma.UserWhereUniqueInput
+  create: Prisma.XOR<Prisma.UserCreateWithoutInvitedByInput, Prisma.UserUncheckedCreateWithoutInvitedByInput>
+}
+
+export type UserUpsertWithoutInvitesSentInput = {
+  update: Prisma.XOR<Prisma.UserUpdateWithoutInvitesSentInput, Prisma.UserUncheckedUpdateWithoutInvitesSentInput>
+  create: Prisma.XOR<Prisma.UserCreateWithoutInvitesSentInput, Prisma.UserUncheckedCreateWithoutInvitesSentInput>
+  where?: Prisma.UserWhereInput
+}
+
+export type UserUpdateToOneWithWhereWithoutInvitesSentInput = {
+  where?: Prisma.UserWhereInput
+  data: Prisma.XOR<Prisma.UserUpdateWithoutInvitesSentInput, Prisma.UserUncheckedUpdateWithoutInvitesSentInput>
+}
+
+export type UserUpdateWithoutInvitesSentInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  role?: Prisma.EnumUserRoleFieldUpdateOperationsInput | $Enums.UserRole
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  email?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  cellphone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  passwordHash?: Prisma.StringFieldUpdateOperationsInput | string
+  neighborhood?: Prisma.StringFieldUpdateOperationsInput | string
+  inviteCode?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  termsAcceptedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  neighborhoodRecord?: Prisma.NeighborhoodUpdateOneWithoutUsersNestedInput
+  moduleProgresses?: Prisma.ModuleProgressUpdateManyWithoutUserNestedInput
+  reports?: Prisma.ReportUpdateManyWithoutUserNestedInput
+  pointAccount?: Prisma.PointAccountUpdateOneWithoutUserNestedInput
+  pointLedger?: Prisma.PointLedgerEntryUpdateManyWithoutUserNestedInput
+  redemptions?: Prisma.RewardRedemptionUpdateManyWithoutUserNestedInput
+  invitedBy?: Prisma.InviteAttributionUpdateOneWithoutInviteeNestedInput
+}
+
+export type UserUncheckedUpdateWithoutInvitesSentInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  role?: Prisma.EnumUserRoleFieldUpdateOperationsInput | $Enums.UserRole
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  email?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  cellphone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  passwordHash?: Prisma.StringFieldUpdateOperationsInput | string
+  neighborhood?: Prisma.StringFieldUpdateOperationsInput | string
+  neighborhoodId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  inviteCode?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  termsAcceptedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  moduleProgresses?: Prisma.ModuleProgressUncheckedUpdateManyWithoutUserNestedInput
+  reports?: Prisma.ReportUncheckedUpdateManyWithoutUserNestedInput
+  pointAccount?: Prisma.PointAccountUncheckedUpdateOneWithoutUserNestedInput
+  pointLedger?: Prisma.PointLedgerEntryUncheckedUpdateManyWithoutUserNestedInput
+  redemptions?: Prisma.RewardRedemptionUncheckedUpdateManyWithoutUserNestedInput
+  invitedBy?: Prisma.InviteAttributionUncheckedUpdateOneWithoutInviteeNestedInput
+}
+
+export type UserUpsertWithoutInvitedByInput = {
+  update: Prisma.XOR<Prisma.UserUpdateWithoutInvitedByInput, Prisma.UserUncheckedUpdateWithoutInvitedByInput>
+  create: Prisma.XOR<Prisma.UserCreateWithoutInvitedByInput, Prisma.UserUncheckedCreateWithoutInvitedByInput>
+  where?: Prisma.UserWhereInput
+}
+
+export type UserUpdateToOneWithWhereWithoutInvitedByInput = {
+  where?: Prisma.UserWhereInput
+  data: Prisma.XOR<Prisma.UserUpdateWithoutInvitedByInput, Prisma.UserUncheckedUpdateWithoutInvitedByInput>
+}
+
+export type UserUpdateWithoutInvitedByInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  role?: Prisma.EnumUserRoleFieldUpdateOperationsInput | $Enums.UserRole
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  email?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  cellphone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  passwordHash?: Prisma.StringFieldUpdateOperationsInput | string
+  neighborhood?: Prisma.StringFieldUpdateOperationsInput | string
+  inviteCode?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  termsAcceptedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  neighborhoodRecord?: Prisma.NeighborhoodUpdateOneWithoutUsersNestedInput
+  moduleProgresses?: Prisma.ModuleProgressUpdateManyWithoutUserNestedInput
+  reports?: Prisma.ReportUpdateManyWithoutUserNestedInput
+  pointAccount?: Prisma.PointAccountUpdateOneWithoutUserNestedInput
+  pointLedger?: Prisma.PointLedgerEntryUpdateManyWithoutUserNestedInput
+  redemptions?: Prisma.RewardRedemptionUpdateManyWithoutUserNestedInput
+  invitesSent?: Prisma.InviteAttributionUpdateManyWithoutInviterNestedInput
+}
+
+export type UserUncheckedUpdateWithoutInvitedByInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  role?: Prisma.EnumUserRoleFieldUpdateOperationsInput | $Enums.UserRole
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  email?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  cellphone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  passwordHash?: Prisma.StringFieldUpdateOperationsInput | string
+  neighborhood?: Prisma.StringFieldUpdateOperationsInput | string
+  neighborhoodId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  inviteCode?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  termsAcceptedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  moduleProgresses?: Prisma.ModuleProgressUncheckedUpdateManyWithoutUserNestedInput
+  reports?: Prisma.ReportUncheckedUpdateManyWithoutUserNestedInput
+  pointAccount?: Prisma.PointAccountUncheckedUpdateOneWithoutUserNestedInput
+  pointLedger?: Prisma.PointLedgerEntryUncheckedUpdateManyWithoutUserNestedInput
+  redemptions?: Prisma.RewardRedemptionUncheckedUpdateManyWithoutUserNestedInput
+  invitesSent?: Prisma.InviteAttributionUncheckedUpdateManyWithoutInviterNestedInput
+}
+
 export type UserCreateWithoutNeighborhoodRecordInput = {
   id?: string
   role?: $Enums.UserRole
@@ -590,6 +1195,11 @@ export type UserCreateWithoutNeighborhoodRecordInput = {
   updatedAt?: Date | string
   moduleProgresses?: Prisma.ModuleProgressCreateNestedManyWithoutUserInput
   reports?: Prisma.ReportCreateNestedManyWithoutUserInput
+  pointAccount?: Prisma.PointAccountCreateNestedOneWithoutUserInput
+  pointLedger?: Prisma.PointLedgerEntryCreateNestedManyWithoutUserInput
+  redemptions?: Prisma.RewardRedemptionCreateNestedManyWithoutUserInput
+  invitesSent?: Prisma.InviteAttributionCreateNestedManyWithoutInviterInput
+  invitedBy?: Prisma.InviteAttributionCreateNestedOneWithoutInviteeInput
 }
 
 export type UserUncheckedCreateWithoutNeighborhoodRecordInput = {
@@ -606,6 +1216,11 @@ export type UserUncheckedCreateWithoutNeighborhoodRecordInput = {
   updatedAt?: Date | string
   moduleProgresses?: Prisma.ModuleProgressUncheckedCreateNestedManyWithoutUserInput
   reports?: Prisma.ReportUncheckedCreateNestedManyWithoutUserInput
+  pointAccount?: Prisma.PointAccountUncheckedCreateNestedOneWithoutUserInput
+  pointLedger?: Prisma.PointLedgerEntryUncheckedCreateNestedManyWithoutUserInput
+  redemptions?: Prisma.RewardRedemptionUncheckedCreateNestedManyWithoutUserInput
+  invitesSent?: Prisma.InviteAttributionUncheckedCreateNestedManyWithoutInviterInput
+  invitedBy?: Prisma.InviteAttributionUncheckedCreateNestedOneWithoutInviteeInput
 }
 
 export type UserCreateOrConnectWithoutNeighborhoodRecordInput = {
@@ -666,6 +1281,11 @@ export type UserCreateWithoutModuleProgressesInput = {
   updatedAt?: Date | string
   neighborhoodRecord?: Prisma.NeighborhoodCreateNestedOneWithoutUsersInput
   reports?: Prisma.ReportCreateNestedManyWithoutUserInput
+  pointAccount?: Prisma.PointAccountCreateNestedOneWithoutUserInput
+  pointLedger?: Prisma.PointLedgerEntryCreateNestedManyWithoutUserInput
+  redemptions?: Prisma.RewardRedemptionCreateNestedManyWithoutUserInput
+  invitesSent?: Prisma.InviteAttributionCreateNestedManyWithoutInviterInput
+  invitedBy?: Prisma.InviteAttributionCreateNestedOneWithoutInviteeInput
 }
 
 export type UserUncheckedCreateWithoutModuleProgressesInput = {
@@ -682,6 +1302,11 @@ export type UserUncheckedCreateWithoutModuleProgressesInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   reports?: Prisma.ReportUncheckedCreateNestedManyWithoutUserInput
+  pointAccount?: Prisma.PointAccountUncheckedCreateNestedOneWithoutUserInput
+  pointLedger?: Prisma.PointLedgerEntryUncheckedCreateNestedManyWithoutUserInput
+  redemptions?: Prisma.RewardRedemptionUncheckedCreateNestedManyWithoutUserInput
+  invitesSent?: Prisma.InviteAttributionUncheckedCreateNestedManyWithoutInviterInput
+  invitedBy?: Prisma.InviteAttributionUncheckedCreateNestedOneWithoutInviteeInput
 }
 
 export type UserCreateOrConnectWithoutModuleProgressesInput = {
@@ -714,6 +1339,11 @@ export type UserUpdateWithoutModuleProgressesInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   neighborhoodRecord?: Prisma.NeighborhoodUpdateOneWithoutUsersNestedInput
   reports?: Prisma.ReportUpdateManyWithoutUserNestedInput
+  pointAccount?: Prisma.PointAccountUpdateOneWithoutUserNestedInput
+  pointLedger?: Prisma.PointLedgerEntryUpdateManyWithoutUserNestedInput
+  redemptions?: Prisma.RewardRedemptionUpdateManyWithoutUserNestedInput
+  invitesSent?: Prisma.InviteAttributionUpdateManyWithoutInviterNestedInput
+  invitedBy?: Prisma.InviteAttributionUpdateOneWithoutInviteeNestedInput
 }
 
 export type UserUncheckedUpdateWithoutModuleProgressesInput = {
@@ -730,6 +1360,11 @@ export type UserUncheckedUpdateWithoutModuleProgressesInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   reports?: Prisma.ReportUncheckedUpdateManyWithoutUserNestedInput
+  pointAccount?: Prisma.PointAccountUncheckedUpdateOneWithoutUserNestedInput
+  pointLedger?: Prisma.PointLedgerEntryUncheckedUpdateManyWithoutUserNestedInput
+  redemptions?: Prisma.RewardRedemptionUncheckedUpdateManyWithoutUserNestedInput
+  invitesSent?: Prisma.InviteAttributionUncheckedUpdateManyWithoutInviterNestedInput
+  invitedBy?: Prisma.InviteAttributionUncheckedUpdateOneWithoutInviteeNestedInput
 }
 
 export type UserCreateWithoutReportsInput = {
@@ -746,6 +1381,11 @@ export type UserCreateWithoutReportsInput = {
   updatedAt?: Date | string
   neighborhoodRecord?: Prisma.NeighborhoodCreateNestedOneWithoutUsersInput
   moduleProgresses?: Prisma.ModuleProgressCreateNestedManyWithoutUserInput
+  pointAccount?: Prisma.PointAccountCreateNestedOneWithoutUserInput
+  pointLedger?: Prisma.PointLedgerEntryCreateNestedManyWithoutUserInput
+  redemptions?: Prisma.RewardRedemptionCreateNestedManyWithoutUserInput
+  invitesSent?: Prisma.InviteAttributionCreateNestedManyWithoutInviterInput
+  invitedBy?: Prisma.InviteAttributionCreateNestedOneWithoutInviteeInput
 }
 
 export type UserUncheckedCreateWithoutReportsInput = {
@@ -762,6 +1402,11 @@ export type UserUncheckedCreateWithoutReportsInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   moduleProgresses?: Prisma.ModuleProgressUncheckedCreateNestedManyWithoutUserInput
+  pointAccount?: Prisma.PointAccountUncheckedCreateNestedOneWithoutUserInput
+  pointLedger?: Prisma.PointLedgerEntryUncheckedCreateNestedManyWithoutUserInput
+  redemptions?: Prisma.RewardRedemptionUncheckedCreateNestedManyWithoutUserInput
+  invitesSent?: Prisma.InviteAttributionUncheckedCreateNestedManyWithoutInviterInput
+  invitedBy?: Prisma.InviteAttributionUncheckedCreateNestedOneWithoutInviteeInput
 }
 
 export type UserCreateOrConnectWithoutReportsInput = {
@@ -794,6 +1439,11 @@ export type UserUpdateWithoutReportsInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   neighborhoodRecord?: Prisma.NeighborhoodUpdateOneWithoutUsersNestedInput
   moduleProgresses?: Prisma.ModuleProgressUpdateManyWithoutUserNestedInput
+  pointAccount?: Prisma.PointAccountUpdateOneWithoutUserNestedInput
+  pointLedger?: Prisma.PointLedgerEntryUpdateManyWithoutUserNestedInput
+  redemptions?: Prisma.RewardRedemptionUpdateManyWithoutUserNestedInput
+  invitesSent?: Prisma.InviteAttributionUpdateManyWithoutInviterNestedInput
+  invitedBy?: Prisma.InviteAttributionUpdateOneWithoutInviteeNestedInput
 }
 
 export type UserUncheckedUpdateWithoutReportsInput = {
@@ -810,6 +1460,11 @@ export type UserUncheckedUpdateWithoutReportsInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   moduleProgresses?: Prisma.ModuleProgressUncheckedUpdateManyWithoutUserNestedInput
+  pointAccount?: Prisma.PointAccountUncheckedUpdateOneWithoutUserNestedInput
+  pointLedger?: Prisma.PointLedgerEntryUncheckedUpdateManyWithoutUserNestedInput
+  redemptions?: Prisma.RewardRedemptionUncheckedUpdateManyWithoutUserNestedInput
+  invitesSent?: Prisma.InviteAttributionUncheckedUpdateManyWithoutInviterNestedInput
+  invitedBy?: Prisma.InviteAttributionUncheckedUpdateOneWithoutInviteeNestedInput
 }
 
 export type UserCreateManyNeighborhoodRecordInput = {
@@ -840,6 +1495,11 @@ export type UserUpdateWithoutNeighborhoodRecordInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   moduleProgresses?: Prisma.ModuleProgressUpdateManyWithoutUserNestedInput
   reports?: Prisma.ReportUpdateManyWithoutUserNestedInput
+  pointAccount?: Prisma.PointAccountUpdateOneWithoutUserNestedInput
+  pointLedger?: Prisma.PointLedgerEntryUpdateManyWithoutUserNestedInput
+  redemptions?: Prisma.RewardRedemptionUpdateManyWithoutUserNestedInput
+  invitesSent?: Prisma.InviteAttributionUpdateManyWithoutInviterNestedInput
+  invitedBy?: Prisma.InviteAttributionUpdateOneWithoutInviteeNestedInput
 }
 
 export type UserUncheckedUpdateWithoutNeighborhoodRecordInput = {
@@ -856,6 +1516,11 @@ export type UserUncheckedUpdateWithoutNeighborhoodRecordInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   moduleProgresses?: Prisma.ModuleProgressUncheckedUpdateManyWithoutUserNestedInput
   reports?: Prisma.ReportUncheckedUpdateManyWithoutUserNestedInput
+  pointAccount?: Prisma.PointAccountUncheckedUpdateOneWithoutUserNestedInput
+  pointLedger?: Prisma.PointLedgerEntryUncheckedUpdateManyWithoutUserNestedInput
+  redemptions?: Prisma.RewardRedemptionUncheckedUpdateManyWithoutUserNestedInput
+  invitesSent?: Prisma.InviteAttributionUncheckedUpdateManyWithoutInviterNestedInput
+  invitedBy?: Prisma.InviteAttributionUncheckedUpdateOneWithoutInviteeNestedInput
 }
 
 export type UserUncheckedUpdateManyWithoutNeighborhoodRecordInput = {
@@ -880,11 +1545,17 @@ export type UserUncheckedUpdateManyWithoutNeighborhoodRecordInput = {
 export type UserCountOutputType = {
   moduleProgresses: number
   reports: number
+  pointLedger: number
+  redemptions: number
+  invitesSent: number
 }
 
 export type UserCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   moduleProgresses?: boolean | UserCountOutputTypeCountModuleProgressesArgs
   reports?: boolean | UserCountOutputTypeCountReportsArgs
+  pointLedger?: boolean | UserCountOutputTypeCountPointLedgerArgs
+  redemptions?: boolean | UserCountOutputTypeCountRedemptionsArgs
+  invitesSent?: boolean | UserCountOutputTypeCountInvitesSentArgs
 }
 
 /**
@@ -911,6 +1582,27 @@ export type UserCountOutputTypeCountReportsArgs<ExtArgs extends runtime.Types.Ex
   where?: Prisma.ReportWhereInput
 }
 
+/**
+ * UserCountOutputType without action
+ */
+export type UserCountOutputTypeCountPointLedgerArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.PointLedgerEntryWhereInput
+}
+
+/**
+ * UserCountOutputType without action
+ */
+export type UserCountOutputTypeCountRedemptionsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.RewardRedemptionWhereInput
+}
+
+/**
+ * UserCountOutputType without action
+ */
+export type UserCountOutputTypeCountInvitesSentArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.InviteAttributionWhereInput
+}
+
 
 export type UserSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
@@ -928,6 +1620,11 @@ export type UserSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = r
   neighborhoodRecord?: boolean | Prisma.User$neighborhoodRecordArgs<ExtArgs>
   moduleProgresses?: boolean | Prisma.User$moduleProgressesArgs<ExtArgs>
   reports?: boolean | Prisma.User$reportsArgs<ExtArgs>
+  pointAccount?: boolean | Prisma.User$pointAccountArgs<ExtArgs>
+  pointLedger?: boolean | Prisma.User$pointLedgerArgs<ExtArgs>
+  redemptions?: boolean | Prisma.User$redemptionsArgs<ExtArgs>
+  invitesSent?: boolean | Prisma.User$invitesSentArgs<ExtArgs>
+  invitedBy?: boolean | Prisma.User$invitedByArgs<ExtArgs>
   _count?: boolean | Prisma.UserCountOutputTypeDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["user"]>
 
@@ -983,6 +1680,11 @@ export type UserInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = 
   neighborhoodRecord?: boolean | Prisma.User$neighborhoodRecordArgs<ExtArgs>
   moduleProgresses?: boolean | Prisma.User$moduleProgressesArgs<ExtArgs>
   reports?: boolean | Prisma.User$reportsArgs<ExtArgs>
+  pointAccount?: boolean | Prisma.User$pointAccountArgs<ExtArgs>
+  pointLedger?: boolean | Prisma.User$pointLedgerArgs<ExtArgs>
+  redemptions?: boolean | Prisma.User$redemptionsArgs<ExtArgs>
+  invitesSent?: boolean | Prisma.User$invitesSentArgs<ExtArgs>
+  invitedBy?: boolean | Prisma.User$invitedByArgs<ExtArgs>
   _count?: boolean | Prisma.UserCountOutputTypeDefaultArgs<ExtArgs>
 }
 export type UserIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
@@ -998,6 +1700,11 @@ export type $UserPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs =
     neighborhoodRecord: Prisma.$NeighborhoodPayload<ExtArgs> | null
     moduleProgresses: Prisma.$ModuleProgressPayload<ExtArgs>[]
     reports: Prisma.$ReportPayload<ExtArgs>[]
+    pointAccount: Prisma.$PointAccountPayload<ExtArgs> | null
+    pointLedger: Prisma.$PointLedgerEntryPayload<ExtArgs>[]
+    redemptions: Prisma.$RewardRedemptionPayload<ExtArgs>[]
+    invitesSent: Prisma.$InviteAttributionPayload<ExtArgs>[]
+    invitedBy: Prisma.$InviteAttributionPayload<ExtArgs> | null
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: string
@@ -1409,6 +2116,11 @@ export interface Prisma__UserClient<T, Null = never, ExtArgs extends runtime.Typ
   neighborhoodRecord<T extends Prisma.User$neighborhoodRecordArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$neighborhoodRecordArgs<ExtArgs>>): Prisma.Prisma__NeighborhoodClient<runtime.Types.Result.GetResult<Prisma.$NeighborhoodPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
   moduleProgresses<T extends Prisma.User$moduleProgressesArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$moduleProgressesArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$ModuleProgressPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   reports<T extends Prisma.User$reportsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$reportsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$ReportPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  pointAccount<T extends Prisma.User$pointAccountArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$pointAccountArgs<ExtArgs>>): Prisma.Prisma__PointAccountClient<runtime.Types.Result.GetResult<Prisma.$PointAccountPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+  pointLedger<T extends Prisma.User$pointLedgerArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$pointLedgerArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$PointLedgerEntryPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  redemptions<T extends Prisma.User$redemptionsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$redemptionsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$RewardRedemptionPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  invitesSent<T extends Prisma.User$invitesSentArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$invitesSentArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$InviteAttributionPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  invitedBy<T extends Prisma.User$invitedByArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$invitedByArgs<ExtArgs>>): Prisma.Prisma__InviteAttributionClient<runtime.Types.Result.GetResult<Prisma.$InviteAttributionPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
    * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -1915,6 +2627,116 @@ export type User$reportsArgs<ExtArgs extends runtime.Types.Extensions.InternalAr
   take?: number
   skip?: number
   distinct?: Prisma.ReportScalarFieldEnum | Prisma.ReportScalarFieldEnum[]
+}
+
+/**
+ * User.pointAccount
+ */
+export type User$pointAccountArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the PointAccount
+   */
+  select?: Prisma.PointAccountSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the PointAccount
+   */
+  omit?: Prisma.PointAccountOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.PointAccountInclude<ExtArgs> | null
+  where?: Prisma.PointAccountWhereInput
+}
+
+/**
+ * User.pointLedger
+ */
+export type User$pointLedgerArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the PointLedgerEntry
+   */
+  select?: Prisma.PointLedgerEntrySelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the PointLedgerEntry
+   */
+  omit?: Prisma.PointLedgerEntryOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.PointLedgerEntryInclude<ExtArgs> | null
+  where?: Prisma.PointLedgerEntryWhereInput
+  orderBy?: Prisma.PointLedgerEntryOrderByWithRelationInput | Prisma.PointLedgerEntryOrderByWithRelationInput[]
+  cursor?: Prisma.PointLedgerEntryWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.PointLedgerEntryScalarFieldEnum | Prisma.PointLedgerEntryScalarFieldEnum[]
+}
+
+/**
+ * User.redemptions
+ */
+export type User$redemptionsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the RewardRedemption
+   */
+  select?: Prisma.RewardRedemptionSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the RewardRedemption
+   */
+  omit?: Prisma.RewardRedemptionOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.RewardRedemptionInclude<ExtArgs> | null
+  where?: Prisma.RewardRedemptionWhereInput
+  orderBy?: Prisma.RewardRedemptionOrderByWithRelationInput | Prisma.RewardRedemptionOrderByWithRelationInput[]
+  cursor?: Prisma.RewardRedemptionWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.RewardRedemptionScalarFieldEnum | Prisma.RewardRedemptionScalarFieldEnum[]
+}
+
+/**
+ * User.invitesSent
+ */
+export type User$invitesSentArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the InviteAttribution
+   */
+  select?: Prisma.InviteAttributionSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the InviteAttribution
+   */
+  omit?: Prisma.InviteAttributionOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.InviteAttributionInclude<ExtArgs> | null
+  where?: Prisma.InviteAttributionWhereInput
+  orderBy?: Prisma.InviteAttributionOrderByWithRelationInput | Prisma.InviteAttributionOrderByWithRelationInput[]
+  cursor?: Prisma.InviteAttributionWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.InviteAttributionScalarFieldEnum | Prisma.InviteAttributionScalarFieldEnum[]
+}
+
+/**
+ * User.invitedBy
+ */
+export type User$invitedByArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the InviteAttribution
+   */
+  select?: Prisma.InviteAttributionSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the InviteAttribution
+   */
+  omit?: Prisma.InviteAttributionOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.InviteAttributionInclude<ExtArgs> | null
+  where?: Prisma.InviteAttributionWhereInput
 }
 
 /**

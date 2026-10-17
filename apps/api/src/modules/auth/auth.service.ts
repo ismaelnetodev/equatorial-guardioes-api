@@ -1,4 +1,5 @@
 import { randomBytes, scrypt, timingSafeEqual } from 'node:crypto'
+import { attributeInviteOnRegister, generateInviteCode } from '../../lib/invite-attribution.js'
 import { getPrisma } from '../../lib/prisma.js'
 import { Prisma } from '../../generated/prisma/client.js'
 import type { Credentials, LoginCredentials } from './auth.schemas.js'
@@ -101,24 +102,40 @@ export async function registerUser(credentials: Credentials): Promise<PublicUser
     throw new AuthError('CONTACT_ALREADY_REGISTERED', 'Este e-mail ou celular já está cadastrado.')
   }
 
-  try {
-    const user = await getPrisma().user.create({ data: {
-      name: credentials.name.trim(),
-      email: email ?? null,
-      cellphone: cellphone ?? null,
-      neighborhood: neighborhood?.name ?? credentials.neighborhood.trim(),
-      neighborhoodId: neighborhood?.id ?? null,
-      inviteCode: credentials.inviteCode?.trim() || null,
-      termsAcceptedAt: new Date(),
-      passwordHash: await hashPassword(credentials.password),
-    } })
-    return toPublicUser(user)
-  } catch (error) {
-    if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === 'P2002') {
-      throw new AuthError('CONTACT_ALREADY_REGISTERED', 'Este e-mail ou celular já está cadastrado.')
+  const passwordHash = await hashPassword(credentials.password)
+  const incomingInviteCode = credentials.inviteCode?.trim() || undefined
+
+  for (let attempt = 0; attempt < 8; attempt += 1) {
+    try {
+      const user = await getPrisma().$transaction(async (tx) => {
+        const created = await tx.user.create({
+          data: {
+            name: credentials.name.trim(),
+            email: email ?? null,
+            cellphone: cellphone ?? null,
+            neighborhood: neighborhood?.name ?? credentials.neighborhood.trim(),
+            neighborhoodId: neighborhood?.id ?? null,
+            inviteCode: generateInviteCode(),
+            termsAcceptedAt: new Date(),
+            passwordHash,
+            pointAccount: { create: { accumulated: 0, balance: 0 } },
+          },
+        })
+        await attributeInviteOnRegister(created.id, incomingInviteCode, tx)
+        return created
+      })
+      return toPublicUser(user)
+    } catch (error) {
+      if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === 'P2002') {
+        const target = error.meta?.['target']
+        const targets = Array.isArray(target) ? target.map(String) : [String(target ?? '')]
+        if (targets.some((item) => item.includes('inviteCode'))) continue
+        throw new AuthError('CONTACT_ALREADY_REGISTERED', 'Este e-mail ou celular já está cadastrado.')
+      }
+      throw error
     }
-    throw error
   }
+  throw new AuthError('CONTACT_ALREADY_REGISTERED', 'Este e-mail ou celular já está cadastrado.')
 }
 
 export async function loginUser(credentials: LoginCredentials): Promise<PublicUser> {

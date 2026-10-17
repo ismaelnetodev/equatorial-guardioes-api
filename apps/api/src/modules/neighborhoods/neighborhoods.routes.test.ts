@@ -2,12 +2,22 @@ import { afterEach, beforeEach, expect, it, vi } from 'vitest'
 import type { FastifyInstance } from 'fastify'
 import { buildApp } from '../../app.js'
 
-const db = vi.hoisted(() => ({ neighborhood: { findMany: vi.fn(), findUnique: vi.fn() }, user: { findFirst: vi.fn(), create: vi.fn() } }))
+const db = vi.hoisted(() => ({
+  neighborhood: { findMany: vi.fn(), findUnique: vi.fn() },
+  user: { findFirst: vi.fn(), create: vi.fn() },
+  inviteAttribution: { create: vi.fn() },
+  $transaction: vi.fn(),
+}))
 vi.mock('../../lib/prisma.js', () => ({ getPrisma: () => db }))
 let app: FastifyInstance
 const neighborhood = { id: 'slz-cohama', name: 'Cohama', municipalityCode: '2111300', municipalityName: 'São Luís', state: 'MA', source: 'Prefeitura de São Luís / SEMGOP 2022' }
 const credentials = { name: 'Maria', email: 'maria@example.com', password: 'senha-segura-123', neighborhood: 'Nome adulterado', neighborhoodId: neighborhood.id, acceptedTerms: true }
-beforeEach(async () => { vi.resetAllMocks(); app = await buildApp({ logger: false }) })
+beforeEach(async () => {
+  vi.resetAllMocks()
+  db.$transaction.mockImplementation(async (operation: (tx: typeof db) => Promise<unknown>) => operation(db))
+  db.inviteAttribution.create.mockResolvedValue({ id: 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa' })
+  app = await buildApp({ logger: false })
+})
 afterEach(async () => { await app.close() })
 
 it('lista apenas São Luís por padrão e preserva a fonte municipal', async () => {

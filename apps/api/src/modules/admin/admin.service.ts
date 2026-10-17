@@ -3,10 +3,10 @@ import { getPrisma } from '../../lib/prisma.js'
 import { getAuthenticatedUser } from '../../lib/auth-user.js'
 import { publishedModuleWhere } from '../../lib/content-visibility.js'
 import { hashPassword, passwordsMatch } from '../auth/auth.service.js'
-import type { ContentStatus, CreateTrail, UpdateTrail, CreateModule, UpdateModule } from './admin.schemas.js'
+import type { ContentStatus, CreateTrail, UpdateTrail, CreateModule, UpdateModule, ReplaceQuiz, ReplaceTraining } from './admin.schemas.js'
 
 export class AdminError extends Error {
-  constructor(public readonly code: 'FORBIDDEN' | 'TRAIL_NOT_FOUND' | 'MODULE_NOT_FOUND' | 'INVALID_ORDER' | 'INVALID_PUBLICATION' | 'CONTENT_CONFLICT' | 'INVALID_PASSWORD', message: string) { super(message) }
+  constructor(public readonly code: 'FORBIDDEN' | 'TRAIL_NOT_FOUND' | 'MODULE_NOT_FOUND' | 'INVALID_ORDER' | 'INVALID_PUBLICATION' | 'INVALID_QUIZ' | 'CONTENT_CONFLICT' | 'INVALID_PASSWORD', message: string) { super(message) }
 }
 
 export async function changeAdministratorPassword(authorization: string | undefined, currentPassword: string, newPassword: string) {
@@ -18,10 +18,6 @@ export async function changeAdministratorPassword(authorization: string | undefi
   const result = await getPrisma().user.updateMany({ where: { id: user.id, role: 'ADMIN', passwordHash: account.passwordHash }, data: { passwordHash: await hashPassword(newPassword) } })
   if (result.count !== 1) throw new AdminError('CONTENT_CONFLICT', 'A conta foi alterada. Entre novamente e tente outra vez.')
   return { message: 'Senha alterada com sucesso.' }
-import type { ContentStatus, CreateTrail, UpdateTrail, CreateModule, UpdateModule, ReplaceQuiz, ReplaceTraining } from './admin.schemas.js'
-
-export class AdminError extends Error {
-  constructor(public readonly code: 'FORBIDDEN' | 'TRAIL_NOT_FOUND' | 'MODULE_NOT_FOUND' | 'INVALID_ORDER' | 'INVALID_PUBLICATION' | 'INVALID_QUIZ' | 'CONTENT_CONFLICT', message: string) { super(message) }
 }
 
 export async function authorizeAdministrator(authorization: string | undefined): Promise<void> {

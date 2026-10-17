@@ -164,7 +164,7 @@ Com a API em execução, consulte o [Swagger UI](http://localhost:3000/documenta
 
 As operações administrativas e as regras de publicação estão no [guia de administração de conteúdo](docs/content-administration.md).
 
-A administração de pontos, recompensas, limites e auditoria está no [guia de pontos e recompensas](docs/points-rewards-administration.md). As rotas `/api/v1/admin/points-rewards` exigem Bearer token e papel `ADMIN`. A configuração inicial é instalada pela migration `20261016210000_program_configuration`, com `npm run db:deploy`; atualizações posteriores ficam no banco.
+A administração de pontos, recompensas, limites e auditoria está no [guia de pontos e recompensas](docs/points-rewards-administration.md). As rotas `/api/v1/admin/points-rewards` exigem Bearer token e papel `ADMIN`. A configuração inicial é instalada pela migration `20261016210000_program_configuration`, com `npm run db:deploy`; atualizações posteriores ficam no banco. O learner executa o livro de pontos, ranking, resgate e convites em `/api/v1/ranking`, `/recompensas`, `/convidar` e `/perfil` (migration `20261017120000_community_points`).
 
 O [painel administrativo](docs/admin-panel.md) está disponível em `/admin` no aplicativo web (`npm run dev:web`) e pelo link “Acesso administrativo” no login. Inclui trilhas, módulos, pontuação, recompensas, limites, histórico e troca da própria senha. O comando `npm run admin:user` provisiona uma conta `ADMIN` a partir de credenciais recebidas por stdin, sem senha padrão no código.
 

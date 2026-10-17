@@ -1,0 +1,5 @@
+# Test fixtures only — no production credentials in this repository.
+version: 2
+secret:
+  ignored_paths:
+    - 'apps/api/src/modules/admin/admin.password.test.ts'
