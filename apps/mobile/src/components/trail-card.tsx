@@ -1,5 +1,6 @@
 import { StyleSheet, Text, View } from 'react-native'
 import type { Trails } from '../features/trails/trails.api'
+import { colors } from './ui'
 
 export function TrailCard({ trail }: { trail: Trails[number] }) {
   return (
@@ -11,7 +12,7 @@ export function TrailCard({ trail }: { trail: Trails[number] }) {
 }
 
 const styles = StyleSheet.create({
-  card: { backgroundColor: '#ffffff', padding: 22, borderRadius: 18, borderWidth: 1, borderColor: '#dce7df', gap: 8 },
-  title: { fontSize: 20, fontWeight: '600', color: '#153c31' },
-  description: { fontSize: 16, lineHeight: 24, color: '#52665e' },
+  card: { backgroundColor: colors.field, padding: 20, borderRadius: 18, borderWidth: 1, borderColor: colors.border, gap: 8 },
+  title: { fontSize: 18, fontWeight: '700', color: colors.text },
+  description: { fontSize: 15, lineHeight: 23, color: colors.muted },
 })

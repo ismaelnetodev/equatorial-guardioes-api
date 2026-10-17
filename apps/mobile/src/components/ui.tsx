@@ -1,7 +1,21 @@
 import { useState, type ReactNode } from 'react'
 import { ActivityIndicator, Platform, Pressable, StyleSheet, Text, TextInput, View, type TextInputProps } from 'react-native'
 
-export const colors = { background: '#0d123d', field: '#181e53', border: '#303c9b', primary: '#ffbb12', text: '#ffffff', muted: '#b6bad3', danger: '#ed1c2b' }
+export const colors = {
+  background: '#0B1240',
+  field: '#151D5B',
+  border: '#2A3590',
+  primary: '#FFB81C',
+  blue: '#2E4BFF',
+  text: '#FFFFFF',
+  muted: '#B9BDD0',
+  mutedSecondary: '#7C82A8',
+  success: '#19C2B5',
+  successDark: '#0E8C83',
+  gold: '#C98700',
+  warning: '#FF7A1A',
+  danger: '#ed1c2b',
+}
 
 export function Button({ title, onPress, outline = false, loading = false, disabled = false, icon }: { title: string; onPress: () => void; outline?: boolean; loading?: boolean; disabled?: boolean; icon?: ReactNode }) {
   return <Pressable accessibilityRole="button" accessibilityState={{ disabled: loading || disabled, busy: loading }} disabled={loading || disabled} onPress={onPress} style={({ pressed }) => [styles.button, outline ? styles.outline : styles.primary, disabled && { backgroundColor: '#222c70' }, { opacity: loading || pressed ? 0.7 : 1 }]}>
@@ -9,11 +23,11 @@ export function Button({ title, onPress, outline = false, loading = false, disab
   </Pressable>
 }
 
-export function InputField({ label, icon, leading, trailing, error, ...props }: TextInputProps & { label: string; icon?: 'user' | 'lock'; leading?: ReactNode; trailing?: ReactNode; error?: string }) {
+export function InputField({ label, icon, leading, trailing, error, invalid = false, ...props }: TextInputProps & { label: string; icon?: 'user' | 'lock'; leading?: ReactNode; trailing?: ReactNode; error?: string; invalid?: boolean }) {
   const [focused, setFocused] = useState(false)
   return <View style={styles.fieldGroup}>
     <Text style={styles.label}>{label}</Text>
-    <View style={[styles.field, { borderColor: error ? '#ff8a20' : focused ? colors.primary : colors.border }]}>
+    <View style={[styles.field, { borderColor: error || invalid ? colors.warning : focused ? colors.primary : colors.border }]}>
       {leading}
       {icon ? <View style={styles.icon} accessible={false}>
         <View style={icon === 'user' ? styles.head : styles.shackle} />
@@ -39,5 +53,5 @@ const styles = StyleSheet.create({
   lockBody: { width: 14, height: 11, borderWidth: 1.6, borderColor: colors.muted, borderRadius: 2 },
   input: { flex: 1, color: colors.text, fontSize: 16, paddingVertical: 12, minWidth: 0 },
   webInput: { outlineWidth: 0 },
-  error: { color: '#ffad61', fontSize: 12 },
+  error: { color: colors.warning, fontSize: 12 },
 })

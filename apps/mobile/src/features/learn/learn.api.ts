@@ -2,6 +2,7 @@ import type { paths } from '../../services/api.types'
 import { apiRequest } from '../../services/api'
 
 export type LearnState = paths['/api/v1/modules/{moduleId}/learn']['get']['responses'][200]['content']['application/json']
+export type Training = paths['/api/v1/modules/{moduleId}/training']['get']['responses'][200]['content']['application/json']
 export type QuizQuestions = paths['/api/v1/modules/{moduleId}/quiz/pre']['get']['responses'][200]['content']['application/json']
 export type PreTestResult = paths['/api/v1/modules/{moduleId}/quiz/pre']['post']['responses'][200]['content']['application/json']
 export type PostAnswer = paths['/api/v1/modules/{moduleId}/quiz/pos/answers']['post']['responses'][200]['content']['application/json']
@@ -13,6 +14,10 @@ function modulePath(moduleId: string, suffix: string) {
 
 export function getLearnState(moduleId: string, signal?: AbortSignal): Promise<LearnState> {
   return apiRequest<LearnState>(modulePath(moduleId, '/learn'), { signal })
+}
+
+export function getTraining(moduleId: string, signal?: AbortSignal): Promise<Training> {
+  return apiRequest<Training>(modulePath(moduleId, '/training'), { signal })
 }
 
 export function getPreTestQuestions(moduleId: string, signal?: AbortSignal): Promise<QuizQuestions> {

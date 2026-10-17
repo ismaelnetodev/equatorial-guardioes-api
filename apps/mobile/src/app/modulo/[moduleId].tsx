@@ -56,7 +56,7 @@ export default function ModuleScreen() {
         if (!item || !state) throw new Error('Este módulo não está disponível nesta trilha.')
         let learnState: LearnState | null = null
         if (state.status === 'in_progress' || state.status === 'completed') {
-          try { learnState = await getLearnState(params.moduleId, controller.signal) } catch { learnState = null }
+          learnState = await getLearnState(params.moduleId, controller.signal)
         }
         if (controller.signal.aborted) return
         setModule({ ...item, status: state.status }); setProgress(state)

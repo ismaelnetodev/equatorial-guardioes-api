@@ -47,7 +47,7 @@ export default function TrailScreen() {
         const [account, catalog, accountProfile] = await Promise.all([
           getCurrentUser(controller.signal),
           listTrails(controller.signal),
-          getProfile(controller.signal).catch(() => null),
+          getProfile(controller.signal),
         ])
         const id = catalog.find(item => item.id === selected)?.id ?? catalog[0]?.id
         const details = id ? await getTrail(id, controller.signal) : null
@@ -117,8 +117,16 @@ export default function TrailScreen() {
         neighborhood: (profile?.neighborhood ?? user?.neighborhood ?? '').trim(),
       })
       setReportTitle(''); setReportDescription(''); setReportAddress('')
-      setReports(await listReports())
-      setProfile(await getProfile().catch(() => profile))
+      try {
+        const [nextReports, nextProfile] = await Promise.all([listReports(), getProfile()])
+        setReports(nextReports)
+        setProfile(nextProfile)
+      } catch (cause) {
+        if (cause instanceof ApiError && cause.status === 401) { router.replace('/entrar'); return }
+        setActionError(cause instanceof ApiError
+          ? `Relato enviado, mas não foi possível atualizar a tela: ${cause.message}`
+          : 'Relato enviado, mas não foi possível atualizar a tela.')
+      }
     } catch (cause) {
       if (cause instanceof ApiError && cause.status === 401) { router.replace('/entrar'); return }
       setActionError(cause instanceof ApiError ? cause.message : 'Não foi possível enviar o relato.')

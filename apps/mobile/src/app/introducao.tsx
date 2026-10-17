@@ -4,6 +4,7 @@ import { StatusBar } from 'expo-status-bar'
 import { Image, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { Button, colors } from '../components/ui'
+import { InteractiveSafetyRules } from '../components/interactive-safety-rules'
 import { getAccessToken } from '../services/session'
 
 const steps = [
@@ -46,14 +47,16 @@ export default function IntroductionScreen() {
     <StatusBar style="light" />
     <ScrollView ref={scroll as never} contentContainerStyle={styles.content}>
       <Pressable accessibilityRole="button" accessibilityLabel="Pular introdução" disabled={finishing} onPress={() => { void finish() }} hitSlop={12} style={styles.skip}><Text style={styles.skipText}>Pular</Text></Pressable>
-      <Image source={step.image} resizeMode="contain" style={[styles.art, { aspectRatio: step.ratio }]} accessible accessibilityLabel={index === 0 ? 'Pipa presa na rede elétrica de uma rua do bairro.' : index === 1 ? 'Observe de longe. Afaste-se, mantenha distância. Avise pelo app ou 116.' : 'Selos de conquistas e recompensa de mais 10 pontos.'} />
-      <View accessibilityLabel={`Introdução ${index + 1} de 3`} accessible style={styles.dots}>
-        {steps.map((_, item) => <View key={item} style={[styles.dot, item === index && styles.activeDot]} />)}
-      </View>
-      <View accessibilityLiveRegion="polite" style={styles.copy}>
-        <Text accessibilityRole="header" style={styles.title}>{step.title}</Text>
-        <Text style={styles.description}>{step.description}</Text>
-      </View>
+      {index === 1 ? <InteractiveSafetyRules /> : <>
+        <Image source={step.image} resizeMode="contain" style={[styles.art, { aspectRatio: step.ratio }]} accessible accessibilityLabel={index === 0 ? 'Pipa presa na rede elétrica de uma rua do bairro.' : 'Selos de conquistas e recompensa de mais 10 pontos.'} />
+        <View accessibilityLabel={`Introdução ${index + 1} de 3`} accessible style={styles.dots}>
+          {steps.map((_, item) => <View key={item} style={[styles.dot, item === index && styles.activeDot]} />)}
+        </View>
+        <View accessibilityLiveRegion="polite" style={styles.copy}>
+          <Text accessibilityRole="header" style={styles.title}>{step.title}</Text>
+          <Text style={styles.description}>{step.description}</Text>
+        </View>
+      </>}
       <View style={styles.footer}>
         {error ? <Text accessibilityRole="alert" style={styles.error}>{error}</Text> : null}
         <Button title={index === 2 ? 'Começar' : 'Próximo'} loading={finishing} onPress={next} />
