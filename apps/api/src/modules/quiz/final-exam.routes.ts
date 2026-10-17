@@ -4,12 +4,22 @@ import { getAuthenticatedUser, AuthenticationError } from '../../lib/auth-user.j
 import { LearningError } from './learning-rules.service.js'
 import { QuizError } from './quiz.service.js'
 import { getFinalExam, submitFinalExam } from './final-exam.service.js'
+import { getTrailCompletion, issueTrailCertificate } from './trail-completion.service.js'
+import { certificateSchema, trailCompletionSchema } from './trail-completion.schemas.js'
 import { errorResponseSchema, publicQuizQuestionSchema, submitPreTestSchema } from './quiz.schemas.js'
 
 const uuid = Type.String({ format: 'uuid' })
 const result = { trailId: uuid, totalCount: Type.Integer({ minimum: 1 }), minimumCorrect: Type.Integer({ minimum: 0 }) }
 export const finalExamRoutes: FastifyPluginAsyncTypebox = async app => {
   const common = { tags: ['Quiz'], security: [{ bearerAuth: [] }], params: Type.Object({ trailId: uuid }), response: { 400: errorResponseSchema, 401: errorResponseSchema, 404: errorResponseSchema, 409: errorResponseSchema, 422: errorResponseSchema } }
+  app.get('/:trailId/completion', { schema: { ...common, summary: 'Estado da prova final e certificado da trilha', response: { ...common.response, 200: trailCompletionSchema } } }, async request => {
+    const user = await getAuthenticatedUser(request.headers.authorization)
+    return getTrailCompletion(user.id, request.params.trailId)
+  })
+  app.post('/:trailId/certificate', { schema: { ...common, summary: 'Emite certificado após módulos concluídos e prova final aprovada', response: { ...common.response, 200: certificateSchema } } }, async request => {
+    const user = await getAuthenticatedUser(request.headers.authorization)
+    return issueTrailCertificate(user.id, request.params.trailId)
+  })
   app.setErrorHandler((error, _request, reply) => {
     if (error instanceof AuthenticationError) return reply.status(401).send({ code: 'UNAUTHENTICATED', message: error.message })
     if (error instanceof LearningError) return reply.status(409).send({ code: error.code, message: error.message })

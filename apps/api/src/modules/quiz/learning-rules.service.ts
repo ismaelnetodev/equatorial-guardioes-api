@@ -72,21 +72,39 @@ export async function releasePendingModules(tx: Prisma.TransactionClient, userId
   const modulesLimit = await configuration(tx, 'training_modules_daily', 'LIMIT')
   const pointsLimit = await configuration(tx, 'training_points_daily', 'LIMIT')
   if (!rule.isActive) return { pointsReleased: 0 }
-  const local = new Date(now.getTime() - 10800000)
-  const day = new Date(Date.UTC(local.getUTCFullYear(), local.getUTCMonth(), local.getUTCDate(), 3))
-  const granted = await tx.learningAward.findMany({ where: { userId, ruleKey: 'module_completion', points: { gt: 0 }, grantedAt: { gte: day, lt: new Date(day.getTime() + 86400000) } } })
-  let count = granted.length
-  let points = granted.reduce((sum, award) => sum + award.points, 0)
-  let pointsReleased = 0
   const pending = await tx.learningAward.findMany({ where: { userId, ruleKey: 'module_completion', grantedAt: null }, orderBy: [{ createdAt: 'asc' }, { id: 'asc' }] })
+  if (!pending.length) return { pointsReleased: 0 }
+  const today = learningDayStart(now).getTime()
+  const firstDay = Math.min(...pending.map(award => learningDayStart(award.createdAt).getTime()))
+  const granted = await tx.learningAward.findMany({ where: { userId, ruleKey: 'module_completion', points: { gt: 0 }, grantedAt: { gte: new Date(firstDay), lt: new Date(today + 86400000) } } })
+  const buckets = new Map<number, { count: number; points: number }>()
+  for (const award of granted) {
+    const day = learningDayStart(award.grantedAt!).getTime()
+    const bucket = buckets.get(day) ?? { count: 0, points: 0 }
+    bucket.count++; bucket.points += award.points; buckets.set(day, bucket)
+  }
+  let pointsReleased = 0
   for (const award of pending) {
-    if (award.points > 0 && ((modulesLimit.isActive && count >= modulesLimit.value!) || (pointsLimit.isActive && points + award.points > pointsLimit.value!))) continue
-    await tx.learningAward.update({ where: { id: award.id }, data: { grantedAt: now } })
-    if (award.points > 0) count++
-    points += award.points
-    pointsReleased += award.points
+    if (award.points > 0 && ((modulesLimit.isActive && modulesLimit.value! < 1) || (pointsLimit.isActive && award.points > pointsLimit.value!))) continue
+    // Reconcilia dias já vencidos: voltar ao aplicativo no dia 4 não perde as
+    // liberações dos dias 2 e 3. Não altera concessões que já foram registradas.
+    for (let day = learningDayStart(award.createdAt).getTime(); day <= today; day += 86400000) {
+      const bucket = buckets.get(day) ?? { count: 0, points: 0 }
+      if (award.points > 0 && ((modulesLimit.isActive && bucket.count >= modulesLimit.value!) || (pointsLimit.isActive && bucket.points + award.points > pointsLimit.value!))) continue
+      const grantedAt = day === today ? now : new Date(Math.max(day, award.createdAt.getTime()))
+      await tx.learningAward.update({ where: { id: award.id }, data: { grantedAt } })
+      if (award.points > 0) bucket.count++
+      bucket.points += award.points; buckets.set(day, bucket)
+      pointsReleased += award.points
+      break
+    }
   }
   return { pointsReleased }
+}
+
+export function learningDayStart(date: Date): Date {
+  const local = new Date(date.getTime() - 10800000)
+  return new Date(Date.UTC(local.getUTCFullYear(), local.getUTCMonth(), local.getUTCDate(), 3))
 }
 
 export async function claimLearningAwards(userId: string) {

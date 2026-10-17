@@ -85,9 +85,10 @@ export function QuizResultScreen({ result, completed, busy, error, onBack, onTra
             <Text style={styles.smallEyebrow}>PONTOS GANHOS</Text>
             <PointRow label="Pré-teste" value={post.pointsBreakdown.preTest} />
             <PointRow label="Treinamento" value={post.pointsBreakdown.training} />
-            <PointRow label={`Pós-teste · ${post.correctCount} ${post.correctCount === 1 ? 'acerto' : 'acertos'}`} value={post.pointsBreakdown.postTest} />
+            <PointRow label="Melhoria no pós-teste" value={post.pointsBreakdown.postTest} />
             {post.moduleCompletion.pointsAwarded > 0 ? <PointRow label="Conclusão do módulo" value={post.moduleCompletion.pointsAwarded} /> : null}
           </View>
+          {approved && !completed ? <Text style={styles.pending}>O quiz libera a conclusão. Toque em Concluir módulo para registrar os pontos do módulo, respeitando o limite diário.</Text> : null}
           <View style={styles.totalRow}><Text style={styles.total}>Total: {points(post.totalPoints)} pts</Text><View style={styles.minimumBadge}><Text style={styles.minimum}>MÍNIMO {post.minimumCorrect} DE {post.totalCount}</Text></View></View>
           {post.moduleCompletion.pendingPoints > 0 ? <Text style={styles.pending}>{post.moduleCompletion.pendingPoints} pontos de conclusão aguardando liberação pelo limite diário.</Text> : null}
         </View>

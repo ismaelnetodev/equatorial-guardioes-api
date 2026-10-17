@@ -339,6 +339,18 @@ model FinalExamAttempt {
   @@index([userId, trailId, submittedAt])
 }
 
+// Snapshots da conclusão, sem FK editorial para preservar o certificado emitido.
+model TrailCertificate {
+  id String @id @default(uuid()) @db.Uuid
+  userId String @db.Uuid
+  trailId String @db.Uuid
+  holderName String
+  trailTitle String
+  issuedAt DateTime @default(now())
+
+  @@unique([userId, trailId])
+}
+
 model LearningLegacyPointsAudit {
   sourceId String @db.Uuid
   sourceType String

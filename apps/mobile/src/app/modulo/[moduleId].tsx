@@ -88,7 +88,7 @@ export default function ModuleScreen() {
   }
   function openStage(phase: 'pre' | 'training' | 'pos', result = false) {
     if (!module) return
-    router.push({ pathname: '/modulo/aprender', params: { moduleId: module.id, phase, result: result ? '1' : '0', completed: module.status === 'completed' ? '1' : '0' } })
+    router.push({ pathname: '/modulo/aprender', params: { moduleId: module.id, trailId: params.trailId, phase, result: result ? '1' : '0', completed: module.status === 'completed' ? '1' : '0' } })
   }
   function handleActionError(cause: unknown) {
     if (cause instanceof ApiError && cause.status === 401) { router.replace('/entrar'); return }
@@ -100,6 +100,7 @@ export default function ModuleScreen() {
     try {
       const state = await completeModule(module.id)
       setProgress(state); setModule(current => current ? { ...current, status: state.status } : null)
+      router.replace({ pathname: '/modulo/conclusao', params: { moduleId: module.id, trailId: params.trailId } })
       setReader(false); scroll.current?.scrollTo({ y: 0, animated: false })
     } catch (cause) { handleActionError(cause) }
     finally { pending.current = false; setBusy(false) }

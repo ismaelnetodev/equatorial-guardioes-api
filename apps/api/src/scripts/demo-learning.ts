@@ -33,5 +33,32 @@ export function demoTraining(content: string) {
   return [
     { order: 1, kind: 'RECOGNIZE' as const, title, introText, cards: { create: [{ order: 1, title: 'O que você vai aprender', description: objectives }] } },
     { order: 2, kind: 'INFO' as const, title: 'Pratique a observação segura', cards: { create: guidance.filter(text => !text.startsWith('Conteúdo de demonstração')).map((description, index) => ({ order: index + 1, title: index === 0 ? 'Como agir' : 'Ao comunicar', description })) } },
+    {
+      order: 3, kind: 'DO_NOT' as const, title: 'O que NÃO fazer',
+      introText: 'Toda etapa de risco tem esta parte. Sua segurança vem antes de tudo.',
+      cards: { create: [
+        { order: 1, title: 'Não empurre nem encoste no poste', description: 'Ele pode cair de repente.' },
+        { order: 2, title: 'Não toque em fios, nem com objetos', description: 'Vassoura, galho ou cano também conduzem energia.' },
+        { order: 3, title: 'Não chegue perto para fotografar', description: 'Foto de longe já resolve.' },
+        { order: 4, title: 'Não tente consertar ou isolar a área', description: 'Isso é trabalho da equipe técnica.' },
+      ] },
+    },
   ]
+}
+
+type ExistingStep = {
+  order: number; title: string; kind: string; introText: string | null; durationMinutes: number | null
+  cards: { order: number; title: string; description: string }[]
+}
+
+export function isLegacyDemoTraining(content: string, steps: ExistingStep[]): boolean {
+  if (steps.length !== 2) return false
+  if (content.split(/\r?\n\s*\r?\n/).filter(text => text.trim()).length < 3) return false
+  const expected = demoTraining(content).slice(0, 2)
+  return steps.every((step, index) => {
+    const template = expected[index]
+    return template !== undefined && step.order === template.order && step.title === template.title && step.kind === template.kind
+      && step.introText === (template.introText ?? null) && step.durationMinutes === null
+      && JSON.stringify(step.cards.map(({ order, title, description }) => ({ order, title, description }))) === JSON.stringify(template.cards.create)
+  })
 }

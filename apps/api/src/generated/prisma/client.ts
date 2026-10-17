@@ -132,6 +132,11 @@ export type LearningAward = Prisma.LearningAwardModel
  */
 export type FinalExamAttempt = Prisma.FinalExamAttemptModel
 /**
+ * Model TrailCertificate
+ * 
+ */
+export type TrailCertificate = Prisma.TrailCertificateModel
+/**
  * Model LearningLegacyPointsAudit
  * 
  */

@@ -69,6 +69,7 @@ export const ModelName = {
   ReportLegacyPointsAudit: 'ReportLegacyPointsAudit',
   LearningAward: 'LearningAward',
   FinalExamAttempt: 'FinalExamAttempt',
+  TrailCertificate: 'TrailCertificate',
   LearningLegacyPointsAudit: 'LearningLegacyPointsAudit',
   QuizAttemptReconciliation: 'QuizAttemptReconciliation'
 } as const
@@ -354,6 +355,18 @@ export const FinalExamAttemptScalarFieldEnum = {
 } as const
 
 export type FinalExamAttemptScalarFieldEnum = (typeof FinalExamAttemptScalarFieldEnum)[keyof typeof FinalExamAttemptScalarFieldEnum]
+
+
+export const TrailCertificateScalarFieldEnum = {
+  id: 'id',
+  userId: 'userId',
+  trailId: 'trailId',
+  holderName: 'holderName',
+  trailTitle: 'trailTitle',
+  issuedAt: 'issuedAt'
+} as const
+
+export type TrailCertificateScalarFieldEnum = (typeof TrailCertificateScalarFieldEnum)[keyof typeof TrailCertificateScalarFieldEnum]
 
 
 export const LearningLegacyPointsAuditScalarFieldEnum = {

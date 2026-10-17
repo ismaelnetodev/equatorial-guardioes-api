@@ -415,6 +415,7 @@ export const ModelName = {
   ReportLegacyPointsAudit: 'ReportLegacyPointsAudit',
   LearningAward: 'LearningAward',
   FinalExamAttempt: 'FinalExamAttempt',
+  TrailCertificate: 'TrailCertificate',
   LearningLegacyPointsAudit: 'LearningLegacyPointsAudit',
   QuizAttemptReconciliation: 'QuizAttemptReconciliation'
 } as const
@@ -432,7 +433,7 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
     omit: GlobalOmitOptions
   }
   meta: {
-    modelProps: "user" | "neighborhood" | "trail" | "trailModule" | "moduleProgress" | "quizQuestion" | "quizOption" | "quizAttempt" | "quizAnswer" | "trainingStep" | "trainingCard" | "report" | "reportTimelineEvent" | "programConfiguration" | "programConfigurationChange" | "reportLegacyPointsAudit" | "learningAward" | "finalExamAttempt" | "learningLegacyPointsAudit" | "quizAttemptReconciliation"
+    modelProps: "user" | "neighborhood" | "trail" | "trailModule" | "moduleProgress" | "quizQuestion" | "quizOption" | "quizAttempt" | "quizAnswer" | "trainingStep" | "trainingCard" | "report" | "reportTimelineEvent" | "programConfiguration" | "programConfigurationChange" | "reportLegacyPointsAudit" | "learningAward" | "finalExamAttempt" | "trailCertificate" | "learningLegacyPointsAudit" | "quizAttemptReconciliation"
     txIsolationLevel: TransactionIsolationLevel
   }
   model: {
@@ -1768,6 +1769,80 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
         }
       }
     }
+    TrailCertificate: {
+      payload: Prisma.$TrailCertificatePayload<ExtArgs>
+      fields: Prisma.TrailCertificateFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.TrailCertificateFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TrailCertificatePayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.TrailCertificateFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TrailCertificatePayload>
+        }
+        findFirst: {
+          args: Prisma.TrailCertificateFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TrailCertificatePayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.TrailCertificateFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TrailCertificatePayload>
+        }
+        findMany: {
+          args: Prisma.TrailCertificateFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TrailCertificatePayload>[]
+        }
+        create: {
+          args: Prisma.TrailCertificateCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TrailCertificatePayload>
+        }
+        createMany: {
+          args: Prisma.TrailCertificateCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.TrailCertificateCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TrailCertificatePayload>[]
+        }
+        delete: {
+          args: Prisma.TrailCertificateDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TrailCertificatePayload>
+        }
+        update: {
+          args: Prisma.TrailCertificateUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TrailCertificatePayload>
+        }
+        deleteMany: {
+          args: Prisma.TrailCertificateDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.TrailCertificateUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.TrailCertificateUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TrailCertificatePayload>[]
+        }
+        upsert: {
+          args: Prisma.TrailCertificateUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TrailCertificatePayload>
+        }
+        aggregate: {
+          args: Prisma.TrailCertificateAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateTrailCertificate>
+        }
+        groupBy: {
+          args: Prisma.TrailCertificateGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.TrailCertificateGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.TrailCertificateCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.TrailCertificateCountAggregateOutputType> | number
+        }
+      }
+    }
     LearningLegacyPointsAudit: {
       payload: Prisma.$LearningLegacyPointsAuditPayload<ExtArgs>
       fields: Prisma.LearningLegacyPointsAuditFieldRefs
@@ -2222,6 +2297,18 @@ export const FinalExamAttemptScalarFieldEnum = {
 export type FinalExamAttemptScalarFieldEnum = (typeof FinalExamAttemptScalarFieldEnum)[keyof typeof FinalExamAttemptScalarFieldEnum]
 
 
+export const TrailCertificateScalarFieldEnum = {
+  id: 'id',
+  userId: 'userId',
+  trailId: 'trailId',
+  holderName: 'holderName',
+  trailTitle: 'trailTitle',
+  issuedAt: 'issuedAt'
+} as const
+
+export type TrailCertificateScalarFieldEnum = (typeof TrailCertificateScalarFieldEnum)[keyof typeof TrailCertificateScalarFieldEnum]
+
+
 export const LearningLegacyPointsAuditScalarFieldEnum = {
   sourceId: 'sourceId',
   sourceType: 'sourceType',
@@ -2639,6 +2726,7 @@ export type GlobalOmitConfig = {
   reportLegacyPointsAudit?: Prisma.ReportLegacyPointsAuditOmit
   learningAward?: Prisma.LearningAwardOmit
   finalExamAttempt?: Prisma.FinalExamAttemptOmit
+  trailCertificate?: Prisma.TrailCertificateOmit
   learningLegacyPointsAudit?: Prisma.LearningLegacyPointsAuditOmit
   quizAttemptReconciliation?: Prisma.QuizAttemptReconciliationOmit
 }

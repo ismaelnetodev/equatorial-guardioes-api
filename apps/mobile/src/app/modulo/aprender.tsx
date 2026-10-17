@@ -12,7 +12,7 @@ import { TrainingScreen } from '../../features/trails/training-screen'
 import { completeTraining, finishPost, getPostResult, getPreResult, getQuestions, getTraining, submitPostAnswer, submitPre, type Feedback, type PostResult, type PreResult, type Questions, type Training } from '../../features/trails/learning.api'
 
 export default function LearningScreen() {
-  const { moduleId, phase, result: showResult, completed } = useLocalSearchParams<{ moduleId: string; phase: string; result: string; completed: string }>()
+  const { moduleId, trailId, phase, result: showResult, completed } = useLocalSearchParams<{ moduleId: string; trailId?: string; phase: string; result: string; completed: string }>()
   const [questions, setQuestions] = useState<Questions | null>(null)
   const [training, setTraining] = useState<Training | null>(null)
   const [result, setResult] = useState<PreResult | PostResult | null>(null)
@@ -86,7 +86,7 @@ export default function LearningScreen() {
     scroll.current?.scrollTo({ y: 0, animated: false })
   }
 
-  if (!loading && result) return <QuizResultScreen result={result} completed={completed === '1'} busy={busy} error={error} onBack={() => { if (completed === '1') router.replace('/trilha'); else back() }} onTraining={() => router.replace({ pathname: '/modulo/aprender', params: { moduleId, phase: 'training', result: '0', completed } })} onComplete={() => { void act(async () => { await completeModule(moduleId); backAfterSave() }) }} onRetry={() => { void act(retryPost) }} />
+  if (!loading && result) return <QuizResultScreen result={result} completed={completed === '1'} busy={busy} error={error} onBack={() => { if (completed === '1') router.replace('/trilha'); else back() }} onTraining={() => router.replace({ pathname: '/modulo/aprender', params: { moduleId, trailId, phase: 'training', result: '0', completed } })} onComplete={() => { void act(async () => { await completeModule(moduleId); router.replace({ pathname: '/modulo/conclusao', params: { moduleId, ...(trailId ? { trailId } : {}) } }) }) }} onRetry={() => { void act(retryPost) }} />
 
   if (!loading && !result && questions) return <QuizQuestionScreen key={questions.questions[index]?.id ?? 'finish'} questions={questions} index={index} selected={selected} feedback={feedback} post={post} busy={busy} error={error} onSelect={optionId => { if (question) setAnswers(current => ({ ...current, [question.id]: optionId })) }} onConfirm={() => { void act(confirm) }} onClose={back} />
 

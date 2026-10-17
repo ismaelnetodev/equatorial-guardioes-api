@@ -6,11 +6,12 @@ import { StatusBar } from 'expo-status-bar'
 import type { Feedback, Questions } from './learning.api'
 
 type Props = {
-  questions: Questions
+  questions: Pick<Questions, 'questions' | 'totalCount'>
   index: number
   selected?: string
   feedback: Feedback | null
   post: boolean
+  finalExam?: boolean
   busy: boolean
   error: string
   onSelect: (id: string) => void
@@ -20,13 +21,13 @@ type Props = {
 const mono = Platform.OS === 'ios' ? 'Menlo' : 'monospace'
 const palette = { background: '#0B1240', field: '#141C55', selected: '#1E2870', border: '#2A3590', yellow: '#FFB81C', muted: '#B3B9D8', radio: '#7C86B5', green: '#14B86A', orange: '#FF7A1A' }
 
-export function QuizQuestionScreen({ questions, index, selected, feedback, post, busy, error, onSelect, onConfirm, onClose }: Props) {
+export function QuizQuestionScreen({ questions, index, selected, feedback, post, finalExam = false, busy, error, onSelect, onConfirm, onClose }: Props) {
   const [fontsLoaded, fontError] = useFonts({ Archivo_400Regular, Archivo_700Bold, Archivo_800ExtraBold })
   const [expanded, setExpanded] = useState(false)
   const question = questions.questions[index]
   const revealed = post && !!feedback
   const illustration = question?.imageUrl ? { uri: question.imageUrl } : revealed ? require('../../../assets/quiz-street-post.png') : require('../../../assets/quiz-street-pre.png')
-  const buttonTitle = revealed ? index === questions.totalCount - 1 ? 'Ver resultado' : 'Próxima pergunta' : !question ? 'Finalizar pós-teste' : 'Confirmar resposta'
+  const buttonTitle = finalExam && index === questions.totalCount - 1 ? 'Enviar prova final' : revealed ? index === questions.totalCount - 1 ? 'Ver resultado' : 'Próxima pergunta' : !question ? 'Finalizar pós-teste' : 'Confirmar resposta'
   const action = <Pressable accessibilityRole="button" accessibilityState={{ disabled: busy || !!question && !selected, busy }} disabled={busy || !!question && !selected} onPress={onConfirm} style={({ pressed }) => [styles.button, { opacity: busy || pressed ? 0.7 : 1 }, !!question && !selected && styles.buttonDisabled]}>{busy ? <ActivityIndicator color={palette.background} /> : <Text style={styles.buttonText}>{buttonTitle}</Text>}</Pressable>
 
   if (!fontsLoaded && !fontError) return <SafeAreaView style={[styles.screen, { justifyContent: 'center' }]}><ActivityIndicator color={palette.yellow} /></SafeAreaView>
@@ -37,7 +38,7 @@ export function QuizQuestionScreen({ questions, index, selected, feedback, post,
         <View style={styles.header}>
           <Pressable accessibilityRole="button" accessibilityLabel="Fechar quiz e voltar ao módulo" hitSlop={12} disabled={busy} onPress={onClose} style={styles.close}><View style={[styles.cross, styles.crossA]} /><View style={[styles.cross, styles.crossB]} /></Pressable>
           <Text accessibilityRole="header" style={styles.counter}>Pergunta {Math.min(index + 1, questions.totalCount)} de {questions.totalCount}</Text>
-          <View style={[styles.badge, post && styles.postBadge]}><Text style={[styles.badgeText, post && styles.postBadgeText]}>{post ? 'PÓS-TESTE' : 'PRÉ-TESTE'}</Text></View>
+          <View style={[styles.badge, post && styles.postBadge]}><Text style={[styles.badgeText, post && styles.postBadgeText]}>{finalExam ? 'PROVA FINAL' : post ? 'PÓS-TESTE' : 'PRÉ-TESTE'}</Text></View>
         </View>
         <View accessibilityRole="progressbar" accessibilityLabel="Progresso do quiz" accessibilityValue={{ min: 0, max: questions.totalCount, now: Math.min(index + 1, questions.totalCount) }} style={styles.progress}>{questions.questions.map((item, position) => <View key={item.id} style={[styles.segment, position <= index && styles.segmentFilled]} />)}</View>
         {question ? <>

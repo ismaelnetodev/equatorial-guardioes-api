@@ -178,7 +178,7 @@ O arquivo `apps/mobile/src/services/api.types.ts` é gerado automaticamente. Nã
 
 ## Banco de dados
 
-Para popular a tela de trilhas com conteúdo de demonstração, execute `npm run db:seed:demo` na raiz, usando o PostgreSQL configurado em `apps/api/.env`. O comando cria a trilha **Segurança no seu bairro**, com sete módulos ativos e publicados, treinamento em duas etapas com cartões e três perguntas por módulo, usadas no pré-teste e no pós-teste. O fluxo é pré-teste → treinamento → pós-teste → conclusão, respeitando as regras de aprovação e pontuação configuradas. A carga é transacional e usa IDs fixos: novas execuções não duplicam a trilha nem sobrescrevem edições feitas no painel. Na demonstração antiga, complementa somente os módulos de IDs conhecidos que ainda não tenham perguntas nem etapas, ativando o quiz. Módulos com conteúdo estruturado são preservados. Progressos e conclusões existentes são mantidos; para testar desde o início, use uma conta nova. O conteúdo é demonstrativo para testar o aplicativo. Ela não cria progresso de usuários ou concede pontos. Após executar, atualize a tela `/trilha`; contas comuns começam com o primeiro módulo disponível e os seguintes bloqueados pela sequência existente. A conta `ADMIN` tem acesso de consulta a todos os módulos, conforme a regra já existente na API.
+Para popular a tela de trilhas com conteúdo de demonstração, execute `npm run db:seed:demo` na raiz, usando o PostgreSQL configurado em `apps/api/.env`. O comando cria a trilha **Segurança no seu bairro**, com sete módulos ativos e publicados, treinamento em três etapas com cartões e três perguntas por módulo, usadas no pré-teste e no pós-teste. O fluxo é pré-teste → treinamento → pós-teste → conclusão, respeitando as regras de aprovação e pontuação configuradas. A carga é transacional e usa IDs fixos: novas execuções não duplicam a trilha nem sobrescrevem edições feitas no painel. Na demonstração antiga, complementa somente os módulos de IDs conhecidos que ainda não tenham perguntas nem etapas, ativando o quiz. Módulos com conteúdo estruturado são preservados. Progressos e conclusões existentes são mantidos; para testar desde o início, use uma conta nova. O conteúdo é demonstrativo para testar o aplicativo. Ela não cria progresso de usuários ou concede pontos. Após executar, atualize a tela `/trilha`; contas comuns começam com o primeiro módulo disponível e os seguintes bloqueados pela sequência existente. A conta `ADMIN` tem acesso de consulta a todos os módulos, conforme a regra já existente na API.
 
 O cadastro está em `/cadastrar`, acessível por “Criar conta” em `/entrar`. Após cadastrar, o app tenta autenticar e abre `/introducao`, com três etapas, sem o aviso de instalação na tela inicial. “Pular” e “Começar” abrem `/trilha` com sessão ou `/entrar` se a autenticação não foi concluída. O seletor consulta `GET /api/v1/neighborhoods/?municipalityCode=2111300`, busca por nome sem diferenciar acentos e permite informar “Outro bairro”. Nomes livres ficam no usuário, sem contaminar o catálogo de origem oficial. O cadastro envia `neighborhoodId` quando a escolha vem do catálogo; a API valida o município e utiliza o nome armazenado no banco.
 
@@ -291,6 +291,32 @@ O campo `moduleCompletion` em aprendizado/resultados mostra pontos liberados e
 pendentes. `totalPoints` soma as concessões efetivas do módulo, inclusive em
 outras tentativas; não soma apenas a tentativa mais recente.
 
+O aplicativo consulta e libera a fila ao abrir a trilha, o extrato ou a conclusão
+do módulo. A liberação reconcilia os dias já transcorridos desde cada conclusão,
+respeitando os limites atuais por dia de Fortaleza e preservando o valor original
+de cada concessão. Não altera transações já liberadas.
+
+- `GET /api/v1/progress/learning`: pontos de aprendizado liberados, pendentes,
+  limites diários e previsão da próxima liberação.
+- `GET /api/v1/progress/learning/history?offset=0&limit=20`: histórico paginado
+  das concessões de aprendizado do próprio usuário. Pontos de relatos não entram
+  nesse resumo. As telas `/trilha` e `/pontos` usam esses dados reais.
+
+### Conclusão e certificado da trilha
+
+- `GET /api/v1/trails/:trailId/completion`: progresso, disponibilidade da prova
+  final, último resultado e certificado do próprio usuário.
+- `POST /api/v1/trails/:trailId/certificate`: emite ou retorna o certificado
+  existente. Exige todos os módulos publicados concluídos, prova final aprovada
+  e recompensa de certificado ativa. Não exige saldo mínimo nem concede pontos.
+
+Todas essas operações exigem autenticação e usam o usuário da sessão, sem aceitar
+um identificador de outro usuário. A tela `/modulo/prova-final` apresenta a espera,
+aplica a prova pela API e permite emitir e compartilhar o certificado e selo.
+A migration `20261017160000_trail_certificates` preserva nome e título na emissão;
+novas chamadas retornam o mesmo certificado. O compartilhamento é textual; geração
+de PDF e validação pública de certificados ainda não estão implementadas.
+
 Prova final autenticada da trilha:
 
 - `GET /api/v1/trails/:trailId/final-exam`: perguntas sem gabarito de todos os
@@ -339,3 +365,9 @@ atualizados em [administração de conteúdo](docs/content-administration.md).
 ### Tempo de leitura dos módulos
 
 A API estima a leitura a 200 palavras por minuto, em segundos, usando o conteúdo do módulo ou o texto das etapas/cards quando o módulo exige quiz e possui treinamento estruturado. A estimativa é uma convenção do produto. O campo `readingSeconds` do progresso é exibido no detalhe do módulo. O limite `module_minimum_time` continua sendo um percentual, agora aplicado a essa estimativa em vez de `durationMinutes`. A duração cadastrada permanece como metadado editorial. O tempo mínimo continua contando de `startedAt`; ao tentar concluir antes dele, a API informa o tempo restante. Sem alteração de schema ou migration.
+
+
+Para reiniciar o Expo sem o cache do Metro, execute `npm run dev:mobile -- --clear --lan`. O script da raiz repassa os argumentos ao workspace mobile; confirme que a saída mostra `expo start --clear --lan`. Reabra no Expo Go o projeto servido por essa sessão.
+
+
+O seed de demonstração também acrescenta a etapa `DO_NOT` (O que NÃO fazer) quando identifica exatamente as duas etapas originais, sem edição de títulos, introduções, durações ou cartões. Novas execuções não duplicam a etapa. Quizzes, tentativas e conclusões existentes são preservados. A tela de conclusão consulta novamente o progresso confirmado pela API, os pontos efetivamente concedidos e os pendentes; o espaço de progresso mostra módulos concluídos da trilha, pois ainda não há contrato de patentes. O botão Reportar abre a entrada já existente na trilha; o formulário de envio continua pendente.

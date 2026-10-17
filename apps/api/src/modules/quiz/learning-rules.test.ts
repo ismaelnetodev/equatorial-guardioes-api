@@ -37,6 +37,16 @@ beforeEach(() => {
 })
 
 describe('conclusão de módulos v2', () => {
+  it('reconcilia sete módulos em quatro dias mesmo sem abrir o aplicativo nos dias intermediários', async () => {
+    for (const module of ['a', 'b', 'c', 'd', 'e', 'f', 'g']) await queueModuleAward(tx, 'user', module, 'trail')
+    expect(await releasePendingModules(tx, 'user', now)).toEqual({ pointsReleased: 4 })
+    expect(await releasePendingModules(tx, 'user', new Date(now.getTime() + 3 * 86400000))).toEqual({ pointsReleased: 10 })
+    expect(rows.filter(row => row.grantedAt)).toHaveLength(7)
+    expect(await releasePendingModules(tx, 'user', new Date(now.getTime() + 3 * 86400000))).toEqual({ pointsReleased: 0 })
+    const buckets = new Map<string, number>()
+    for (const row of rows) { const day = new Date(row.grantedAt!.getTime() - 10800000).toISOString().slice(0, 10); buckets.set(day, (buckets.get(day) ?? 0) + row.points) }
+    expect([...buckets.values()]).toEqual([4, 4, 4, 2])
+  })
   it('concede somente dois módulos por dia e libera o excedente no dia seguinte', async () => {
     for (const module of ['a', 'b', 'c']) await queueModuleAward(tx, 'user', module, 'trail')
     expect(await releasePendingModules(tx, 'user', now)).toEqual({ pointsReleased: 4 })

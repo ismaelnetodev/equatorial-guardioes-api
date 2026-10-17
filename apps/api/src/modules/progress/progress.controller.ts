@@ -1,7 +1,8 @@
 import { claimLearningAwards, LearningError } from '../quiz/learning-rules.service.js'
 import type { FastifyReply, FastifyRequest } from 'fastify'
 import { ProgressError, completeModule, getTrailProgress, startModule } from './progress.service.js'
-import type { ModuleProgressParams, TrailProgressParams } from './progress.schemas.js'
+import type { ModuleProgressParams, TrailProgressParams, LearningHistoryQuery } from './progress.schemas.js'
+import { getLearningHistory, getLearningSummary } from './learning-summary.service.js'
 import { AuthenticationError, getAuthenticatedUser } from '../../lib/auth-user.js'
 
 function sendProgressError(reply: FastifyReply, error: unknown) {
@@ -40,4 +41,14 @@ export async function claimLearningAwardsController(request: FastifyRequest, rep
     const user = await getAuthenticatedUser(request.headers.authorization)
     return await claimLearningAwards(user.id)
   } catch (error) { return sendProgressError(reply, error) }
+}
+
+export async function learningSummaryController(request: FastifyRequest, reply: FastifyReply) {
+  try { const user = await getAuthenticatedUser(request.headers.authorization); return await getLearningSummary(user.id) }
+  catch (error) { return sendProgressError(reply, error) }
+}
+
+export async function learningHistoryController(request: FastifyRequest<{ Querystring: LearningHistoryQuery }>, reply: FastifyReply) {
+  try { const user = await getAuthenticatedUser(request.headers.authorization); return await getLearningHistory(user.id, request.query.offset ?? 0, request.query.limit ?? 20) }
+  catch (error) { return sendProgressError(reply, error) }
 }

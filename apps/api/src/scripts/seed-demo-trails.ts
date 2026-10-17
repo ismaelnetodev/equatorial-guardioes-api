@@ -1,6 +1,6 @@
 import 'dotenv/config'
 import { getPrisma } from '../lib/prisma.js'
-import { demoQuestions, demoTraining } from './demo-learning.js'
+import { demoQuestions, demoTraining, isLegacyDemoTraining } from './demo-learning.js'
 
 const trailId = 'd3e00000-0000-4000-8000-000000000001'
 const modules = [
@@ -138,11 +138,17 @@ try {
     const existing = await tx.trail.findUnique({ where: { id: trailId }, select: { id: true, title: true, _count: { select: { modules: true } } } })
     if (existing) {
       let enriched = 0
+      let avoidanceAdded = 0
       for (const [index] of modules.entries()) {
         const id = `d3e10000-0000-4000-8000-${String(index + 1).padStart(12, '0')}`
-        const module = await tx.trailModule.findUnique({ where: { id }, select: { trailId: true, content: true, _count: { select: { quizQuestions: true, trainingSteps: true } } } })
+        const module = await tx.trailModule.findUnique({ where: { id }, select: { trailId: true, content: true, requiresQuiz: true, trainingSteps: { orderBy: { order: 'asc' }, select: { order: true, title: true, kind: true, introText: true, durationMinutes: true, cards: { orderBy: { order: 'asc' }, select: { order: true, title: true, description: true } } } }, _count: { select: { quizQuestions: true, trainingSteps: true } } } })
         if (!module || module.trailId !== trailId) continue
-        // Preserva conteúdos estruturados já cadastrados no painel e todos os progressos.
+        // Complementa somente a versão antiga exata da demonstração; nunca substitui etapas ou respostas.
+        if (module.requiresQuiz && module._count.quizQuestions > 0 && isLegacyDemoTraining(module.content, module.trainingSteps)) {
+          await tx.trailModule.update({ where: { id }, data: { trainingSteps: { create: demoTraining(module.content).filter(step => step.kind === 'DO_NOT') } } })
+          avoidanceAdded++
+          continue
+        }
         if (module._count.quizQuestions !== 0 || module._count.trainingSteps !== 0) continue
         await tx.trailModule.update({ where: { id }, data: {
           requiresQuiz: true,
@@ -151,7 +157,7 @@ try {
         } })
         enriched++
       }
-      return { created: false, id: existing.id, title: existing.title, modules: existing._count.modules, enriched }
+      return { created: false, id: existing.id, title: existing.title, modules: existing._count.modules, enriched, avoidanceAdded }
     }
 
     const aggregate = await tx.trail.aggregate({ _max: { order: true } })
@@ -176,6 +182,6 @@ try {
       select: { id: true, title: true, _count: { select: { modules: true } } },
     })
     return { created: true, id: trail.id, title: trail.title, modules: trail._count.modules }
-  }, { isolationLevel: 'Serializable', timeout: 60000 })
+  }, { isolationLevel: 'Serializable', maxWait: 15000, timeout: 60000 })
   console.log(JSON.stringify(result))
 } finally { await db.$disconnect() }
