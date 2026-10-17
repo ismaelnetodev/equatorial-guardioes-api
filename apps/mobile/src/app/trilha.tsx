@@ -13,7 +13,6 @@ import { getTrail, getTrailProgress, listTrails, type TrailDetails, type TrailMo
 import { getTrailCompletion, refreshLearningSummary, type LearningSummary, type TrailCompletion } from '../features/trails/progress.api'
 import { getProfile, getRanking, type Profile, type Ranking } from '../features/community/community.api'
 import { createReport, listReports, type ReportsList } from '../features/reports/reports.api'
-import { getTrail, listTrails, type TrailDetails, type TrailModule, type Trails } from '../features/trails/trails.api'
 import { ApiError } from '../services/api'
 import { clearAccessToken, getAccessToken } from '../services/session'
 
@@ -42,7 +41,6 @@ export default function TrailScreen() {
   const [reportDescription, setReportDescription] = useState('')
   const [reportAddress, setReportAddress] = useState('')
   const [reportBusy, setReportBusy] = useState(false)
-  const scroll = useRef<{ scrollTo: (options: { y?: number; animated?: boolean }) => void } | null>(null)
 
   useEffect(() => {
     if (params.panel === 'report') { setPanel('report'); router.setParams({ panel: undefined }) }
@@ -55,10 +53,10 @@ export default function TrailScreen() {
       setLoading(true); setError(''); setTrail(null)
       try {
         if (!await getAccessToken()) { router.replace('/entrar'); return }
-        const [account, catalog, balance] = await Promise.all([getCurrentUser(controller.signal), listTrails(controller.signal), refreshLearningSummary(controller.signal)])
-        const [account, catalog, accountProfile] = await Promise.all([
+        const [account, catalog, balance, accountProfile] = await Promise.all([
           getCurrentUser(controller.signal),
           listTrails(controller.signal),
+          refreshLearningSummary(controller.signal),
           getProfile(controller.signal),
         ])
         const id = catalog.find(item => item.id === selected)?.id ?? catalog[0]?.id
@@ -68,7 +66,7 @@ export default function TrailScreen() {
           const module = details.modules.find(item => item.id === state.moduleId)
           return module ? [{ ...module, status: state.status }] : []
         }) } : details
-        setUser(account); setTrails(catalog); setTrail(visible); setPoints(balance); setCompletion(finished)
+        setUser(account); setProfile(accountProfile); setTrails(catalog); setTrail(visible); setPoints(balance); setCompletion(finished)
       } catch (cause) {
         if (controller.signal.aborted) return
         if (cause instanceof ApiError && cause.status === 401) { router.replace('/entrar'); return }
@@ -108,10 +106,6 @@ export default function TrailScreen() {
   const completedCount = modules.filter(item => item.status === 'completed').length
   const firstName = user?.name.trim().split(/\s+/)[0] ?? 'Guardião'
   const initials = user?.name.trim().split(/\s+/).filter(Boolean).slice(0, 2).map(part => part[0]).join('').toUpperCase() ?? 'G'
-  const levelProgress = profile?.level.pointsToNextLevel == null || !profile.level.nextLevel
-    ? 1
-    : Math.max(0, Math.min(1, 1 - profile.level.pointsToNextLevel / Math.max(profile.level.pointsToNextLevel + profile.accumulated, 1)))
-
   function openPanel(value: Panel) { setActionError(''); setPanel(value) }
   function openModule(value: TrailModule) {
     if (!trail) return
@@ -152,7 +146,7 @@ export default function TrailScreen() {
   return <View style={styles.screen}>
     <StatusBar style="light" />
     <SafeAreaView edges={['top']} style={styles.main}>
-      <ScrollView ref={scroll as never} contentContainerStyle={styles.content} refreshControl={<RefreshControl refreshing={loading} onRefresh={() => setAttempt(value => value + 1)} tintColor={colors.primary} />}>
+      <ScrollView ref={scroll} contentContainerStyle={styles.content} refreshControl={<RefreshControl refreshing={loading} onRefresh={() => setAttempt(value => value + 1)} tintColor={colors.primary} />}>
         <ImageBackground source={require('../../assets/lencois-login.png')} resizeMode="cover" style={styles.hero}>
           <View style={styles.greeting}>
             <View style={styles.avatar}><Text style={styles.initials}>{initials}</Text></View>

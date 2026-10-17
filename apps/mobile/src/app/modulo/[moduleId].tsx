@@ -6,12 +6,10 @@ import { SafeAreaView } from 'react-native-safe-area-context'
 import { AppIcon } from '../../components/app-icon'
 import { Button, colors } from '../../components/ui'
 import { EmergencyBanner } from '../../components/emergency-banner'
-import { completeTraining, getLearnState, type LearnState } from '../../features/learn/learn.api'
 import { completeModule, getTrail, getTrailProgress, startModule, type TrailModule, type TrailProgress } from '../../features/trails/trails.api'
+import { getLearnState, type LearnState } from '../../features/trails/learning.api'
 import { ApiError, errorMessage } from '../../services/api'
 import { getAccessToken } from '../../services/session'
-
-import { getLearnState, type LearnState } from '../../features/trails/learning.api'
 
 type ModuleProgress = TrailProgress['modules'][number]
 
@@ -32,7 +30,6 @@ export default function ModuleScreen() {
   const [learn, setLearn] = useState<LearnState | null>(null)
   const [module, setModule] = useState<TrailModule | null>(null)
   const [progress, setProgress] = useState<ModuleProgress | null>(null)
-  const [learn, setLearn] = useState<LearnState | null>(null)
   const [number, setNumber] = useState(0)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
@@ -63,10 +60,7 @@ export default function ModuleScreen() {
         }
         if (controller.signal.aborted) return
         setModule({ ...item, status: state.status }); setProgress(state); setNumber(index)
-        if (state.requiresQuiz && state.status !== 'blocked' && state.status !== 'available') {
-          const learning = await getLearnState(item.id, controller.signal)
-          if (!controller.signal.aborted) setLearn(learning)
-        }
+        if (state.requiresQuiz && state.status !== 'blocked' && state.status !== 'available' && learnState) setLearn(learnState)
       } catch (cause) {
         if (controller.signal.aborted) return
         if (cause instanceof ApiError && cause.status === 401) { router.replace('/entrar'); return }
@@ -168,7 +162,7 @@ export default function ModuleScreen() {
           <Text accessibilityRole="header" style={styles.readerTitle}>Treinamento</Text>
           <Text selectable style={styles.reading}>{module.content || 'O conteúdo deste módulo ainda não está disponível.'}</Text>
 
-          <View style={styles.footer}>{completed ? <Button title="Voltar ao módulo" onPress={back} /> : <Button title="Concluir treinamento" loading={busy} disabled={requiresQuiz || !module.content} onPress={() => { void finish() }} />}</View>
+          <View style={styles.footer}>{completed ? <Button title="Voltar ao módulo" onPress={back} /> : <Button title="Concluir treinamento" loading={busy} disabled={requiresQuiz || !module.content} onPress={() => { void finishTraining() }} />}</View>
         </> : <>
           <Text style={styles.description}>{module.description}</Text>
           {blocked ? <View style={styles.section}><Text style={styles.description}>Conclua os módulos anteriores para liberar este conteúdo.</Text><Button title="Voltar para trilha" onPress={back} /></View> : <>

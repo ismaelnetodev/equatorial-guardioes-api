@@ -31,7 +31,7 @@ type ProfileDestination = {
   title: string
   icon: ProfileSymbolName
   value?: string
-  route?: '/relatos' | '/recompensas' | '/convidar' | '/como-funciona' | '/termos'
+  route?: '/relatos' | '/pontos' | '/recompensas' | '/convidar' | '/como-funciona' | '/termos'
 }
 
 export default function ProfileScreen() {
@@ -64,6 +64,7 @@ export default function ProfileScreen() {
 
   const menu: ProfileDestination[] = [
     { title: 'Meus relatos', icon: 'report', value: profile?.reportsCount == null ? '—' : String(profile.reportsCount), route: '/relatos' },
+    { title: 'Pontos de aprendizado', icon: 'book', route: '/pontos' },
     { title: 'Recompensas', icon: 'gift', value: profile ? `${profile.balance} pts` : '—', route: '/recompensas' },
     { title: 'Convidar amigos', icon: 'invite', route: '/convidar' },
     { title: 'Como funciona', icon: 'book', route: '/como-funciona' },

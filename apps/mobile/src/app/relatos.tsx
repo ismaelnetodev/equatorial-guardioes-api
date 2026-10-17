@@ -4,19 +4,23 @@ import { router, useFocusEffect } from 'expo-router'
 import { Button, colors } from '../components/ui'
 import { ProfilePage } from '../components/profile-page'
 import { ProfileSymbol } from '../components/profile-symbol'
-import { listReports, type ReportsList } from '../features/reports/reports.api'
-import { ApiError } from '../services/api'
+import { getPendingImpact, listReports, markImpactSeen, type PendingImpact, type ReportsList } from '../features/reports/reports.api'
+import { ApiError, errorMessage } from '../services/api'
 
 export default function ReportsScreen() {
   const [data, setData] = useState<ReportsList | null>(null)
+  const [impact, setImpact] = useState<PendingImpact | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
+  const [impactError, setImpactError] = useState('')
+  const [impactBusy, setImpactBusy] = useState(false)
   const [attempt, setAttempt] = useState(0)
 
   useFocusEffect(useCallback(() => {
     const controller = new AbortController()
     setLoading(true)
     setError('')
+    setImpactError('')
     listReports(controller.signal)
       .then(result => { if (!controller.signal.aborted) setData(result) })
       .catch(cause => {
@@ -28,12 +32,47 @@ export default function ReportsScreen() {
         setError(cause instanceof ApiError ? cause.message : 'Não foi possível carregar seus relatos.')
       })
       .finally(() => { if (!controller.signal.aborted) setLoading(false) })
+    getPendingImpact(controller.signal)
+      .then(result => { if (!controller.signal.aborted) setImpact(result) })
+      .catch(cause => {
+        if (controller.signal.aborted) return
+        if (cause instanceof ApiError && cause.status === 401) {
+          router.replace('/entrar')
+          return
+        }
+        setImpactError(errorMessage(cause, 'Não foi possível carregar a atualização de impacto.'))
+      })
     return () => controller.abort()
   }, [attempt]))
+
+  async function acknowledgeImpact() {
+    if (!impact || impactBusy) return
+    setImpactBusy(true)
+    setImpactError('')
+    try {
+      await markImpactSeen(impact.reportId)
+      setImpact(null)
+    } catch (cause) {
+      if (cause instanceof ApiError && cause.status === 401) {
+        router.replace('/entrar')
+        return
+      }
+      setImpactError(errorMessage(cause, 'Não foi possível confirmar que você viu esta atualização.'))
+    } finally {
+      setImpactBusy(false)
+    }
+  }
 
   return (
     <ProfilePage title="Meus relatos">
       <ScrollView contentContainerStyle={styles.content}>
+        {impactError ? <View style={styles.impactError}><Text accessibilityRole="alert" style={styles.description}>{impactError}</Text><Button title="Tentar novamente" outline onPress={() => setAttempt(value => value + 1)} /></View> : null}
+        {impact ? <View style={styles.impactCard}>
+          <Text style={styles.impactTitle}>{impact.title}</Text>
+          <Text style={styles.description}>{impact.message}</Text>
+          <Text style={styles.points}>+{impact.pointsAwarded} pts · {impact.neighborhood}</Text>
+          <Button title={impactBusy ? 'Confirmando…' : 'Entendi'} disabled={impactBusy} onPress={() => { void acknowledgeImpact() }} />
+        </View> : null}
         {loading ? <ActivityIndicator color={colors.primary} style={styles.state} accessibilityLabel="Carregando relatos" /> :
           error ? <View style={styles.state}><Text accessibilityRole="alert" style={styles.description}>{error}</Text><Button title="Tentar novamente" onPress={() => setAttempt(value => value + 1)} /></View> :
           data ? <>
@@ -79,6 +118,9 @@ function Summary({ value, label }: { value: number; label: string }) {
 const styles = StyleSheet.create({
   content: { flexGrow: 1, paddingHorizontal: 18, paddingTop: 10, paddingBottom: 25 },
   state: { paddingVertical: 30, gap: 14 },
+  impactError: { gap: 10, padding: 14, borderRadius: 16, backgroundColor: colors.field, borderWidth: 1, borderColor: colors.warning },
+  impactCard: { gap: 9, padding: 15, marginBottom: 14, borderRadius: 16, backgroundColor: '#171F5E', borderWidth: 1, borderColor: colors.primary },
+  impactTitle: { color: colors.primary, fontSize: 15, fontWeight: '800' },
   summary: { minHeight: 76, flexDirection: 'row', alignItems: 'center', borderRadius: 16, backgroundColor: colors.field },
   summaryItem: { flex: 1, alignItems: 'center', gap: 4 },
   summaryValue: { color: colors.text, fontSize: 19, fontWeight: '800' },
