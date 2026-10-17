@@ -48,6 +48,9 @@ export const adminTrailDetailsSchema = Type.Object({ ...adminTrailSchema.propert
 export const adminTrailsSchema = Type.Array(adminTrailSchema)
 export const adminModulesSchema = Type.Array(adminModuleSchema)
 export const adminErrorSchema = Type.Object({ code: Type.String(), message: Type.String() }, { additionalProperties: false })
+export const changePasswordSchema = Type.Object({ currentPassword: Type.String({ minLength: 1, maxLength: 128 }), newPassword: Type.String({ minLength: 8, maxLength: 128 }) }, { additionalProperties: false })
+export type ChangePassword = Static<typeof changePasswordSchema>
+export const passwordChangedSchema = Type.Object({ message: Type.String() })
 
 const nonEmptyText = Type.String({ minLength: 1, pattern: '\\S' })
 

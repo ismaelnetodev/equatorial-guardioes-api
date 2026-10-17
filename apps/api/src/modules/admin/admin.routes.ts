@@ -10,6 +10,7 @@ export const adminRoutes: FastifyPluginAsyncTypebox = async app => {
   app.addHook('onRequest', controller.authorizeAdminRequest)
   const common = { tags: ['Admin'], security: [{ bearerAuth: [] }] }
   const errors = { 400: schema.adminErrorSchema, 401: schema.adminErrorSchema, 403: schema.adminErrorSchema, 404: schema.adminErrorSchema, 409: schema.adminErrorSchema, 422: schema.adminErrorSchema }
+  app.patch('/password', { config: { rateLimit: { max: 5, timeWindow: '15 minutes' } }, schema: { ...common, summary: 'Altera a senha do próprio administrador', body: schema.changePasswordSchema, response: { 200: schema.passwordChangedSchema, ...errors, 429: schema.adminErrorSchema } } }, controller.changePasswordController)
   app.get('/trails', { schema: { ...common, summary: 'Lista todas as trilhas para administração', response: { 200: schema.adminTrailsSchema, ...errors } } }, controller.listTrailsController)
   app.get('/trails/:trailId', { schema: { ...common, summary: 'Consulta uma trilha e todos os seus módulos', params: schema.adminTrailParamsSchema, response: { 200: schema.adminTrailDetailsSchema, ...errors } } }, controller.getTrailController)
   app.post('/trails', { schema: { ...common, summary: 'Cadastra uma trilha em rascunho', body: schema.createTrailSchema, response: { 201: schema.adminTrailSchema, ...errors } } }, controller.createTrailController)

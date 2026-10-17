@@ -34,7 +34,7 @@ export default function LoginScreen() {
     setLoading(true)
     try {
       await login({ ...(email ? { email: value.toLowerCase() } : { cellphone: phone }), password })
-      router.replace('/inicio')
+      router.replace('/trilha')
     } catch (cause) {
       setError(cause instanceof ApiError ? cause.message : cause instanceof TypeError ? 'Não foi possível conectar à API. Verifique sua conexão e tente novamente.' : cause instanceof Error ? cause.message : 'Não foi possível entrar. Tente novamente.')
     } finally { pending.current = false; setLoading(false) }
@@ -54,6 +54,7 @@ export default function LoginScreen() {
           <Pressable accessibilityRole="button" onPress={() => router.push('/cadastrar')} style={styles.signup}><Text style={styles.muted}>Ainda não é Guardião? <Text style={styles.link}>Criar conta</Text></Text></Pressable>
           <Text style={styles.or}>ou</Text>
           <Button title="Entrar com Google" outline icon={<Image source={require('../../assets/google.png')} style={{ width: 20, height: 20 }} accessible={false} />} onPress={() => setNotice('O login com Google ainda não está disponível. Use seu celular ou e-mail e senha.')} />
+          <Pressable accessibilityRole="button" onPress={() => router.push('/admin')} style={styles.signup}><Text style={styles.link}>Acesso administrativo</Text></Pressable>
           {notice ? <Text accessibilityLiveRegion="polite" style={styles.notice}>{notice}</Text> : null}
           <View style={styles.emergency}><EmergencyBanner onError={() => setNotice('Não foi possível abrir o telefone. Ligue 116 pelo seu celular.')} /></View>
         </View>
