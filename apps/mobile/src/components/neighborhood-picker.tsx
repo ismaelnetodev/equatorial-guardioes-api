@@ -1,5 +1,7 @@
+import { LoadFailure, useLoadFailureKind } from './load-failure'
+import { ContentSkeleton } from './content-skeleton'
 import { useEffect, useState } from 'react'
-import { ActivityIndicator, FlatList, KeyboardAvoidingView, Modal, Platform, Pressable, StyleSheet, Text, View } from 'react-native'
+import { FlatList, KeyboardAvoidingView, Modal, Platform, Pressable, StyleSheet, Text, View } from 'react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { Button, colors, InputField } from './ui'
 import { FormIcon } from './form-icon'
@@ -14,6 +16,7 @@ export function NeighborhoodPicker({ visible, value, onClose, onConfirm }: {
   const insets = useSafeAreaInsets()
   const [items, setItems] = useState<Neighborhood[]>([])
   const [loading, setLoading] = useState(false)
+  const { offline, recordFailure } = useLoadFailureKind()
   const [error, setError] = useState('')
   const [query, setQuery] = useState('')
   const [selection, setSelection] = useState<NeighborhoodSelection | null>(value)
@@ -29,7 +32,7 @@ export function NeighborhoodPicker({ visible, value, onClose, onConfirm }: {
     let active = true
     setLoading(true); setError('')
     getNeighborhoods().then(response => { if (active) setItems(response.neighborhoods) })
-      .catch(() => { if (active) setError('Não foi possível carregar os bairros. Tente novamente.') })
+      .catch((cause: unknown) => { if (active) { recordFailure(cause); setError('Não foi possível carregar os bairros. Tente novamente.') } })
       .finally(() => { if (active) setLoading(false) })
     return () => { active = false }
   }, [visible, retry])
@@ -43,7 +46,7 @@ export function NeighborhoodPicker({ visible, value, onClose, onConfirm }: {
         <View style={styles.header}><Text accessibilityRole="header" style={styles.title}>Seu bairro</Text><Pressable onPress={onClose} accessibilityRole="button" accessibilityLabel="Fechar" hitSlop={10}><Text style={styles.close}>×</Text></Pressable></View>
         <Text style={styles.description}>O ranking é por bairro. Você pode trocar uma vez por mês.</Text>
         <InputField label="Buscar bairro" leading={<FormIcon name="search" />} value={query} onChangeText={setQuery} placeholder="Buscar bairro" autoCorrect={false} />
-        {loading ? <ActivityIndicator color={colors.primary} style={styles.loading} accessibilityLabel="Carregando bairros" /> : error ? <View style={styles.loading}><Text accessibilityRole="alert" style={styles.description}>{error}</Text><Button title="Tentar novamente" outline onPress={() => setRetry(v => v + 1)} /></View> : <FlatList
+        {loading ? <ContentSkeleton variant="list" surface="sheet" label="Carregando bairros" /> : error ? <LoadFailure offline={offline} compact onRetry={() => setRetry(value => value + 1)} /> : <FlatList
           keyboardShouldPersistTaps="handled" data={filtered} keyExtractor={item => item.id} style={styles.list}
           ListEmptyComponent={<Text style={styles.description}>{items.length ? 'Nenhum bairro encontrado.' : 'Nenhum bairro disponível no momento.'}</Text>}
           renderItem={({ item }) => {

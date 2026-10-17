@@ -1,3 +1,4 @@
+import { ContentSkeleton } from '../../components/content-skeleton'
 import { useFonts, Archivo_400Regular, Archivo_700Bold, Archivo_800ExtraBold } from '@expo-google-fonts/archivo'
 import { ActivityIndicator, Image, ImageBackground, Platform, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
@@ -24,7 +25,7 @@ export function QuizResultScreen({ result, completed, busy, error, onBack, onTra
   const post = 'isApproved' in result ? result : null
   const pre = 'hint' in result ? result : null
   const approved = post?.isApproved === true
-  if (!loaded && !fontError) return <SafeAreaView style={styles.loading}><ActivityIndicator color={c.yellow} /></SafeAreaView>
+  if (!loaded && !fontError) return <SafeAreaView style={{ flex: 1, backgroundColor: '#0B1240' }}><ScrollView contentContainerStyle={{ padding: 20 }}><ContentSkeleton variant="result" /></ScrollView></SafeAreaView>
 
   function action(label: string, onPress: () => void, icon?: 'book' | 'check' | 'retry', outline = false) {
     return <Pressable accessibilityRole="button" accessibilityState={{ busy, disabled: busy }} disabled={busy} onPress={onPress} style={({ pressed }) => [styles.button, outline && styles.outline, { opacity: busy || pressed ? 0.7 : 1 }]}>

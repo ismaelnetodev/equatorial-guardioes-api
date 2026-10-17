@@ -1,6 +1,8 @@
+import { LoadFailure, useLoadFailureKind } from '../../components/load-failure'
+import { ContentSkeleton } from '../../components/content-skeleton'
 import { useEffect, useRef, useState } from 'react'
 import { router, useLocalSearchParams } from 'expo-router'
-import { ActivityIndicator, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native'
+import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { StatusBar } from 'expo-status-bar'
 import { Button, colors } from '../../components/ui'
@@ -21,6 +23,7 @@ export default function LearningScreen() {
   const [answers, setAnswers] = useState<Record<string, string>>({})
   const [loading, setLoading] = useState(true)
   const [busy, setBusy] = useState(false)
+  const { offline, recordFailure } = useLoadFailureKind()
   const [error, setError] = useState('')
   const [retry, setRetry] = useState(0)
   const pending = useRef(false)
@@ -28,7 +31,7 @@ export default function LearningScreen() {
   const post = phase === 'pos'
   const title = phase === 'training' ? 'Treinamento' : post ? 'Pós-teste' : 'Pré-teste'
 
-  function fail(cause: unknown) {
+  function fail(cause: unknown) { recordFailure(cause);
     if (cause instanceof ApiError && cause.status === 401) { router.replace('/entrar'); return }
     setError(errorMessage(cause))
   }
@@ -48,7 +51,7 @@ export default function LearningScreen() {
           const data = await getQuestions(moduleId, post ? 'pos' : 'pre', controller.signal)
           if (!controller.signal.aborted) { setQuestions(data); setIndex(post ? data.answeredCount ?? 0 : 0) }
         }
-      } catch (cause) { if (!controller.signal.aborted) fail(cause) }
+      } catch (cause) { recordFailure(cause); if (!controller.signal.aborted) fail(cause) }
       finally { if (!controller.signal.aborted) setLoading(false) }
     }
     void load()
@@ -58,7 +61,7 @@ export default function LearningScreen() {
   async function act(operation: () => Promise<void>) {
     if (pending.current) return
     pending.current = true; setBusy(true); setError('')
-    try { await operation() } catch (cause) { fail(cause) }
+    try { await operation() } catch (cause) { recordFailure(cause); fail(cause) }
     finally { pending.current = false; setBusy(false) }
   }
   function advance() { setIndex(value => value + 1); setFeedback(null); scroll.current?.scrollTo({ y: 0, animated: false }) }
@@ -94,8 +97,8 @@ export default function LearningScreen() {
 
   return <SafeAreaView style={styles.screen}><StatusBar style="light" /><ScrollView ref={scroll} contentContainerStyle={styles.content}>
     <View style={styles.header}><Pressable accessibilityRole="button" accessibilityLabel="Voltar ao módulo" onPress={back} disabled={busy} hitSlop={12}><Text style={styles.back}>‹</Text></Pressable><Text style={styles.title}>{title}</Text></View>
-    {loading ? <ActivityIndicator color={colors.primary} /> : null}
-    {error ? <View style={styles.card}><Text accessibilityRole="alert" style={styles.copy}>{error}</Text>{!result && !questions && !training ? <><Button title="Tentar novamente" outline disabled={busy} onPress={() => setRetry(value => value + 1)} /><Button title="Voltar ao módulo" outline disabled={busy} onPress={back} /></> : null}</View> : null}
+    {loading ? <ContentSkeleton variant={showResult ? 'result' : phase === 'training' ? 'training' : 'quiz'} label="Carregando conteúdo" /> : null}
+    {error ? <LoadFailure offline={offline} onRetry={() => setRetry(value => value + 1)} /> : null}
   </ScrollView></SafeAreaView>
 
   function backAfterSave() { if (router.canGoBack()) router.back(); else router.replace('/trilha') }

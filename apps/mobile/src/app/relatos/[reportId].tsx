@@ -1,8 +1,10 @@
+import { LoadFailure, useLoadFailureKind } from '../../components/load-failure'
+import { ContentSkeleton } from '../../components/content-skeleton'
 import { Archivo_400Regular, Archivo_700Bold, Archivo_800ExtraBold, useFonts } from '@expo-google-fonts/archivo'
 import { router, useLocalSearchParams } from 'expo-router'
 import { StatusBar } from 'expo-status-bar'
 import { useEffect, useState } from 'react'
-import { ActivityIndicator, Image, Linking, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native'
+import { Image, Linking, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import Svg, { Circle, Defs, LinearGradient, Path, Rect, Stop } from 'react-native-svg'
 import { ReportStatusBadge } from '../../features/reports/my-reports-screen'
@@ -34,6 +36,7 @@ export default function ReportDetailScreen() {
   const [fontsLoaded, fontError] = useFonts({ Archivo_400Regular, Archivo_700Bold, Archivo_800ExtraBold })
   const [report, setReport] = useState<ReportDetail | null>(null)
   const [loading, setLoading] = useState(true)
+  const { offline, recordFailure } = useLoadFailureKind()
   const [error, setError] = useState('')
   const [mapError, setMapError] = useState('')
   const [attempt, setAttempt] = useState(0)
@@ -45,7 +48,7 @@ export default function ReportDetailScreen() {
     if (!reportId) { setError('Relato não encontrado.'); setLoading(false); return () => controller.abort() }
     void getReport(reportId, controller.signal).then(data => {
       if (!controller.signal.aborted) setReport(data)
-    }).catch((cause: unknown) => {
+    }).catch((cause: unknown) => { recordFailure(cause);
       if (controller.signal.aborted) return
       if (cause instanceof ApiError && cause.status === 401) { router.replace('/entrar'); return }
       setError(errorMessage(cause, 'Não foi possível carregar este relato.'))
@@ -66,13 +69,13 @@ export default function ReportDetailScreen() {
   return <View style={styles.screen}>
     <StatusBar style="light" />
     <ScrollView contentContainerStyle={[styles.page, { paddingBottom: Math.max(insets.bottom, 20) + 12 }]}>
-      <View style={styles.hero}>
-        <Image source={report?.photoUrl ? { uri: report.photoUrl } : require('../../../assets/report-detail-hero.png')} style={styles.heroImage} resizeMode="cover" accessible={false} />
+      {!error ? <View style={styles.hero}>
+        {loading || !ready ? <View style={[styles.heroImage, { backgroundColor: '#141C55' }]} /> : <Image source={report?.photoUrl ? { uri: report.photoUrl } : require('../../../assets/report-detail-hero.png')} style={styles.heroImage} resizeMode="cover" accessible={false} />}
         {report?.photoUrl ? <Svg style={styles.heroShade} width="100%" height={100}><Defs><LinearGradient id="photoFade" x1="0" y1="0" x2="0" y2="1"><Stop offset="0" stopColor="#0B1240" stopOpacity={0} /><Stop offset="1" stopColor="#0B1240" /></LinearGradient></Defs><Rect width="100%" height={100} fill="url(#photoFade)" /></Svg> : null}
         <Pressable accessibilityRole="button" accessibilityLabel="Voltar aos meus relatos" onPress={goBack} style={[styles.back, { top: insets.top + 12 }]}><Icon name="back" color="#fff" size={24} /></Pressable>
         {ready && report ? <Text accessibilityRole="header" style={styles.title}>{report.title}</Text> : null}
-      </View>
-      {loading || !ready ? <View style={styles.state}><ActivityIndicator color="#FFB81C" accessibilityLabel="Carregando relato" /></View> : error ? <View style={styles.state}><Text accessibilityRole="alert" style={styles.error}>{error}</Text><Pressable accessibilityRole="button" onPress={() => setAttempt(value => value + 1)} style={styles.mapButton}><Text style={styles.mapText}>Tentar novamente</Text></Pressable></View> : report ? <View style={styles.content}>
+      </View> : <Pressable accessibilityRole="button" accessibilityLabel="Voltar aos meus relatos" onPress={goBack} style={{ marginTop: insets.top + 12, marginLeft: 20 }}><Icon name="back" color="#fff" size={24} /></Pressable>}
+      {loading || !ready ? <View style={styles.content}><ContentSkeleton variant="detail" label="Carregando relato" /></View> : error ? <LoadFailure offline={offline} onRetry={() => setAttempt(value => value + 1)} /> : report ? <View style={styles.content}>
         <View style={styles.badges}>
           <ReportStatusBadge status={report.status} />
           <View style={[styles.urgency, { backgroundColor: urgency.backgroundColor }]}><Icon name="warning" size={14} color={urgency.color} /><Text style={[styles.urgencyText, { color: urgency.color }]}>{report.urgency.label}</Text></View>

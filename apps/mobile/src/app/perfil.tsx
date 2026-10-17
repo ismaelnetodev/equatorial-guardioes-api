@@ -1,5 +1,7 @@
+import { LoadFailure, useLoadFailureKind } from '../components/load-failure'
+import { ContentSkeleton } from '../components/content-skeleton'
 import { useCallback, useState } from 'react'
-import { ActivityIndicator, Pressable, StyleSheet, Text, View } from 'react-native'
+import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native'
 import { router, useFocusEffect } from 'expo-router'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { StatusBar } from 'expo-status-bar'
@@ -11,6 +13,7 @@ import { ApiError } from '../services/api'
 export default function ProfileScreen() {
   const [profile, setProfile] = useState<Profile | null>(null)
   const [loading, setLoading] = useState(true)
+  const { offline, recordFailure } = useLoadFailureKind()
   const [error, setError] = useState('')
   const [attempt, setAttempt] = useState(0)
 
@@ -20,7 +23,7 @@ export default function ProfileScreen() {
     setError('')
     getProfile(controller.signal)
       .then(result => { if (!controller.signal.aborted) setProfile(result) })
-      .catch(cause => {
+      .catch(cause => { recordFailure(cause);
         if (controller.signal.aborted) return
         if (cause instanceof ApiError && cause.status === 401) {
           router.replace('/entrar')
@@ -41,8 +44,8 @@ export default function ProfileScreen() {
           <Text accessibilityRole="header" style={styles.title}>Perfil</Text>
           <View style={styles.spacer} />
         </View>
-        {loading ? <ActivityIndicator color={colors.primary} style={styles.state} accessibilityLabel="Carregando perfil" /> :
-          error ? <View style={styles.state}><Text accessibilityRole="alert" style={styles.description}>{error}</Text><Button title="Tentar novamente" onPress={() => setAttempt(value => value + 1)} /></View> :
+        {loading ? <ContentSkeleton variant="profile" label="Carregando perfil" /> :
+          error ? <ScrollView><LoadFailure offline={offline} onRetry={() => setAttempt(value => value + 1)} /></ScrollView> :
           profile ? <>
             <View style={styles.profileCard}>
               <View style={styles.avatar}><Text style={styles.initials}>{profile.name.trim().split(/\s+/).filter(Boolean).slice(0, 2).map(part => part[0]).join('').toUpperCase()}</Text></View>

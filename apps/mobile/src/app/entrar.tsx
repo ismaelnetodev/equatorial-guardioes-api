@@ -64,7 +64,7 @@ export default function LoginScreen() {
     <StatusBar style="light" />
     <KeyboardAvoidingView style={styles.flex} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
       <ScrollView keyboardShouldPersistTaps="handled" contentContainerStyle={styles.content}>
-        <OfflineBanner />
+        <OfflineBanner>
         <EnergyBrand />
         <View style={styles.form}>
           <InputField label="Celular ou e-mail" icon="user" value={contact} onChangeText={updateContact} placeholder="(98) 9 8888-0000" autoCapitalize="none" autoCorrect={false} autoComplete="username" textContentType="username" editable={!loading} maxLength={254} error={submitted ? contactError : undefined} invalid={invalidCredentials} returnKeyType="next" />
@@ -79,6 +79,7 @@ export default function LoginScreen() {
           {notice ? <Text accessibilityLiveRegion="polite" style={styles.notice}>{notice}</Text> : null}
           <View style={styles.emergency}><EmergencyBanner onError={() => setNotice('Não foi possível abrir o telefone. Ligue 116 pelo seu celular.')} /></View>
         </View>
+        </OfflineBanner>
       </ScrollView>
     </KeyboardAvoidingView>
   </SafeAreaView>
