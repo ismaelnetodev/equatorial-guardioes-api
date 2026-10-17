@@ -1,10 +1,8 @@
 import { router } from 'expo-router'
 import { Pressable, StyleSheet, Text, View } from 'react-native'
 import { colors } from './ui'
-import TrailIcon from '../../assets/icon-path.svg'
+import { AppIcon } from './app-icon'
 import ReportIcon from '../../assets/Reportar.svg'
-import RankingIcon from '../../assets/icon-trophy.svg'
-import ProfileIcon from '../../assets/icon-user.svg'
 import LockIcon from '../../assets/cadeado.svg'
 import TabIndicator from '../../assets/Rectangle.svg'
 import TrailLabel from '../../assets/Trilha.svg'
@@ -44,18 +42,16 @@ export function AppTabBar({ active, onReport, reportUnlocked = false }: { active
             onPress={() => selectTab(tab.id)}
             style={styles.tab}>
             <View style={styles.iconSlot}>
-              {tab.id === 'trail' ? <>
-                <TabIndicator width={24} height={3} style={styles.indicator} />
-                <TrailIcon width={24} height={24} />
-              </> : null}
+              {selected && tab.id !== 'report' ? <TabIndicator width={24} height={3} style={styles.indicator} /> : null}
+              {tab.id === 'trail' ? <AppIcon name="route" color={selected ? colors.primary : colors.text} /> : null}
               {tab.id === 'report' ? (
                 <View style={styles.reportIcon}>
                   <ReportIcon width={72} height={40} />
                   {!reportUnlocked ? <LockIcon width={22} height={22} style={styles.reportLock} /> : null}
                 </View>
               ) : null}
-              {tab.id === 'ranking' ? <RankingIcon width={24} height={24} /> : null}
-              {tab.id === 'profile' ? <ProfileIcon width={24} height={24} /> : null}
+              {tab.id === 'ranking' ? <AppIcon name="trophy" color={selected ? colors.primary : colors.text} /> : null}
+              {tab.id === 'profile' ? <AppIcon name="user" color={selected ? colors.primary : colors.text} /> : null}
             </View>
             {tab.id === 'trail' && selected
               ? <TrailLabel width={32} height={10} />

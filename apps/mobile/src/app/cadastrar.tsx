@@ -29,6 +29,8 @@ export default function RegistrationScreen() {
   const phone = value.replace(/[\s().-]/g, '')
   const contactError = email ? (/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value) ? '' : 'Informe um e-mail válido.') : (/^\+?[1-9]\d{7,14}$/.test(phone) ? '' : 'Informe um celular com DDD ou um e-mail válido.')
   const valid = name.trim().length >= 2 && !contactError && password.length >= 8 && !!neighborhood && accepted && (!invite.trim() || invite.trim().length >= 3)
+  const neighborhoodError = submitted && !neighborhood ? 'Escolha seu bairro.' : undefined
+  const termsError = submitted && !accepted ? 'Aceite os termos para criar sua conta.' : undefined
   const goLogin = () => router.replace('/entrar')
   async function submit() {
     setSubmitted(true); setError('')
@@ -63,11 +65,13 @@ export default function RegistrationScreen() {
         <InputField label="Senha" value={password} onChangeText={setPassword} placeholder="Pelo menos 8 caracteres" maxLength={128} secureTextEntry={!visible} autoCapitalize="none" autoCorrect={false} autoComplete="new-password" textContentType="newPassword" editable={!loading && !success} error={submitted && password.length < 8 ? 'Use pelo menos 8 caracteres.' : undefined} trailing={<Pressable accessibilityRole="button" accessibilityLabel={visible ? 'Ocultar senha' : 'Mostrar senha'} onPress={() => setVisible(!visible)} hitSlop={8}><FormIcon name="eye" /></Pressable>} />
         <View style={styles.group}><View style={styles.labelRow}><Text style={styles.label}>Seu bairro</Text><Text style={styles.required}>OBRIGATÓRIO</Text></View>
           <Pressable disabled={loading || success} accessibilityRole="button" accessibilityLabel={`Seu bairro: ${neighborhood?.name ?? 'Escolha seu bairro'}`} onPress={() => setPicker(true)} style={styles.selector}><FormIcon name="pin" /><Text style={[styles.selection, !neighborhood && styles.placeholder]}>{neighborhood?.name ?? 'Escolha seu bairro'}</Text><Text style={styles.chevron}>⌄</Text></Pressable>
+          {neighborhoodError ? <Text accessibilityRole="alert" style={styles.error}>{neighborhoodError}</Text> : null}
         </View>
         <InputField label="Código de convite (opcional)" leading={<FormIcon name="gift" />} value={invite} onChangeText={setInvite} placeholder="Ex.: MARIA-7K2" maxLength={50} autoCapitalize="characters" autoCorrect={false} editable={!loading && !success} error={submitted && invite.trim() && invite.trim().length < 3 ? 'Use pelo menos 3 caracteres ou deixe vazio.' : undefined} />
         <View style={styles.acceptance}><Pressable accessibilityRole="checkbox" accessibilityLabel="Aceitar termos e privacidade" accessibilityState={{ checked: accepted }} disabled={loading || success} onPress={() => setAccepted(!accepted)} style={[styles.checkbox, accepted && styles.checked]}>{accepted ? <Text style={styles.check}>✓</Text> : null}</Pressable><Text style={styles.description}>Li e aceito os <Text accessibilityRole="link" onPress={() => setTerms(true)} style={styles.link}>termos e a privacidade.</Text></Text></View>
+        {termsError ? <Text accessibilityRole="alert" style={styles.error}>{termsError}</Text> : null}
         {error ? <Text accessibilityRole="alert" style={styles.error}>{error}</Text> : null}
-        <Button title="Criar conta" loading={loading} disabled={!valid} onPress={() => { void submit() }} />
+        <Button title="Criar conta" loading={loading} disabled={success} onPress={() => { void submit() }} />
         <Pressable accessibilityRole="button" onPress={goLogin} style={styles.login}><Text style={styles.description}>Já tenho conta. <Text style={styles.link}>Entrar</Text></Text></Pressable>
         </>}
       </ScrollView>
