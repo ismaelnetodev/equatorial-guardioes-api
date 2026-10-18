@@ -10,6 +10,7 @@ const moduleId = '33333333-3333-4333-8333-333333333333'
 
 const db = vi.hoisted(() => ({
   user: { findUnique: vi.fn() },
+  neighborhood: { findUnique: vi.fn() },
   trail: { findFirst: vi.fn() },
   programConfiguration: { findMany: vi.fn() },
   report: { count: vi.fn(), create: vi.fn(), findMany: vi.fn(), findFirst: vi.fn(), findUnique: vi.fn(), update: vi.fn() },
@@ -136,12 +137,69 @@ describe('criação de relatos', () => {
     expect(r.statusCode).toBe(201)
     expect(r.json()).toMatchObject({
       id: reportId,
+      neighborhood: 'Cohama',
       pointsAwarded: 0,
       status: { code: 'SENT', label: 'Enviado', iconHint: 'check' },
       urgency: { code: 'MEDIUM', label: 'Urgência média' },
     })
-    expect(db.report.create).toHaveBeenCalledWith(expect.objectContaining({ data: expect.objectContaining({ userId, pointsAwarded: 0 }) }))
+    expect(db.report.create).toHaveBeenCalledWith(expect.objectContaining({ data: expect.objectContaining({ userId, neighborhood: 'Cohama', pointsAwarded: 0 }) }))
     expect(r.json().timeline[0]).toMatchObject({ pending: false, status: { code: 'SENT' } })
+  })
+
+  it('usa o bairro do cadastro quando o body omite o bairro', async () => {
+    const submittedAt = new Date('2026-10-16T12:00:00.000Z')
+    db.user.findUnique
+      .mockResolvedValueOnce({ id: userId, role: 'USER' })
+      .mockResolvedValueOnce({ neighborhood: 'Turú' })
+    db.report.create.mockResolvedValue({
+      id: reportId,
+      title: 'Poste inclinado',
+      description: 'Risco na via',
+      address: 'Rua A',
+      neighborhood: 'Turú',
+      photoUrl: null,
+      latitude: null,
+      longitude: null,
+      status: 'SENT',
+      urgency: 'MEDIUM',
+      pointsAwarded: 0,
+      submittedAt,
+      timeline: [{ status: 'SENT', occurredAt: submittedAt }],
+    })
+
+    const r = await app.inject({
+      method: 'POST',
+      url: '/api/v1/relatos',
+      headers: headers(),
+      payload: {
+        title: 'Poste inclinado',
+        description: 'Risco na via',
+        address: 'Rua A',
+      },
+    })
+    expect(r.statusCode).toBe(201)
+    expect(r.json()).toMatchObject({ neighborhood: 'Turú' })
+    expect(db.report.create).toHaveBeenCalledWith(expect.objectContaining({
+      data: expect.objectContaining({ neighborhood: 'Turú' }),
+    }))
+  })
+
+  it('rejeita neighborhoodId inexistente', async () => {
+    db.neighborhood.findUnique.mockResolvedValue(null)
+    const r = await app.inject({
+      method: 'POST',
+      url: '/api/v1/relatos',
+      headers: headers(),
+      payload: {
+        title: 'Pipa na rede',
+        description: 'Linha presa no fio',
+        address: 'Rua 7',
+        neighborhoodId: 'bairro-invalido',
+      },
+    })
+    expect(r.statusCode).toBe(400)
+    expect(r.json()).toMatchObject({ code: 'INVALID_NEIGHBORHOOD' })
+    expect(db.report.create).not.toHaveBeenCalled()
   })
 })
 

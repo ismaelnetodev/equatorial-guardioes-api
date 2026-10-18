@@ -34,7 +34,8 @@ export class ReportError extends Error {
       | 'REPORT_NOT_FOUND'
       | 'IMPACT_NOT_AVAILABLE'
       | 'INVALID_STATUS_TRANSITION'
-      | 'REPORT_CONFLICT',
+      | 'REPORT_CONFLICT'
+      | 'INVALID_NEIGHBORHOOD',
     message: string,
   ) {
     super(message)
@@ -114,9 +115,38 @@ async function toListItem(report: {
   }
 }
 
+async function resolveReportNeighborhood(
+  userId: string,
+  input: Pick<CreateReport, 'neighborhood' | 'neighborhoodId'>,
+): Promise<string> {
+  if (input.neighborhoodId) {
+    const catalog = await getPrisma().neighborhood.findUnique({ where: { id: input.neighborhoodId } })
+    if (!catalog || catalog.municipalityCode !== '2111300') {
+      throw new ReportError('INVALID_NEIGHBORHOOD', 'Selecione um bairro de São Luís ou informe Outro bairro.')
+    }
+    return catalog.name
+  }
+
+  const provided = input.neighborhood?.trim()
+  if (provided && provided.length >= 2) {
+    return provided
+  }
+
+  const user = await getPrisma().user.findUnique({
+    where: { id: userId },
+    select: { neighborhood: true },
+  })
+  const fallback = user?.neighborhood?.trim() ?? ''
+  if (fallback.length < 2) {
+    throw new ReportError('INVALID_NEIGHBORHOOD', 'Informe o bairro do relato ou atualize o bairro do seu cadastro.')
+  }
+  return fallback
+}
+
 export async function createReport(userId: string, input: CreateReport) {
   await assertModuleZeroCompleted(userId)
   await validateReportPhoto(userId, input.photoUrl)
+  const neighborhood = await resolveReportNeighborhood(userId, input)
   const now = new Date()
   const report = await getPrisma().report.create({
     data: {
@@ -124,7 +154,7 @@ export async function createReport(userId: string, input: CreateReport) {
       title: input.title.trim(),
       description: input.description.trim(),
       address: input.address.trim(),
-      neighborhood: input.neighborhood.trim(),
+      neighborhood,
       photoUrl: input.photoUrl ?? null,
       latitude: input.latitude ?? null,
       longitude: input.longitude ?? null,
