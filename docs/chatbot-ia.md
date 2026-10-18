@@ -27,7 +27,15 @@ Em `apps/mobile/src/features/chatbot/adaptador.ts`:
 1. `obterToken()` reutiliza `getAccessToken()` da sessão atual para autenticar as chamadas de IA.
 2. `enviarRelato(relato)` converte os dados para o contrato gerado do OpenAPI e chama `createReport()`. A API associa o registro ao usuário do token, sem aceitar uma identidade escolhida pelo chat. N1/N2/N3 são convertidos para HIGH/MEDIUM/LOW.
 3. O chat aguarda a gravação, bloqueia envios simultâneos e mostra os erros com possibilidade de tentar novamente. O backend mantém a exigência de concluir o módulo 0. A lista consulta novamente a API ao retornar.
-4. A URI local da foto não é enviada como `photoUrl`: falta implementar upload. Sem localização, as coordenadas são enviadas como `null`.
+4. Quando há foto, o app faz upload autenticado em `POST /api/v1/relatos/foto` antes de salvar o relato. A API recebe o campo multipart `foto`, valida e converte a imagem em JPEG e grava no bucket privado. A referência permanente retornada é enviada como `photoUrl` na criação. Sem localização, as coordenadas são enviadas como `null`.
+
+## Armazenamento das fotos
+
+Configure somente em `apps/api/.env`: `AWS_ENDPOINT_URL_S3`, `AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY`, `AWS_REGION` e `S3_REPORTS_BUCKET=relatos-imgs`. O bucket deve existir no endpoint configurado e pode permanecer privado. As credenciais nunca são enviadas ao aplicativo.
+
+O upload exige sessão válida e conclusão do módulo inicial. São aceitos JPEG, PNG e WebP de até 10 MB e 25 milhões de pixels. A API remove metadados da câmera e limita a imagem a 2048 × 2048 pixels, preservando a proporção. O banco guarda uma referência `s3://bucket/chave`, sem necessidade de migration. As consultas do usuário e do admin retornam URLs assinadas válidas por uma hora, renovadas a cada consulta. Não grave esses links temporários no banco.
+
+Se o upload falhar, o chat mantém o resumo e permite tentar novamente, sem confirmar o relato. Se a gravação do relato falhar depois do upload, a mesma foto é reaproveitada enquanto a tela/sessão estiver ativa. Fechar o aplicativo nesse intervalo pode deixar um objeto sem relato associado; a limpeza desses objetos ainda não é automática.
 
 ## Variáveis do app (`apps/mobile/.env`)
 
@@ -57,7 +65,7 @@ Três opções (algo perigoso, sem energia ou emergência). A foto só pela câm
 
 ## Ainda não incluído
 
-- Upload da foto para disponibilizar uma `photoUrl` persistente na lista e no detalhe.
+- Limpeza automática de uploads que não chegaram a ser associados a um relato.
 - Fila de prioridade com mover posição dentro do `/admin`. A API de relatos já exige o risco confirmado (`LOW`, `MEDIUM`, `HIGH`) ao resolver um relato; essa regra deve ser preservada na integração.
 
 ## Atenção

@@ -1,3 +1,4 @@
+import { reportPhotoUrl, validateReportPhoto } from './report-photo.service.js'
 import { Prisma } from '../../generated/prisma/client.js'
 import { publishedModuleWhere, publishedTrailWhere } from '../../lib/content-visibility.js'
 import { getPrisma } from '../../lib/prisma.js'
@@ -53,7 +54,7 @@ function pointsHint(pointsAwarded: number, status: ReportStatusCode): string {
   return 'Pontos após validação da equipe, conforme risco e limites.'
 }
 
-async function assertModuleZeroCompleted(userId: string): Promise<void> {
+export async function assertModuleZeroCompleted(userId: string): Promise<void> {
   const trail = await getPrisma().trail.findFirst({
     where: publishedTrailWhere,
     orderBy: { order: 'asc' },
@@ -107,7 +108,7 @@ function buildTimeline(
   })
 }
 
-function toListItem(report: {
+async function toListItem(report: {
   id: string
   title: string
   address: string
@@ -123,7 +124,7 @@ function toListItem(report: {
     title: report.title,
     address: report.address,
     neighborhood: report.neighborhood,
-    photoUrl: report.photoUrl,
+    photoUrl: await reportPhotoUrl(report.photoUrl),
     status: statusView(report.status),
     urgency: urgencyView(report.urgency),
     pointsAwarded: report.pointsAwarded,
@@ -133,6 +134,7 @@ function toListItem(report: {
 
 export async function createReport(userId: string, input: CreateReport) {
   await assertModuleZeroCompleted(userId)
+  await validateReportPhoto(userId, input.photoUrl)
   const now = new Date()
   const report = await getPrisma().report.create({
     data: {
@@ -175,7 +177,7 @@ export async function createReport(userId: string, input: CreateReport) {
     description: report.description,
     address: report.address,
     neighborhood: report.neighborhood,
-    photoUrl: report.photoUrl,
+    photoUrl: await reportPhotoUrl(report.photoUrl),
     latitude: report.latitude,
     longitude: report.longitude,
     status: statusView(report.status),
@@ -210,7 +212,7 @@ export async function listReports(userId: string) {
 
   return {
     summary: { sentCount, resolvedCount, totalPoints },
-    reports: reports.map(toListItem),
+    reports: await Promise.all(reports.map(toListItem)),
   }
 }
 
@@ -241,7 +243,7 @@ export async function getReport(userId: string, reportId: string) {
     description: report.description,
     address: report.address,
     neighborhood: report.neighborhood,
-    photoUrl: report.photoUrl,
+    photoUrl: await reportPhotoUrl(report.photoUrl),
     latitude: report.latitude,
     longitude: report.longitude,
     status: statusView(report.status),
@@ -302,6 +304,21 @@ function canTransition(from: ReportStatusCode, to: ReportStatusCode): boolean {
   return fromIndex >= 0 && toIndex > fromIndex
 }
 
+export async function updateAdminReportEmergency(reportId: string, requiresEmergencyTeam: boolean | null) {
+  try {
+    return await getPrisma().report.update({
+      where: { id: reportId },
+      data: { requiresEmergencyTeam },
+      select: { id: true, requiresEmergencyTeam: true },
+    })
+  } catch (error) {
+    if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === 'P2025') {
+      throw new ReportError('REPORT_NOT_FOUND', 'Relato não encontrado.')
+    }
+    throw error
+  }
+}
+
 export async function listAdminReports(status?: ReportStatusCode) {
   const reports = await getPrisma().report.findMany({
     ...(status ? { where: { status } } : {}),
@@ -314,6 +331,9 @@ export async function listAdminReports(status?: ReportStatusCode) {
       address: true,
       neighborhood: true,
       photoUrl: true,
+      requiresEmergencyTeam: true,
+      latitude: true,
+      longitude: true,
       status: true,
       urgency: true,
       pointsAwarded: true,
@@ -322,20 +342,23 @@ export async function listAdminReports(status?: ReportStatusCode) {
     },
   })
 
-  return reports.map((report) => ({
+  return Promise.all(reports.map(async (report) => ({
     id: report.id,
     userId: report.userId,
     title: report.title,
     description: report.description,
     address: report.address,
     neighborhood: report.neighborhood,
-    photoUrl: report.photoUrl,
+    photoUrl: await reportPhotoUrl(report.photoUrl),
+    requiresEmergencyTeam: report.requiresEmergencyTeam ?? null,
+    latitude: report.latitude,
+    longitude: report.longitude,
     status: statusView(report.status),
     urgency: urgencyView(report.urgency),
     pointsAwarded: report.pointsAwarded,
     impactSeenAt: report.impactSeenAt?.toISOString() ?? null,
     submittedAt: report.submittedAt.toISOString(),
-  }))
+  })))
 }
 
 export async function updateAdminReportStatus(reportId: string, input: AdminReportStatusBody) {
@@ -351,6 +374,9 @@ export async function updateAdminReportStatus(reportId: string, input: AdminRepo
           address: true,
           neighborhood: true,
           photoUrl: true,
+          requiresEmergencyTeam: true,
+          latitude: true,
+          longitude: true,
           status: true,
           urgency: true,
           pointsAwarded: true,
@@ -412,6 +438,9 @@ export async function updateAdminReportStatus(reportId: string, input: AdminRepo
           address: true,
           neighborhood: true,
           photoUrl: true,
+          requiresEmergencyTeam: true,
+          latitude: true,
+          longitude: true,
           status: true,
           urgency: true,
           pointsAwarded: true,
@@ -427,7 +456,10 @@ export async function updateAdminReportStatus(reportId: string, input: AdminRepo
       description: updated.description,
       address: updated.address,
       neighborhood: updated.neighborhood,
-      photoUrl: updated.photoUrl,
+      photoUrl: await reportPhotoUrl(updated.photoUrl),
+      requiresEmergencyTeam: updated.requiresEmergencyTeam ?? null,
+      latitude: updated.latitude,
+      longitude: updated.longitude,
       status: statusView(updated.status),
       urgency: urgencyView(updated.urgency),
       pointsAwarded: updated.pointsAwarded,

@@ -21,7 +21,7 @@ export async function apiRequest<T>(path: string, options: RequestInit = {}): Pr
   const token = await getAccessToken()
   const headers = new Headers(options.headers)
   headers.set('Accept', 'application/json')
-  if (options.body) headers.set('Content-Type', 'application/json')
+  if (options.body && !(options.body instanceof FormData)) headers.set('Content-Type', 'application/json')
   if (token) headers.set('Authorization', 'Bearer ' + token)
   const response = await fetch(apiUrl + path, { ...options, headers }).catch((cause: unknown) => {
     if (options.signal?.aborted) throw cause
@@ -35,6 +35,7 @@ export async function apiRequest<T>(path: string, options: RequestInit = {}): Pr
     const body: unknown = await response.json().catch(() => null)
     const code = body && typeof body === 'object' && 'code' in body && typeof body.code === 'string' ? body.code : 'REQUEST_FAILED'
     const safeMessages: Record<string, string> = {
+      FST_REQ_FILE_TOO_LARGE: 'A foto deve ter no máximo 10 MB.',
       LEARNING_CONFIGURATION_PENDING: 'Esta etapa está temporariamente indisponível. Tente novamente mais tarde.',
       LEARNING_CONFLICT: 'Seu progresso foi atualizado. Volte ao módulo e tente novamente.',
       REQUEST_FAILED: 'Não foi possível concluir a solicitação. Tente novamente.',

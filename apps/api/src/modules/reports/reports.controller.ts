@@ -1,8 +1,10 @@
 import type { FastifyReply, FastifyRequest } from 'fastify'
 import { AuthenticationError, getAuthenticatedUser } from '../../lib/auth-user.js'
-import type { CreateReport, ReportParams } from './reports.schemas.js'
+import type { CreateReport, ReportParams, UploadReportPhoto } from './reports.schemas.js'
+import { ReportPhotoError, uploadReportPhoto } from './report-photo.service.js'
 import {
   ReportError,
+  assertModuleZeroCompleted,
   createReport,
   getPendingImpact,
   getReport,
@@ -17,6 +19,7 @@ function statusFor(code: ReportError['code']): number {
 }
 
 function sendError(reply: FastifyReply, error: unknown) {
+  if (error instanceof ReportPhotoError) return reply.status(error.code === 'INVALID_PHOTO' ? 422 : 503).send({ code: error.code, message: error.message })
   if (error instanceof AuthenticationError) {
     return reply.status(401).send({ code: 'UNAUTHENTICATED', message: error.message })
   }
@@ -43,6 +46,21 @@ async function withAuth<T>(
 
 export async function createReportController(request: FastifyRequest<{ Body: CreateReport }>, reply: FastifyReply) {
   return withAuth(request, reply, (userId) => createReport(userId, request.body), 201)
+}
+
+export async function authorizeReportPhotoUpload(request: FastifyRequest, reply: FastifyReply) {
+  try {
+    const user = await getAuthenticatedUser(request.headers.authorization)
+    if (!/^multipart\/form-data(?:;|$)/i.test(request.headers['content-type'] ?? '')) return reply.status(415).send({ code: 'INVALID_PHOTO', message: 'Envie a foto como multipart/form-data.' })
+    await assertModuleZeroCompleted(user.id)
+  } catch (error) { return sendError(reply, error) }
+}
+
+export async function uploadReportPhotoController(request: FastifyRequest<{ Body: UploadReportPhoto }>, reply: FastifyReply) {
+  return withAuth(request, reply, async userId => {
+    const photo = request.body.foto
+    return uploadReportPhoto(userId, await photo.toBuffer(), photo.mimetype)
+  }, 201)
 }
 
 export async function listReportsController(request: FastifyRequest, reply: FastifyReply) {

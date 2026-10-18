@@ -313,6 +313,7 @@ model Report {
   urgency       ReportUrgency         @default(MEDIUM)
   pointsAwarded Int                   @default(0)
   confirmedRisk ReportUrgency?
+  requiresEmergencyTeam Boolean?
   validatedAt   DateTime?
   impactSeenAt  DateTime?
   submittedAt   DateTime              @default(now())

@@ -1,5 +1,6 @@
 import { finalExamRoutes } from './modules/quiz/final-exam.routes.js'
 import Fastify, { type FastifyServerOptions } from 'fastify'
+import multipart from '@fastify/multipart'
 import cors from '@fastify/cors'
 import rateLimit from '@fastify/rate-limit'
 import helmet from '@fastify/helmet'
@@ -25,6 +26,7 @@ export async function buildApp(options: FastifyServerOptions = {}) {
     throw new Error('TRUST_PROXY_HOPS deve ser um número inteiro não negativo.')
   }
   const app = Fastify({
+    ajv: { plugins: [ajv => { multipart.ajvFilePlugin(ajv); return ajv }] },
     logger: true,
     trustProxy: (_address: string, hop: number) => hop < proxyHops,
     ...options,
@@ -32,6 +34,9 @@ export async function buildApp(options: FastifyServerOptions = {}) {
 
   app.setErrorHandler((error, request, reply) => {
     request.log.error({ err: error }, 'Falha ao processar requisição')
+    if (error && typeof error === 'object' && 'code' in error && error.code === 'FST_REQ_FILE_TOO_LARGE') {
+      return reply.status(413).send({ code: 'FST_REQ_FILE_TOO_LARGE', message: 'A foto deve ter no máximo 10 MB.' })
+    }
     if (error && typeof error === 'object' && 'validation' in error && error.validation) {
       return reply.status(400).send({ code: 'VALIDATION_ERROR', message: 'Verifique os dados informados e tente novamente.' })
     }

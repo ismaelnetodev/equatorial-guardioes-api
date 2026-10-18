@@ -136,10 +136,12 @@ export const adminTrainingSchema = Type.Object({
 }, { additionalProperties: false })
 
 export {
+  adminReportEmergencyBodySchema,
+  adminReportEmergencyResponseSchema,
   adminReportItemSchema,
   adminReportStatusBodySchema,
   adminReportsListSchema,
   adminReportsQuerySchema,
   reportParamsSchema,
 } from '../reports/reports.schemas.js'
-export type { AdminReportStatusBody, AdminReportsQuery, ReportParams } from '../reports/reports.schemas.js'
+export type { AdminReportEmergencyBody, AdminReportStatusBody, AdminReportsQuery, ReportParams } from '../reports/reports.schemas.js'

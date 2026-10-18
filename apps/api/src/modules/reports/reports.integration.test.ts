@@ -25,6 +25,35 @@ let token: string
 let module0Completed: boolean
 const headers = () => ({ authorization: 'Bearer ' + token })
 
+describe('avaliação administrativa de emergência', () => {
+  const url = '/api/v1/admin/relatos/' + reportId + '/emergency'
+  it('exige login e papel administrativo', async () => {
+    expect((await app.inject({ method: 'PATCH', url, payload: { requiresEmergencyTeam: true } })).statusCode).toBe(401)
+    expect((await app.inject({ method: 'PATCH', url, headers: headers(), payload: { requiresEmergencyTeam: true } })).statusCode).toBe(403)
+    expect(db.report.update).not.toHaveBeenCalled()
+  })
+  it.each([true, false, null])('salva a decisão %s sem alterar status, risco ou pontos', async decision => {
+    db.user.findUnique.mockResolvedValue({ id: userId, role: 'ADMIN' })
+    db.report.update.mockResolvedValue({ id: reportId, requiresEmergencyTeam: decision })
+    const response = await app.inject({ method: 'PATCH', url, headers: headers(), payload: { requiresEmergencyTeam: decision } })
+    expect(response.statusCode).toBe(200)
+    expect(response.json()).toEqual({ id: reportId, requiresEmergencyTeam: decision })
+    expect(db.report.update).toHaveBeenCalledWith({ where: { id: reportId }, data: { requiresEmergencyTeam: decision }, select: { id: true, requiresEmergencyTeam: true } })
+    expect(db.reportTimelineEvent.create).not.toHaveBeenCalled()
+    expect(db.pointLedgerEntry.create).not.toHaveBeenCalled()
+  })
+  it.each([{}, { requiresEmergencyTeam: 'true' }])('rejeita uma decisão inválida', async payload => {
+    db.user.findUnique.mockResolvedValue({ id: userId, role: 'ADMIN' })
+    expect((await app.inject({ method: 'PATCH', url, headers: headers(), payload })).statusCode).toBe(400)
+    expect(db.report.update).not.toHaveBeenCalled()
+  })
+  it('retorna 404 para relato inexistente', async () => {
+    db.user.findUnique.mockResolvedValue({ id: userId, role: 'ADMIN' })
+    db.report.update.mockRejectedValue(new Prisma.PrismaClientKnownRequestError('missing', { code: 'P2025', clientVersion: '7.10.1' }))
+    expect((await app.inject({ method: 'PATCH', url, headers: headers(), payload: { requiresEmergencyTeam: true } })).statusCode).toBe(404)
+  })
+})
+
 beforeEach(async () => {
   vi.restoreAllMocks()
   vi.resetAllMocks()
@@ -125,6 +154,8 @@ describe('listagem e detalhe', () => {
         address: 'Rua 7',
         neighborhood: 'Cohama',
         photoUrl: null,
+        latitude: null,
+        longitude: null,
         status: 'IN_ANALYSIS',
         urgency: 'MEDIUM',
         pointsAwarded: 0,
@@ -136,6 +167,8 @@ describe('listagem e detalhe', () => {
         address: 'Av. Central',
         neighborhood: 'Cohama',
         photoUrl: null,
+        latitude: null,
+        longitude: null,
         status: 'RESOLVED',
         urgency: 'HIGH',
         pointsAwarded: 50,
@@ -230,6 +263,8 @@ describe('admin status', () => {
       address: 'Rua 7',
       neighborhood: 'Cohama',
       photoUrl: null,
+      latitude: null,
+      longitude: null,
       status: 'IN_ANALYSIS',
       urgency: 'MEDIUM',
       pointsAwarded: 0,
@@ -244,6 +279,8 @@ describe('admin status', () => {
       address: 'Rua 7',
       neighborhood: 'Cohama',
       photoUrl: null,
+      latitude: null,
+      longitude: null,
       status: 'RESOLVED',
       urgency: 'MEDIUM',
       pointsAwarded: 25,
@@ -274,7 +311,7 @@ describe('regras de concessão', () => {
     db.report.findUnique.mockResolvedValue({ id: reportId, userId, status: 'IN_ANALYSIS', pointsAwarded: 0 })
     db.report.update.mockImplementation(async ({ data }: { data: Record<string, unknown> }) => ({
       id: reportId, userId, title: 'Relato', description: 'Risco', address: 'Rua', neighborhood: 'Centro', photoUrl: null,
-      urgency: 'LOW', impactSeenAt: null, submittedAt: new Date(), ...data,
+      latitude: null, longitude: null, urgency: 'LOW', impactSeenAt: null, submittedAt: new Date(), ...data,
     }))
   })
   const resolve = (risk?: string) => app.inject({ method: 'PATCH', url: '/api/v1/admin/relatos/' + reportId + '/status', headers: headers(), payload: { status: 'RESOLVED', ...(risk ? { confirmedRisk: risk } : {}) } })

@@ -1,4 +1,9 @@
 import { type Static, Type } from 'typebox'
+import type { MultipartFile } from '@fastify/multipart'
+
+export const uploadReportPhotoSchema = Type.Object({ foto: Type.Unsafe<MultipartFile>({ isFile: true }) }, { additionalProperties: false })
+export type UploadReportPhoto = Static<typeof uploadReportPhotoSchema>
+export const uploadReportPhotoResponseSchema = Type.Object({ photoUrl: Type.String() }, { additionalProperties: false })
 
 const uuid = Type.String({ format: 'uuid' })
 const nonEmpty = Type.String({ minLength: 1, pattern: '\\S' })
@@ -118,12 +123,22 @@ export const adminReportStatusBodySchema = Type.Object({
 }, { additionalProperties: false })
 export type AdminReportStatusBody = Static<typeof adminReportStatusBodySchema>
 
+export const adminReportEmergencyBodySchema = Type.Object({
+  requiresEmergencyTeam: Type.Unsafe<boolean | null>({ type: ['boolean', 'null'] }),
+}, { additionalProperties: false })
+export type AdminReportEmergencyBody = Static<typeof adminReportEmergencyBodySchema>
+export const adminReportEmergencyResponseSchema = Type.Object({
+  id: uuid,
+  requiresEmergencyTeam: Type.Unsafe<boolean | null>({ type: ['boolean', 'null'] }),
+}, { additionalProperties: false })
+
 export const adminReportsQuerySchema = Type.Object({
   status: Type.Optional(reportStatusCodeSchema),
 }, { additionalProperties: false })
 export type AdminReportsQuery = Static<typeof adminReportsQuerySchema>
 
 export const adminReportItemSchema = Type.Object({
+  requiresEmergencyTeam: Type.Unsafe<boolean | null>({ type: ['boolean', 'null'] }),
   id: uuid,
   userId: uuid,
   title: Type.String(),
@@ -131,6 +146,8 @@ export const adminReportItemSchema = Type.Object({
   address: Type.String(),
   neighborhood: Type.String(),
   photoUrl: Type.Union([Type.String(), Type.Null()]),
+  latitude: Type.Union([Type.Number(), Type.Null()]),
+  longitude: Type.Union([Type.Number(), Type.Null()]),
   status: statusViewSchema,
   urgency: urgencyViewSchema,
   pointsAwarded: Type.Integer({ minimum: 0 }),
