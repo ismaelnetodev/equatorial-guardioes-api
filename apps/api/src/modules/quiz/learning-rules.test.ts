@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import type { Prisma } from '../../generated/prisma/client.js'
-import { assertMinimumTime, assertRetry, awardOnce, configuration, minimumCorrect, queueModuleAward, queueTrainingAward, releasePendingModules, creditGrantedLearningAward, reconcileLearningPoints } from './learning-rules.service.js'
+import { assertMinimumTime, assertRetry, awardOnce, configuration, minimumCorrect, queueModuleAward, queueTrainingAward, releasePendingModules, creditGrantedLearningAward, reconcileLearningPoints, learningDayStart } from './learning-rules.service.js'
 
 const now = new Date('2026-11-01T02:30:00Z')
 type Award = { id: string; userId: string; ruleKey: string; sourceId: string; points: number; grantedAt: Date | null; createdAt: Date }
@@ -175,6 +175,24 @@ describe('conclusão de módulos v2', () => {
     await expect(assertMinimumTime(tx, new Date(now.getTime() - 41999), 60, now)).rejects.toMatchObject({ code: 'MINIMUM_TIME_REQUIRED' })
     await expect(assertMinimumTime(tx, new Date(now.getTime() - 42000), 60, now)).resolves.toBeUndefined()
     await expect(assertMinimumTime(tx, now, 0, now)).resolves.toBeUndefined()
+  })
+  it('vira o dia dos limites em America/Sao_Paulo perto da meia-noite local', async () => {
+    // 02:59 UTC ainda é 23:59 do dia anterior em São Paulo (UTC-3).
+    const beforeMidnightSp = new Date('2026-11-01T02:59:59.999Z')
+    // 03:00 UTC = 00:00 em São Paulo.
+    const atMidnightSp = new Date('2026-11-01T03:00:00.000Z')
+    expect(learningDayStart(beforeMidnightSp).toISOString()).toBe('2026-10-31T03:00:00.000Z')
+    expect(learningDayStart(atMidnightSp).toISOString()).toBe('2026-11-01T03:00:00.000Z')
+
+    settings.training_points_daily!.value = 2
+    settings.training_modules_daily!.value = 10
+    await queueModuleAward(tx, 'user', 'late', 'trail')
+    expect(await releasePendingModules(tx, 'user', beforeMidnightSp)).toEqual({ pointsReleased: 2 })
+    await queueModuleAward(tx, 'user', 'early', 'trail')
+    // Ainda no mesmo dia SP: teto cheio.
+    expect(await releasePendingModules(tx, 'user', beforeMidnightSp)).toEqual({ pointsReleased: 0 })
+    // Após meia-noite SP: novo bucket.
+    expect(await releasePendingModules(tx, 'user', atMidnightSp)).toEqual({ pointsReleased: 2 })
   })
 })
 

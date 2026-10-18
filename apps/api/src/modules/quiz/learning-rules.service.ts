@@ -198,9 +198,19 @@ export async function releasePendingModules(tx: Prisma.TransactionClient, userId
   return { pointsReleased }
 }
 
+/** Início do dia de aprendizagem em America/Sao_Paulo (UTC-3, sem horário de verão). */
 export function learningDayStart(date: Date): Date {
-  const local = new Date(date.getTime() - 10800000)
-  return new Date(Date.UTC(local.getUTCFullYear(), local.getUTCMonth(), local.getUTCDate(), 3))
+  const parts = new Intl.DateTimeFormat('en-CA', {
+    timeZone: 'America/Sao_Paulo',
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+  }).formatToParts(date)
+  const year = Number(parts.find((part) => part.type === 'year')!.value)
+  const month = Number(parts.find((part) => part.type === 'month')!.value)
+  const day = Number(parts.find((part) => part.type === 'day')!.value)
+  // Meia-noite em São Paulo = 03:00 UTC.
+  return new Date(Date.UTC(year, month - 1, day, 3, 0, 0, 0))
 }
 
 export async function claimLearningAwards(userId: string) {
