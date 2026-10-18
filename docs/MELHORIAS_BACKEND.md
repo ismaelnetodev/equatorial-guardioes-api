@@ -249,18 +249,31 @@ Rodada final de verificação:
 
 ## 7. Migrations e scripts de correção
 
-Ordem recomendada (na raiz ou `apps/api`, com `DATABASE_URL` configurada):
+Runbook pos-merge (pessoa responsavel apos o merge em `main`):
 
-1. Backup do banco
-2. `npm run db:deploy`
-3. `npm run db:backfill:module-quiz -w guardioes-api`
-4. `npm run db:backfill:training -w guardioes-api`
-5. `npm run db:backfill:user-neighborhood-id -w guardioes-api` (lista unmatched no JSON)
-6. `npm run db:reconcile:neighborhood -w guardioes-api`
+```
+npm run db:post-merge -w guardioes-api
+```
+
+Script: `apps/api/scripts/post-merge.sh` (npm `db:post-merge`).
+
+1. Exige `DATABASE_URL` e confirmacao digitada `sim`, mostrando o host do banco.
+2. Faz `pg_dump` em `backups/pre-melhorias-<data-hora>.sql` e aborta se falhar ou sair vazio.
+3. Roda em ordem: `db:deploy`, `db:backfill:module-quiz`, `db:backfill:training`, `db:backfill:user-neighborhood-id`, `db:reconcile:neighborhood`.
+4. Grava a saida de cada etapa em `backups/post-merge-<data-hora>.log` e para na primeira falha (informa a etapa e o caminho do backup).
+5. Diretorio `backups/` esta no `.gitignore`.
+
+Teste local (2026-10-18), somente Postgres `pg-e2e` em `localhost:5433` (schema recriado antes do teste; nunca outro banco):
+
+- Confirmacao `sim` com host `localhost:5433`
+- Backup `backups/pre-melhorias-20261018-155452.sql` (~110 KB, nao vazio)
+- Etapas `db:deploy` ... `db:reconcile:neighborhood` OK
+- Log `backups/post-merge-20261018-155452.log`
+- Observacao: em banco sujo de E2E (awards orfaos), o reconcile pode falhar com FK; o script aborta corretamente. Em schema limpo + migrate, o runbook completa.
 
 Sob demanda: `npm run db:release:pending-points -w guardioes-api`.
 
-Sobre credito em dobro: `creditPoints` e idempotente por `(reason, sourceType, sourceId)`. `db:reconcile:neighborhood` ja chama `reconcileLearningPoints`. No pos-deploy, preferir a ordem acima sem repetir reconcile desnecessario.
+Sobre credito em dobro: `creditPoints` e idempotente por `(reason, sourceType, sourceId)`. `db:reconcile:neighborhood` ja chama `reconcileLearningPoints`. No pos-deploy, preferir o runbook sem repetir reconcile desnecessario.
 
 ## 8. Qualidade (pré-merge)
 

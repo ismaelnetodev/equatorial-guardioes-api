@@ -22,7 +22,8 @@
     "db:backfill:module-quiz": "tsx src/scripts/backfill-module-quiz-awards.ts",
     "db:backfill:training": "tsx src/scripts/backfill-training-awards.ts",
     "db:backfill:user-neighborhood-id": "tsx src/scripts/backfill-user-neighborhood-id.ts",
-    "db:release:pending-points": "tsx src/scripts/release-pending-points.ts"
+    "db:release:pending-points": "tsx src/scripts/release-pending-points.ts",
+    "db:post-merge": "bash scripts/post-merge.sh"
   },
   "keywords": [],
   "author": "",
