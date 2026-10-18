@@ -162,5 +162,15 @@ export const profileResponseSchema = Type.Object(
   { additionalProperties: false },
 )
 
+export const updateProfileBodySchema = Type.Object(
+  {
+    name: Type.Optional(Type.String({ minLength: 2, maxLength: 100 })),
+    neighborhood: Type.Optional(Type.String({ minLength: 2, maxLength: 100 })),
+    neighborhoodId: Type.Optional(Type.String({ minLength: 1, maxLength: 50 })),
+  },
+  { additionalProperties: false, minProperties: 1 },
+)
+
 export type RewardKeyParams = Static<typeof rewardKeyParamsSchema>
 export type AssignInviteBody = Static<typeof assignInviteBodySchema>
+export type UpdateProfileBody = Static<typeof updateProfileBodySchema>

@@ -20,7 +20,9 @@ export class CommunityError extends Error {
       | 'INSUFFICIENT_BALANCE'
       | 'VALIDATED_REPORTS_REQUIRED'
       | 'INVITE_ALREADY_ATTRIBUTED'
-      | 'INVITE_INVALID',
+      | 'INVITE_INVALID'
+      | 'INVALID_PROFILE'
+      | 'INVALID_NEIGHBORHOOD',
     message: string,
   ) {
     super(message)
@@ -317,4 +319,45 @@ export async function getProfile(userId: string) {
       reports: '/relatos' as const,
     },
   }
+}
+
+export async function updateProfile(
+  userId: string,
+  input: { name?: string; neighborhood?: string; neighborhoodId?: string },
+) {
+  if (input.name === undefined && input.neighborhood === undefined && input.neighborhoodId === undefined) {
+    throw new CommunityError('INVALID_PROFILE', 'Informe ao menos um campo para atualizar.')
+  }
+
+  const data: { name?: string; neighborhood?: string; neighborhoodId?: string | null } = {}
+
+  if (input.name !== undefined) {
+    const name = input.name.trim()
+    if (name.length < 2) {
+      throw new CommunityError('INVALID_PROFILE', 'Informe seu nome com pelo menos 2 caracteres.')
+    }
+    data.name = name
+  }
+
+  if (input.neighborhoodId !== undefined || input.neighborhood !== undefined) {
+    const neighborhood = input.neighborhoodId
+      ? await getPrisma().neighborhood.findUnique({ where: { id: input.neighborhoodId } })
+      : null
+    if (input.neighborhoodId && (!neighborhood || neighborhood.municipalityCode !== '2111300')) {
+      throw new CommunityError('INVALID_NEIGHBORHOOD', 'Selecione um bairro de São Luís ou informe Outro bairro.')
+    }
+    const neighborhoodName = (neighborhood?.name ?? input.neighborhood?.trim() ?? '').trim()
+    if (neighborhoodName.length < 2) {
+      throw new CommunityError('INVALID_NEIGHBORHOOD', 'Informe seu bairro com pelo menos 2 caracteres.')
+    }
+    data.neighborhood = neighborhoodName
+    data.neighborhoodId = neighborhood?.id ?? null
+  }
+
+  await getPrisma().user.update({
+    where: { id: userId },
+    data,
+  })
+
+  return getProfile(userId)
 }

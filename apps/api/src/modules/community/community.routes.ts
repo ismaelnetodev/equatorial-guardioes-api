@@ -61,4 +61,13 @@ export const communityRoutes: FastifyPluginAsyncTypebox = async (app) => {
       response: { 200: schema.profileResponseSchema, ...errors },
     },
   }, controller.getProfileController)
+
+  app.patch('/perfil', {
+    schema: {
+      ...common,
+      summary: 'Atualiza nome e bairro do Guardião',
+      body: schema.updateProfileBodySchema,
+      response: { 200: schema.profileResponseSchema, ...errors },
+    },
+  }, controller.updateProfileController)
 }

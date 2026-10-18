@@ -11,6 +11,7 @@ const attributionId = 'bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb'
 
 const db = vi.hoisted(() => ({
   user: { findUnique: vi.fn(), findFirst: vi.fn(), findMany: vi.fn(), update: vi.fn() },
+  neighborhood: { findUnique: vi.fn() },
   pointAccount: { upsert: vi.fn(), update: vi.fn() },
   pointLedgerEntry: { create: vi.fn(), findFirst: vi.fn() },
   programConfiguration: { findUnique: vi.fn(), findMany: vi.fn() },
@@ -303,6 +304,47 @@ describe('GET /api/v1/perfil', () => {
     const r = await app.inject({ method: 'GET', url: '/api/v1/perfil', headers: headers() })
     expect(r.statusCode).toBe(200)
     expect(r.json().canReport).toBe(false)
+  })
+})
+
+describe('PATCH /api/v1/perfil', () => {
+  it('atualiza nome e bairro e devolve o perfil', async () => {
+    db.user.update.mockResolvedValue({})
+    db.user.findUnique
+      .mockResolvedValueOnce({
+        id: userId,
+        role: 'USER',
+        name: 'Ana Guardiã',
+        neighborhood: 'Cohama',
+        inviteCode: 'ABCD1234',
+      })
+      .mockResolvedValueOnce({ name: 'Ana Silva', neighborhood: 'Centro' })
+
+    const r = await app.inject({
+      method: 'PATCH',
+      url: '/api/v1/perfil',
+      headers: headers(),
+      payload: { name: 'Ana Silva', neighborhood: 'Centro' },
+    })
+    expect(r.statusCode).toBe(200)
+    expect(r.json()).toMatchObject({ name: 'Ana Silva', neighborhood: 'Centro', canReport: true })
+    expect(db.user.update).toHaveBeenCalledWith({
+      where: { id: userId },
+      data: { name: 'Ana Silva', neighborhood: 'Centro', neighborhoodId: null },
+    })
+  })
+
+  it('rejeita bairro de catálogo inválido', async () => {
+    db.neighborhood.findUnique.mockResolvedValue(null)
+    const r = await app.inject({
+      method: 'PATCH',
+      url: '/api/v1/perfil',
+      headers: headers(),
+      payload: { neighborhoodId: 'bairro-inexistente' },
+    })
+    expect(r.statusCode).toBe(400)
+    expect(r.json()).toMatchObject({ code: 'INVALID_NEIGHBORHOOD' })
+    expect(db.user.update).not.toHaveBeenCalled()
   })
 })
 
