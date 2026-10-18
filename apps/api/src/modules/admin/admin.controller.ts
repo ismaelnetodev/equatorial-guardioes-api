@@ -14,10 +14,11 @@ import type {
   ReplaceQuiz,
   ReplaceTraining,
   AdminReportStatusBody,
+  AdminReportEmergencyBody,
   AdminReportsQuery,
   ReportParams,
 } from './admin.schemas.js'
-import { ReportError, listAdminReports, updateAdminReportStatus } from '../reports/reports.service.js'
+import { ReportError, listAdminReports, updateAdminReportStatus, updateAdminReportEmergency } from '../reports/reports.service.js'
 
 function sendError(reply: FastifyReply, error: unknown) {
   if (error instanceof AuthenticationError) return reply.status(401).send({ code: 'UNAUTHENTICATED', message: error.message })
@@ -97,4 +98,8 @@ export async function listReportsController(request: FastifyRequest<{ Querystrin
 
 export async function updateReportStatusController(request: FastifyRequest<{ Params: ReportParams; Body: AdminReportStatusBody }>, reply: FastifyReply) {
   return respond(reply, () => updateAdminReportStatus(request.params.reportId, request.body))
+}
+
+export async function updateReportEmergencyController(request: FastifyRequest<{ Params: ReportParams; Body: AdminReportEmergencyBody }>, reply: FastifyReply) {
+  return respond(reply, () => updateAdminReportEmergency(request.params.reportId, request.body.requiresEmergencyTeam))
 }

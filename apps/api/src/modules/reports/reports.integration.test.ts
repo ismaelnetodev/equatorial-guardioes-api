@@ -25,6 +25,35 @@ let token: string
 let module0Completed: boolean
 const headers = () => ({ authorization: 'Bearer ' + token })
 
+describe('avaliação administrativa de emergência', () => {
+  const url = '/api/v1/admin/relatos/' + reportId + '/emergency'
+  it('exige login e papel administrativo', async () => {
+    expect((await app.inject({ method: 'PATCH', url, payload: { requiresEmergencyTeam: true } })).statusCode).toBe(401)
+    expect((await app.inject({ method: 'PATCH', url, headers: headers(), payload: { requiresEmergencyTeam: true } })).statusCode).toBe(403)
+    expect(db.report.update).not.toHaveBeenCalled()
+  })
+  it.each([true, false, null])('salva a decisão %s sem alterar status, risco ou pontos', async decision => {
+    db.user.findUnique.mockResolvedValue({ id: userId, role: 'ADMIN' })
+    db.report.update.mockResolvedValue({ id: reportId, requiresEmergencyTeam: decision })
+    const response = await app.inject({ method: 'PATCH', url, headers: headers(), payload: { requiresEmergencyTeam: decision } })
+    expect(response.statusCode).toBe(200)
+    expect(response.json()).toEqual({ id: reportId, requiresEmergencyTeam: decision })
+    expect(db.report.update).toHaveBeenCalledWith({ where: { id: reportId }, data: { requiresEmergencyTeam: decision }, select: { id: true, requiresEmergencyTeam: true } })
+    expect(db.reportTimelineEvent.create).not.toHaveBeenCalled()
+    expect(db.pointLedgerEntry.create).not.toHaveBeenCalled()
+  })
+  it.each([{}, { requiresEmergencyTeam: 'true' }])('rejeita uma decisão inválida', async payload => {
+    db.user.findUnique.mockResolvedValue({ id: userId, role: 'ADMIN' })
+    expect((await app.inject({ method: 'PATCH', url, headers: headers(), payload })).statusCode).toBe(400)
+    expect(db.report.update).not.toHaveBeenCalled()
+  })
+  it('retorna 404 para relato inexistente', async () => {
+    db.user.findUnique.mockResolvedValue({ id: userId, role: 'ADMIN' })
+    db.report.update.mockRejectedValue(new Prisma.PrismaClientKnownRequestError('missing', { code: 'P2025', clientVersion: '7.10.1' }))
+    expect((await app.inject({ method: 'PATCH', url, headers: headers(), payload: { requiresEmergencyTeam: true } })).statusCode).toBe(404)
+  })
+})
+
 beforeEach(async () => {
   vi.restoreAllMocks()
   vi.resetAllMocks()

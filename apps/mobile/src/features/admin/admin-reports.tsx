@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from 'react'
 import { Image, Modal, Pressable, ScrollView, StyleSheet, Text, View, useWindowDimensions } from 'react-native'
 import * as api from './admin.api'
 import { useAction, type ReportError } from './admin.ui'
-import { art, Azulejo, InfoRow, OutlineButton, Panel, Pill, SectionTitle, SolidButton, StatCard, Toggle, tone } from './admin-painel.ui'
+import { art, Azulejo, InfoRow, OutlineButton, Panel, Pill, SectionTitle, SolidButton, StatCard, tone } from './admin-painel.ui'
 import { ReportMap, type MapPin } from './report-map'
 
 type Filter = api.ReportStatusCode | 'ALL'
@@ -38,10 +38,20 @@ export function AdminReports({ onError }: { onError: ReportError }) {
     const updated = await api.reportStatus(id, body)
     setReports(current => current.map(report => report.id === updated.id ? updated : report))
   })
+  const saveEmergency = async (id: string, requiresEmergencyTeam: boolean | null) => {
+    let saved = false
+    await run(async () => {
+      const updated = await api.reportEmergency(id, { requiresEmergencyTeam })
+      setReports(current => current.map(report => report.id === updated.id ? { ...report, ...updated } : report))
+      saved = true
+    })
+    return saved
+  }
   return <View style={styles.page}>
     <Azulejo />
     <View style={styles.body}>
       <SectionTitle kicker="Painel · Equatorial · São Luís" title="Fila de relatos" caption="Relatos enviados pelos moradores pelo aplicativo. Abra um relato para conferir a foto, confirmar o risco e liberar os pontos." />
+      <OutlineButton title={busy ? 'Aguarde…' : 'Atualizar relatos'} disabled={busy} onPress={() => { void run(refresh) }} />
       <View style={styles.stats}>
         <StatCard label="Relatos recebidos" value={String(reports.length)} caption="Total" />
         <StatCard label="Aguardando triagem" value={String(waiting)} caption="Enviados e recebidos" />
@@ -73,6 +83,7 @@ export function AdminReports({ onError }: { onError: ReportError }) {
                   <Text style={styles.itemTitle} numberOfLines={1}>{report.title}</Text>
                   <Text style={styles.itemPlace} numberOfLines={1}>{report.address} · {report.neighborhood}</Text>
                   <Text style={styles.itemTime}>{formatDate(report.submittedAt)} · {report.status.label}</Text>
+                  {report.requiresEmergencyTeam === true ? <Text style={[styles.itemTime, { color: tone.red }]}>Exige equipe de emergência</Text> : null}
                 </View>
               </Pressable>
             })}
@@ -86,7 +97,7 @@ export function AdminReports({ onError }: { onError: ReportError }) {
         <View style={[styles.window, wide && { maxWidth: 1080 }]}>
           <Azulejo height={28} />
           <ScrollView contentContainerStyle={styles.windowInner}>
-            {selected ? <ReportDetail key={selected.id} report={selected} busy={busy} wide={wide} onApply={apply} onClose={() => setSelectedId(null)} /> : null}
+            {selected ? <ReportDetail key={selected.id} report={selected} busy={busy} wide={wide} onApply={apply} onSaveEmergency={saveEmergency} onClose={() => setSelectedId(null)} /> : null}
           </ScrollView>
         </View>
       </View>
@@ -94,9 +105,14 @@ export function AdminReports({ onError }: { onError: ReportError }) {
   </View>
 }
 
-function ReportDetail({ report, busy, wide, onApply, onClose }: { report: api.AdminReport; busy: boolean; wide: boolean; onApply: (id: string, body: { status: api.ReportStatusCode; confirmedRisk?: api.ReportUrgencyCode }) => void; onClose: () => void }) {
+function ReportDetail({ report, busy, wide, onApply, onSaveEmergency, onClose }: { report: api.AdminReport; busy: boolean; wide: boolean; onApply: (id: string, body: { status: api.ReportStatusCode; confirmedRisk?: api.ReportUrgencyCode }) => void; onSaveEmergency: (id: string, decision: boolean | null) => Promise<boolean>; onClose: () => void }) {
   const [risk, setRisk] = useState<api.ReportUrgencyCode>(report.urgency.code)
-  const [emergency, setEmergency] = useState(report.urgency.code === 'HIGH')
+  const [emergency, setEmergency] = useState(report.requiresEmergencyTeam)
+  const [emergencySaved, setEmergencySaved] = useState(false)
+  useEffect(() => { setEmergency(report.requiresEmergencyTeam) }, [report.requiresEmergencyTeam])
+  const closed = report.status.code === 'RESOLVED' || report.status.code === 'NOT_CONFIRMED'
+  const canReceive = report.status.code === 'SENT'
+  const canAnalyze = report.status.code === 'SENT' || report.status.code === 'RECEIVED'
   const steps: api.ReportStatusCode[] = report.status.code === 'NOT_CONFIRMED' ? ['SENT', 'RECEIVED', 'IN_ANALYSIS', 'NOT_CONFIRMED'] : openSteps
   const reached = steps.indexOf(report.status.code)
   return <View style={styles.detail}>
@@ -132,16 +148,22 @@ function ReportDetail({ report, busy, wide, onApply, onClose }: { report: api.Ad
         </View>)}</View>
         <Text style={styles.panelKicker}>Risco confirmado pela equipe</Text>
         <View style={styles.grid}>
-          {(Object.keys(urgencyLabels) as api.ReportUrgencyCode[]).map(code => <OutlineButton key={code} title={'Risco ' + urgencyLabels[code].toLowerCase()} active={risk === code} disabled={busy} onPress={() => setRisk(code)} />)}
-          <OutlineButton title="Manter o que a IA sugeriu" disabled={busy} active={risk === report.urgency.code} onPress={() => setRisk(report.urgency.code)} />
+          {(Object.keys(urgencyLabels) as api.ReportUrgencyCode[]).map(code => <OutlineButton key={code} title={'Risco ' + urgencyLabels[code].toLowerCase()} active={risk === code} disabled={busy || closed} onPress={() => setRisk(code)} />)}
+          <OutlineButton title="Manter o que a IA sugeriu" disabled={busy || closed} active={risk === report.urgency.code} onPress={() => setRisk(report.urgency.code)} />
         </View>
-        <Text style={styles.hint}>O risco escolhido substitui a classificação da IA e é enviado junto com a decisão.</Text>
-        <Toggle value={emergency} disabled={busy} onChange={setEmergency} title="Exige equipe de emergência" caption="Marque quando o risco pedir atendimento imediato. Fica registrado na triagem." />
-        <SolidButton title={'Validar e liberar pontos'} icon="✓" disabled={busy || report.status.code === 'RESOLVED'} onPress={() => onApply(report.id, { status: 'RESOLVED', confirmedRisk: risk })} />
-        <OutlineButton title="Marcar como inválido" disabled={busy || report.status.code === 'NOT_CONFIRMED'} onPress={() => onApply(report.id, { status: 'NOT_CONFIRMED', confirmedRisk: risk })} />
+        <Text style={styles.hint}>O risco escolhido é confirmado ao validar o relato e usado no cálculo dos pontos. Receber, colocar em análise ou invalidar não altera essa classificação.</Text>
+        <Text style={styles.panelKicker}>Necessidade de equipe de emergência</Text>
+        <Text style={styles.hint}>Decisão salva: {report.requiresEmergencyTeam === null ? 'Não avaliado' : report.requiresEmergencyTeam ? 'Exige equipe' : 'Não exige equipe'}. Este registro não aciona equipes nem altera o status ou os pontos.</Text>
         <View style={styles.grid}>
-          <OutlineButton title="Marcar como recebido" disabled={busy || report.status.code === 'RECEIVED'} onPress={() => onApply(report.id, { status: 'RECEIVED', confirmedRisk: risk })} />
-          <OutlineButton title="Colocar em análise" disabled={busy || report.status.code === 'IN_ANALYSIS'} onPress={() => onApply(report.id, { status: 'IN_ANALYSIS', confirmedRisk: risk })} />
+          {([{ value: null, label: 'Não avaliado' }, { value: true, label: 'Exige equipe' }, { value: false, label: 'Não exige equipe' }] as const).map(option => <OutlineButton key={option.label} title={option.label} active={emergency === option.value} disabled={busy} onPress={() => { setEmergency(option.value); setEmergencySaved(false) }} />)}
+        </View>
+        <OutlineButton title={busy ? 'Salvando…' : 'Salvar avaliação de emergência'} disabled={busy || emergency === report.requiresEmergencyTeam} onPress={() => { setEmergencySaved(false); void onSaveEmergency(report.id, emergency).then(setEmergencySaved) }} />
+        {emergencySaved ? <Text accessibilityRole="alert" style={styles.hint}>Avaliação de emergência salva.</Text> : null}
+        <SolidButton title={'Validar e liberar pontos'} icon="✓" disabled={busy || closed} onPress={() => onApply(report.id, { status: 'RESOLVED', confirmedRisk: risk })} />
+        <OutlineButton title="Marcar como inválido" disabled={busy || closed} onPress={() => onApply(report.id, { status: 'NOT_CONFIRMED' })} />
+        <View style={styles.grid}>
+          <OutlineButton title="Marcar como recebido" disabled={busy || !canReceive} onPress={() => onApply(report.id, { status: 'RECEIVED' })} />
+          <OutlineButton title="Colocar em análise" disabled={busy || !canAnalyze} onPress={() => onApply(report.id, { status: 'IN_ANALYSIS' })} />
         </View>
         <Text style={styles.hint}>A decisão atualiza a linha do tempo que o morador vê no aplicativo.</Text>
       </Panel>

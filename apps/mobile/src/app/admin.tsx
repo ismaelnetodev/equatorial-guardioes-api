@@ -27,7 +27,7 @@ export default function AdminScreen() {
   const wide = useWindowDimensions().width >= 900
   const [authorized, setAuthorized] = useState(false)
   const [checking, setChecking] = useState(true)
-  const [tab, setTab] = useState<Tab>('trails')
+  const [tab, setTab] = useState<Tab>('reports')
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [error, setError] = useState('')

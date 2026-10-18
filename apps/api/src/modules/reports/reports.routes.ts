@@ -1,8 +1,11 @@
 import type { FastifyPluginAsyncTypebox } from '@fastify/type-provider-typebox'
+import multipart from '@fastify/multipart'
+import { MAX_PHOTO_BYTES } from './report-photo.service.js'
 import * as controller from './reports.controller.js'
 import * as schema from './reports.schemas.js'
 
 export const reportsRoutes: FastifyPluginAsyncTypebox = async (app) => {
+  await app.register(multipart, { attachFieldsToBody: true, limits: { fileSize: MAX_PHOTO_BYTES, files: 1, fields: 0, parts: 1 } })
   const common = { tags: ['Reports'], security: [{ bearerAuth: [] }] }
   const errors = {
     400: schema.errorResponseSchema,
@@ -11,12 +14,22 @@ export const reportsRoutes: FastifyPluginAsyncTypebox = async (app) => {
     409: schema.errorResponseSchema,
   }
 
+  app.post('/foto', {
+    onRequest: controller.authorizeReportPhotoUpload,
+    config: { rateLimit: { max: 10, timeWindow: '1 minute' } },
+    schema: {
+      ...common, summary: 'Envia uma foto privada para anexar a um relato', consumes: ['multipart/form-data'],
+      body: structuredClone(schema.uploadReportPhotoSchema),
+      response: { 201: schema.uploadReportPhotoResponseSchema, ...errors, 413: schema.errorResponseSchema, 415: schema.errorResponseSchema, 422: schema.errorResponseSchema, 429: schema.errorResponseSchema, 503: schema.errorResponseSchema },
+    },
+  }, controller.uploadReportPhotoController)
+
   app.post('/', {
     schema: {
       ...common,
       summary: 'Cria um relato após concluir o módulo 0',
       body: schema.createReportSchema,
-      response: { 201: schema.reportDetailSchema, ...errors },
+      response: { 201: schema.reportDetailSchema, ...errors, 422: schema.errorResponseSchema, 503: schema.errorResponseSchema },
     },
   }, controller.createReportController)
 

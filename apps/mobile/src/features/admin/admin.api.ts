@@ -34,3 +34,7 @@ type ReportStatusBody = paths['/api/v1/admin/relatos/{reportId}/status']['patch'
 
 export const listReports = (status?: ReportStatusCode) => apiRequest<AdminReport[]>('/admin/relatos' + (status ? '?' + new URLSearchParams({ status }).toString() : ''))
 export const reportStatus = (id: string, body: ReportStatusBody) => request<AdminReport>('/relatos/' + id + '/status', 'PATCH', body)
+
+type EmergencyBody = paths['/api/v1/admin/relatos/{reportId}/emergency']['patch']['requestBody']['content']['application/json']
+type EmergencyDecision = JsonResponse<paths['/api/v1/admin/relatos/{reportId}/emergency']['patch']>
+export const reportEmergency = (id: string, body: EmergencyBody) => request<EmergencyDecision>('/relatos/' + id + '/emergency', 'PATCH', body)

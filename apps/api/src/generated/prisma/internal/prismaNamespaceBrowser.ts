@@ -321,6 +321,7 @@ export const ReportScalarFieldEnum = {
   urgency: 'urgency',
   pointsAwarded: 'pointsAwarded',
   confirmedRisk: 'confirmedRisk',
+  requiresEmergencyTeam: 'requiresEmergencyTeam',
   validatedAt: 'validatedAt',
   impactSeenAt: 'impactSeenAt',
   submittedAt: 'submittedAt',

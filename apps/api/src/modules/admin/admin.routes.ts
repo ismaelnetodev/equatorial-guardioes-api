@@ -26,5 +26,10 @@ export const adminRoutes: FastifyPluginAsyncTypebox = async app => {
   app.get('/trails/:trailId/modules/:moduleId/training', { schema: { ...common, summary: 'Lista as etapas de treinamento do módulo', params: schema.adminModuleParamsSchema, response: { 200: schema.adminTrainingSchema, ...errors } } }, controller.getModuleTrainingController)
   app.put('/trails/:trailId/modules/:moduleId/training', { schema: { ...common, summary: 'Substitui todas as etapas de treinamento do módulo', params: schema.adminModuleParamsSchema, body: schema.replaceTrainingSchema, response: { 200: schema.adminTrainingSchema, ...errors } } }, controller.replaceModuleTrainingController)
   app.get('/relatos', { schema: { ...common, summary: 'Lista relatos para administração', querystring: schema.adminReportsQuerySchema, response: { 200: schema.adminReportsListSchema, ...errors } } }, controller.listReportsController)
+  app.patch('/relatos/:reportId/emergency', { preValidation: async (request, reply) => {
+    const body = request.body as { requiresEmergencyTeam?: unknown } | null
+    const decision = body?.requiresEmergencyTeam
+    if (decision !== null && typeof decision !== 'boolean') return reply.status(400).send({ code: 'VALIDATION_ERROR', message: 'Informe uma avaliação de emergência válida.' })
+  }, schema: { ...common, summary: 'Registra a necessidade de equipe de emergência, sem acioná-la', params: schema.reportParamsSchema, body: schema.adminReportEmergencyBodySchema, response: { 200: schema.adminReportEmergencyResponseSchema, ...errors } } }, controller.updateReportEmergencyController)
   app.patch('/relatos/:reportId/status', { schema: { ...common, summary: 'Atualiza o status de um relato e a linha do tempo', params: schema.reportParamsSchema, body: schema.adminReportStatusBodySchema, response: { 200: schema.adminReportItemSchema, ...errors } } }, controller.updateReportStatusController)
 }

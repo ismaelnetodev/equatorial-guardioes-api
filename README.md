@@ -1,5 +1,7 @@
 # Guardiões da Energia
 
+O painel administrativo permite salvar a necessidade de equipe de emergência em cada relato como “Não avaliado”, “Exige equipe” ou “Não exige equipe”. Use “Salvar avaliação de emergência” para persistir a decisão, independentemente do status e dos pontos. Esse registro não aciona equipes. Execute `npm run db:deploy` para aplicar a migration do campo `requiresEmergencyTeam` antes de usar essa funcionalidade.
+
 Monorepo da plataforma Guardiões da Energia, com uma API para autenticação, administração de conteúdo e progresso em trilhas de capacitação, e um aplicativo React Native para acessar a plataforma.
 
 ## Tecnologias
@@ -37,7 +39,9 @@ package-lock.json       Dependências dos workspaces
 
 A API e o aplicativo possuem configurações e dependências próprias. O aplicativo acessa o banco exclusivamente pela API.
 
-As telas do chatbot ficam em `apps/mobile/src/features/chatbot`, com rotas em `apps/mobile/src/app/chat-reportar.tsx` e `chat-duvidas.tsx`. O serviço de IA fica em `apps/ia` e usa dependências Python próprias. Consulte [o guia do chatbot](docs/chatbot-ia.md) para executar o serviço. Os botões de criar relato abrem o chat em uma tela própria, fora da navbar. Ao confirmar, o app salva pela API com a sessão atual e permite acompanhar o registro em Meus relatos. A foto permanece local até a implementação do upload.
+As telas do chatbot ficam em `apps/mobile/src/features/chatbot`, com rotas em `apps/mobile/src/app/chat-reportar.tsx` e `chat-duvidas.tsx`. O serviço de IA fica em `apps/ia` e usa dependências Python próprias. Consulte [o guia do chatbot](docs/chatbot-ia.md) para executar o serviço e configurar o armazenamento das fotos. Os botões de criar relato abrem o chat em uma tela própria, fora da navbar. Ao confirmar, o app envia a foto para o bucket privado pela API, salva o relato com a sessão atual e permite acompanhar o registro em Meus relatos. As fotos ficam disponíveis no acompanhamento e no painel admin por URLs temporárias de leitura.
+
+Para fotos, configure `AWS_ENDPOINT_URL_S3`, `AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY`, `AWS_REGION` e `S3_REPORTS_BUCKET=relatos-imgs` somente no ambiente do backend. Use o `.env.example` de `apps/api` como referência. O upload aceita JPEG, PNG e WebP de até 10 MB; os links de leitura duram uma hora e são renovados ao consultar os relatos. Não é necessário tornar o bucket público nem alterar o banco.
 
 ## Pré-requisitos
 

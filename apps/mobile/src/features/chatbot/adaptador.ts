@@ -2,13 +2,26 @@ import { useEffect, useState } from 'react';
 import type { Relato } from './api';
 import { getAccessToken } from '../../services/session';
 import { getCurrentUser } from '../auth/auth.api';
-import { createReport, type CreateReportBody } from '../reports/reports.api';
+import { ApiError } from '../../services/api';
+import { createReport, uploadReportPhoto, type CreateReportBody } from '../reports/reports.api';
+
+// Reaproveita o upload ao tentar novamente após uma falha na gravação do relato.
+let uploadedPhoto: { uri: string; token: string; reference: string } | null = null;
 
 export async function obterToken(): Promise<string> {
   return (await getAccessToken()) ?? '';
 }
 
 export async function enviarRelato(relato: Relato) {
+  let photoUrl: string | undefined;
+  if (relato.foto) {
+    const token = await obterToken();
+    if (uploadedPhoto?.uri !== relato.foto || uploadedPhoto.token !== token) {
+      const result = await uploadReportPhoto(relato.foto);
+      uploadedPhoto = { uri: relato.foto, token, reference: result.photoUrl };
+    }
+    photoUrl = uploadedPhoto.reference;
+  }
   const prioridades = { N1: 'HIGH', N2: 'MEDIUM', N3: 'LOW' } as const;
   const body: CreateReportBody = {
     title: relato.categoria?.trim() || 'Risco na rede elétrica',
@@ -18,9 +31,16 @@ export async function enviarRelato(relato: Relato) {
     urgency: prioridades[relato.nivel],
     latitude: relato.local.lat === 0 && relato.local.lng === 0 ? null : relato.local.lat,
     longitude: relato.local.lat === 0 && relato.local.lng === 0 ? null : relato.local.lng,
+    ...(photoUrl ? { photoUrl } : {}),
   };
-  // A URI da câmera é local ao aparelho. photoUrl exige upload para um endereço público.
-  return createReport(body);
+  try {
+    const result = await createReport(body);
+    uploadedPhoto = null;
+    return result;
+  } catch (error) {
+    if (error instanceof ApiError && error.code === 'INVALID_PHOTO') uploadedPhoto = null;
+    throw error;
+  }
 }
 
 export async function obterNome(): Promise<string> {
