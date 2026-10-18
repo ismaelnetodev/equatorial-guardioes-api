@@ -140,7 +140,8 @@ async function findCatalogNeighborhoodByName(name: string) {
 async function resolveReportNeighborhood(
   userId: string,
   input: Pick<CreateReport, 'neighborhood' | 'neighborhoodId'>,
-): Promise<{ id: string; name: string }> {
+): Promise<{ id: string | null; name: string }> {
+  // Validação de catálogo só para valores enviados no body.
   if (input.neighborhoodId) {
     return findCatalogNeighborhoodById(input.neighborhoodId)
   }
@@ -150,6 +151,7 @@ async function resolveReportNeighborhood(
     return findCatalogNeighborhoodByName(provided)
   }
 
+  // Fallback do cadastro: grava o texto como está; id nulo se não houver match (ex.: Outro bairro).
   const user = await getPrisma().user.findUnique({
     where: { id: userId },
     select: { neighborhood: true, neighborhoodId: true },
@@ -161,7 +163,15 @@ async function resolveReportNeighborhood(
   if (fallback.length < 2) {
     throw new ReportError('INVALID_NEIGHBORHOOD', 'Informe o bairro do relato ou atualize o bairro do seu cadastro.')
   }
-  return findCatalogNeighborhoodByName(fallback)
+  const catalog = await getPrisma().neighborhood.findFirst({
+    where: {
+      municipalityCode: '2111300',
+      name: { equals: fallback, mode: 'insensitive' },
+    },
+    select: { id: true, name: true },
+  })
+  if (catalog) return catalog
+  return { id: null, name: fallback }
 }
 
 export async function createReport(userId: string, input: CreateReport) {
