@@ -33,7 +33,7 @@ Todas as branches remotas analisadas estavam sem commits exclusivos em relação
 
 - Classificação: só back-end
 - Causa: (1) `maybeAwardInviteOnModule0` importado e não chamado em `completeModule`; (2) resolução de relato gravava `pointsAwarded` sem `creditPoints` no extrato/`PointAccount.accumulated`; (3) agregação usava texto `neighborhood` e podia fragmentar o mesmo bairro
-- O que foi feito: convite na conclusão do módulo 0; crédito `REPORT_CONFIRM`; script `db:reconcile:neighborhood`; ranking agrega por id de catálogo (texto sem id mapeado ao catálogo; sem match → “Sem bairro”); backfill `db:backfill:user-neighborhood-id`; E2E real trilha→ranking + fila
+- O que foi feito: convite na conclusão do módulo 0; crédito `REPORT_CONFIRM`; script `db:reconcile:neighborhood`; ranking agrega por id de catálogo (texto sem id mapeado ao catálogo; sem match -> “Sem bairro”); backfill `db:backfill:user-neighborhood-id`; E2E real trilha->ranking + fila
 - Commits: `fd0b558`, `4d27b8c`, `6b43e86` `fix(back): backfill neighborhood ids and rank by catalog`; `9348701` `test(back): e2e ranking trail and daily cap queue`
 
 ### C. Login Google e funções sem uso
@@ -77,12 +77,12 @@ Todas as branches remotas analisadas estavam sem commits exclusivos em relação
 |-------|----------------|------------|------------|
 | Pré-teste | `submitPreTest` | 0 | Diagnóstico; não credita ledger |
 | Conclusão do treinamento | `training_completion` | **3** | Fila + `training_points_daily`; **validar 3 com a equipe** |
-| Pós-teste aprovado | `module_quiz` | 0 → 4 | Pontuação direta do quiz; validar 4 com a equipe |
-| Melhoria pré→pós | `post_test_improvement` | 6 (1x) | Só com melhoria mensurável |
+| Pós-teste aprovado | `module_quiz` | 0 -> 4 | Pontuação direta do quiz; validar 4 com a equipe |
+| Melhoria pré->pós | `post_test_improvement` | 6 (1x) | Só com melhoria mensurável |
 | Conclusão do módulo | `module_completion` | 2 | Fila + limites `training_*_daily` |
 | Prova final | `final_exam` | 10 | 1x |
 
-- O que foi feito: `module_quiz` → 4 (migration condicional); regra `training_completion` = 3 (insert se não existir); `completeTraining` enfileira e libera; scripts `db:backfill:module-quiz` e `db:backfill:training`; limites diários adiando (não descartando); respostas com `pointsCapped` / `capReason` / `pendingPoints`; fila in-process + `db:release:pending-points`; flag `POINTS_DAILY_LIMITS_ENABLED`.
+- O que foi feito: `module_quiz` -> 4 (migration condicional); regra `training_completion` = 3 (insert se não existir); `completeTraining` enfileira e libera; scripts `db:backfill:module-quiz` e `db:backfill:training`; limites diários adiando (não descartando); respostas com `pointsCapped` / `capReason` / `pendingPoints`; fila in-process + `db:release:pending-points`; flag `POINTS_DAILY_LIMITS_ENABLED`.
 - Commits: `a9577b2`, `cfc535b`, `4e4980a` `feat(back): award configurable training_completion points`; `79d0e65` `feat(back): expose daily point caps and queue consumer`
 
 ### H. Bairro no relato
@@ -123,10 +123,10 @@ Nenhum item A a H estava resolvido de forma completa em branch remota pendente d
 
 - `POST /api/v1/relatos`
 - Antes: `neighborhood` obrigatório
-- Depois: `neighborhood` e `neighborhoodId` opcionais; vazio/espaços = fallback do cadastro; texto livre e id devem existir no catálogo; inválido → 400 `INVALID_NEIGHBORHOOD`
+- Depois: `neighborhood` e `neighborhoodId` opcionais; vazio/espaços = fallback do cadastro; texto livre e id devem existir no catálogo; inválido -> 400 `INVALID_NEIGHBORHOOD`
 - Resposta/listagens: continuam com `neighborhood`
 
-### Quiz e progresso (G) — novos campos de resposta
+### Quiz e progresso (G): novos campos de resposta
 
 - `POST /api/v1/modules/:moduleId/training/complete`: além de `pointsAwarded`, retorna `pointsCapped`, `capReason` (`"DAILY_LIMIT"` ou `null`), `pendingPoints`
 - `POST /api/v1/progress/modules/:moduleId/complete`: mesmos campos opcionais quando há crédito de treino enfileirado
@@ -145,7 +145,9 @@ Nenhum item A a H estava resolvido de forma completa em branch remota pendente d
 
 Migration `20261018210000_training_points_daily_10` atualiza o valor de 4 para 10 somente se ainda estiver em 4.
 
-Consumidor da fila: **in-process** no processo da API (`POINTS_QUEUE_INTERVAL_MS`, padrão 1h; `0` desliga), mais `POST .../learning-awards/claim` e scripts de conclusão. Não há `docker-compose` nem CronJob no repositório. Script sob demanda: `npm run db:release:pending-points -w guardioes-api`. Demo: `POINTS_DAILY_LIMITS_ENABLED=false` ignora os limites de treino.
+Consumidor da fila: **in-process** no processo da API (`POINTS_QUEUE_INTERVAL_MS`, padrão 1h; `0` desliga), mais `POST .../learning-awards/claim` e conclusão de módulo/treinamento. Não há `docker-compose` nem CronJob no repositório. Script sob demanda: `npm run db:release:pending-points -w guardioes-api`. Demo: `POINTS_DAILY_LIMITS_ENABLED=false` ignora os limites de treino.
+
+A fila in-process só roda enquanto a API estiver ativa. No deploy, use instância sem hibernação (sempre ligada) ou agende `db:release:pending-points` externamente (cron/K8s CronJob). Virada do dia dos limites: `America/Sao_Paulo`.
 
 ## 5. Candidatos a remoção (não removidos)
 
@@ -201,7 +203,7 @@ npm test -w guardioes-api -- src/modules/community/ranking-trail.e2e.test.ts
 ```
 
 Resultado: `Test Files 1 passed (1)` · `Tests 2 passed (2)` · duração ~2.8s.
-Casos: trilha→ranking (delta 3+4+2) e limite diário→`pointsCapped`→claim.
+Casos: trilha->ranking (delta 3+4+2) e limite diário->`pointsCapped`->claim.
 
 ## Proposta documentada (item D): questionário único
 
@@ -229,7 +231,7 @@ Motivo de não executar agora: o mobile e os fluxos de progresso/treino dependem
 
 Cadastro (`auth.service`) e relato (`reports.service`) usam a **mesma** tabela `Neighborhood`.
 
-- Município coberto: IBGE **2111300 — São Luís/MA** (seed Prefeitura de São Luís / SEMGOP 2022).
-- Cadastro: `neighborhoodId` opcional; se informado, exige `municipalityCode = 2111300`; “Outro bairro” = texto sem id.
-- Relato: texto livre ou id validados no mesmo catálogo; grava `neighborhood` + `neighborhoodId`.
-- Ranking: agrega por id de catálogo (texto sem id é mapeado pelo nome normalizado; sem match → bucket único “Sem bairro”).
+- Município coberto: IBGE **2111300** (São Luís/MA, seed Prefeitura de São Luís / SEMGOP 2022).
+- Cadastro: `neighborhoodId` opcional; se informado, exige `municipalityCode = 2111300`; "Outro bairro" = texto sem id.
+- Relato: valores no body (texto ou id) são validados no catálogo. Fallback do cadastro grava o texto como está com `neighborhoodId` nulo se não houver match (sem 400).
+- Ranking público: agrega por id de catálogo (texto sem id mapeado pelo nome normalizado). Sem match fica fora do endpoint público (não há rota admin de ranking hoje).
