@@ -125,6 +125,8 @@ describe('listagem e detalhe', () => {
         address: 'Rua 7',
         neighborhood: 'Cohama',
         photoUrl: null,
+        latitude: null,
+        longitude: null,
         status: 'IN_ANALYSIS',
         urgency: 'MEDIUM',
         pointsAwarded: 0,
@@ -136,6 +138,8 @@ describe('listagem e detalhe', () => {
         address: 'Av. Central',
         neighborhood: 'Cohama',
         photoUrl: null,
+        latitude: null,
+        longitude: null,
         status: 'RESOLVED',
         urgency: 'HIGH',
         pointsAwarded: 50,
@@ -229,6 +233,8 @@ describe('admin status', () => {
       address: 'Rua 7',
       neighborhood: 'Cohama',
       photoUrl: null,
+      latitude: null,
+      longitude: null,
       status: 'IN_ANALYSIS',
       urgency: 'MEDIUM',
       pointsAwarded: 0,
@@ -243,6 +249,8 @@ describe('admin status', () => {
       address: 'Rua 7',
       neighborhood: 'Cohama',
       photoUrl: null,
+      latitude: null,
+      longitude: null,
       status: 'RESOLVED',
       urgency: 'MEDIUM',
       pointsAwarded: 25,
@@ -273,7 +281,7 @@ describe('regras de concessão', () => {
     db.report.findUnique.mockResolvedValue({ id: reportId, userId, status: 'IN_ANALYSIS', pointsAwarded: 0 })
     db.report.update.mockImplementation(async ({ data }: { data: Record<string, unknown> }) => ({
       id: reportId, userId, title: 'Relato', description: 'Risco', address: 'Rua', neighborhood: 'Centro', photoUrl: null,
-      urgency: 'LOW', impactSeenAt: null, submittedAt: new Date(), ...data,
+      latitude: null, longitude: null, urgency: 'LOW', impactSeenAt: null, submittedAt: new Date(), ...data,
     }))
   })
   const resolve = (risk?: string) => app.inject({ method: 'PATCH', url: '/api/v1/admin/relatos/' + reportId + '/status', headers: headers(), payload: { status: 'RESOLVED', ...(risk ? { confirmedRisk: risk } : {}) } })

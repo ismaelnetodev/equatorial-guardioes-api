@@ -1921,6 +1921,8 @@ export interface paths {
                             address: string;
                             neighborhood: string;
                             photoUrl: string | null;
+                            latitude: number | null;
+                            longitude: number | null;
                             status: {
                                 code: "SENT" | "RECEIVED" | "IN_ANALYSIS" | "RESOLVED" | "NOT_CONFIRMED";
                                 label: string;
@@ -2069,6 +2071,8 @@ export interface paths {
                             address: string;
                             neighborhood: string;
                             photoUrl: string | null;
+                            latitude: number | null;
+                            longitude: number | null;
                             status: {
                                 code: "SENT" | "RECEIVED" | "IN_ANALYSIS" | "RESOLVED" | "NOT_CONFIRMED";
                                 label: string;

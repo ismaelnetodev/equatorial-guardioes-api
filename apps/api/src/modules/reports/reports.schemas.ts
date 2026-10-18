@@ -131,6 +131,8 @@ export const adminReportItemSchema = Type.Object({
   address: Type.String(),
   neighborhood: Type.String(),
   photoUrl: Type.Union([Type.String(), Type.Null()]),
+  latitude: Type.Union([Type.Number(), Type.Null()]),
+  longitude: Type.Union([Type.Number(), Type.Null()]),
   status: statusViewSchema,
   urgency: urgencyViewSchema,
   pointsAwarded: Type.Integer({ minimum: 0 }),

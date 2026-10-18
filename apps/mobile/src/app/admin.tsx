@@ -6,17 +6,21 @@ import { StatusBar } from 'expo-status-bar'
 import { colors } from '../components/ui'
 import { login } from '../features/auth/auth.api'
 import { AdminTrails } from '../features/admin/admin-trails'
+import { AdminReports } from '../features/admin/admin-reports'
+import { AdminKnowledge } from '../features/admin/admin-knowledge'
+import { Fitas } from '../features/admin/admin-painel.ui'
 import { AdminAccount, AdminConfigurations, AdminHistory } from '../features/admin/admin-configurations'
 import { listTrails } from '../features/admin/admin.api'
 import { Action, Card, Field, Hint, Title, ui, useAction } from '../features/admin/admin.ui'
 import { ApiError, errorMessage } from '../services/api'
 import { clearAccessToken, getAccessToken } from '../services/session'
 
-type Tab = 'trails' | 'rules' | 'rewards' | 'limits' | 'history' | 'account'
+type Tab = 'reports' | 'knowledge' | 'trails' | 'rules' | 'rewards' | 'limits' | 'history' | 'account'
+// O profissional da Equatorial vê apenas estas duas abas.
+// As telas de conteúdo continuam no código: devolva-as a esta lista para voltarem a aparecer.
 const tabs: { id: Tab; title: string; mark: string }[] = [
-  { id: 'trails', title: 'Trilhas e módulos', mark: '01' }, { id: 'rules', title: 'Pontuação', mark: '02' },
-  { id: 'rewards', title: 'Recompensas', mark: '03' }, { id: 'limits', title: 'Limites', mark: '04' },
-  { id: 'history', title: 'Histórico', mark: '05' }, { id: 'account', title: 'Minha conta', mark: '06' },
+  { id: 'reports', title: 'Relatos dos usuários', mark: '01' },
+  { id: 'knowledge', title: 'Mapa de conhecimento', mark: '02' },
 ]
 
 export default function AdminScreen() {
@@ -45,11 +49,11 @@ export default function AdminScreen() {
   const signIn = () => { setError(''); void run(async () => {
     await login({ email: email.trim().toLowerCase(), password })
     await listTrails() // A autorização é confirmada pelo backend, sem confiar no e-mail.
-    setPassword(''); setAuthorized(true); setTab('trails')
+    setPassword(''); setAuthorized(true); setTab('reports')
   }) }
   return <SafeAreaView style={styles.screen}><StatusBar style="light" />
     <ScrollView keyboardShouldPersistTaps="handled" contentContainerStyle={styles.page}>
-      <View style={styles.header}><View style={styles.brand}><Text style={styles.symbol}>ϟ</Text><View><Text style={styles.brandName}>GUARDIÕES DA ENERGIA</Text><Text style={styles.brandCaption}>Administração</Text></View></View>
+      <View style={styles.header}>{wide ? <View pointerEvents="none" style={styles.headerFitas}><Fitas width={280} /></View> : null}<View style={styles.brand}><Text style={styles.symbol}>ϟ</Text><View><Text style={styles.brandName}>GUARDIÕES DA ENERGIA</Text><Text style={styles.brandCaption}>Administração</Text></View></View>
         {authorized ? <Action title="Sair" disabled={busy} onPress={() => { void run(async () => { await clearAccessToken(); setAuthorized(false); setEmail(''); setPassword(''); setError('') }) }} /> : <Action title="Voltar ao aplicativo" onPress={() => router.replace('/entrar')} />}
       </View>
       {error ? <View style={styles.error}><Text accessibilityRole="alert" style={styles.errorText}>{error}</Text><Action title="Fechar aviso" onPress={() => setError('')} /></View> : null}
@@ -61,10 +65,10 @@ export default function AdminScreen() {
       </Card></View> : <View style={[styles.body, wide && { flexDirection: 'row' }]}>
         <View style={[styles.navigation, wide && { width: 230, flexDirection: 'column' }]}>{tabs.map(item => <Pressable key={item.id} accessibilityRole="tab" accessibilityState={{ selected: tab === item.id }} onPress={() => { setTab(item.id); setError('') }} style={[styles.navItem, tab === item.id && styles.navSelected]}><Text style={[styles.navMark, tab === item.id && { color: colors.primary }]}>{item.mark}</Text><Text style={[styles.navText, tab === item.id && { color: colors.primary }]}>{item.title}</Text></Pressable>)}</View>
         <View style={styles.workspace}>
-          {tab === 'trails' ? <AdminTrails onError={reportError} /> : tab === 'history' ? <AdminHistory onError={reportError} /> : tab === 'account' ? <AdminAccount onError={reportError} /> : <AdminConfigurations key={tab} category={tab} onError={reportError} />}
+          {tab === 'reports' ? <AdminReports onError={reportError} /> : tab === 'knowledge' ? <AdminKnowledge onError={reportError} /> : tab === 'trails' ? <AdminTrails onError={reportError} /> : tab === 'history' ? <AdminHistory onError={reportError} /> : tab === 'account' ? <AdminAccount onError={reportError} /> : <AdminConfigurations key={tab} category={tab} onError={reportError} />}
         </View>
       </View>}
-      <Text style={styles.footer}>Guardiões da Energia · Gestão de conteúdo e recompensas</Text>
+      <Text style={styles.footer}>Guardiões da Energia · Painel da Equatorial</Text>
     </ScrollView>
   </SafeAreaView>
 }
@@ -73,6 +77,7 @@ const styles = StyleSheet.create({
   screen: { flex: 1, backgroundColor: colors.background },
   page: { width: '100%', maxWidth: 1260, alignSelf: 'center', padding: 24, gap: 28, flexGrow: 1 },
   header: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 20, paddingVertical: 12, borderBottomColor: '#303968', borderBottomWidth: 1, paddingBottom: 24 },
+  headerFitas: { position: 'absolute', top: -24, right: 120 },
   brand: { flexDirection: 'row', gap: 12, alignItems: 'center' }, symbol: { color: colors.primary, fontSize: 48, fontWeight: '900' },
   brandName: { color: colors.text, fontSize: 13, fontWeight: '800', letterSpacing: 1 }, brandCaption: { color: colors.muted, fontSize: 14, marginTop: 5 },
   body: { gap: 28, alignItems: 'stretch' }, navigation: { flexDirection: 'row', flexWrap: 'wrap', gap: 6, alignSelf: 'flex-start' },

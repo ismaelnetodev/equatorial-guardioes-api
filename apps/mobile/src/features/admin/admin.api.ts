@@ -26,3 +26,11 @@ export const listConfigurations = (category: Category) => apiRequest<Configurati
 export const saveConfiguration = (category: Category, key: string, body: ConfigurationBody) => request<Configuration>('/points-rewards/' + category + '/' + encodeURIComponent(key), 'PATCH', body)
 export const history = (offset: number, kind: string, key: string) => apiRequest<Change[]>('/admin/points-rewards/history?' + new URLSearchParams({ offset: String(offset), limit: '20', ...(kind ? { kind } : {}), ...(key.trim() ? { key: key.trim() } : {}) }))
 export const changePassword = (body: paths['/api/v1/admin/password']['patch']['requestBody']['content']['application/json']) => request<{ message: string }>('/password', 'PATCH', body)
+
+export type AdminReport = JsonResponse<paths['/api/v1/admin/relatos']['get']>[number]
+export type ReportStatusCode = AdminReport['status']['code']
+export type ReportUrgencyCode = AdminReport['urgency']['code']
+type ReportStatusBody = paths['/api/v1/admin/relatos/{reportId}/status']['patch']['requestBody']['content']['application/json']
+
+export const listReports = (status?: ReportStatusCode) => apiRequest<AdminReport[]>('/admin/relatos' + (status ? '?' + new URLSearchParams({ status }).toString() : ''))
+export const reportStatus = (id: string, body: ReportStatusBody) => request<AdminReport>('/relatos/' + id + '/status', 'PATCH', body)
