@@ -311,4 +311,73 @@ describe('integração do quiz', () => {
     expect(awards.filter((row) => row.ruleKey === 'module_completion' && row.grantedAt)).toHaveLength(2)
     expect(awards.filter((row) => row.ruleKey === 'training_completion' && row.grantedAt)).toHaveLength(2)
   })
+
+  it('POST learning-awards/claim respeita o teto diário e deixa o excedente pendente', async () => {
+    type AwardRow = {
+      id: string
+      userId: string
+      ruleKey: string
+      sourceId: string
+      points: number
+      grantedAt: Date | null
+      createdAt: Date
+    }
+    const createdAt = new Date()
+    const awards: AwardRow[] = ['a', 'b', 'c'].map((sourceId, index) => ({
+      id: `p${index}`,
+      userId,
+      ruleKey: 'module_completion',
+      sourceId,
+      points: 2,
+      grantedAt: null,
+      createdAt,
+    }))
+    db.programConfiguration.findUnique.mockImplementation(async ({ where }: { where: { key: string } }) => ({
+      key: where.key,
+      kind: ['module_completion', 'training_completion'].includes(where.key) ? 'RULE' : 'LIMIT',
+      value: ({
+        module_completion: 2,
+        training_completion: 3,
+        training_modules_daily: 10,
+        training_points_daily: 4,
+      } as Record<string, number>)[where.key] ?? 0,
+      isActive: true,
+    }))
+    db.learningAward.findMany.mockImplementation(async ({ where }: { where: { grantedAt: null | { gte: Date; lt: Date }; ruleKey?: { in: string[] }; points?: { gt: number } } }) => {
+      const keys = where.ruleKey?.in
+      return awards.filter((row) => {
+        if (keys && !keys.includes(row.ruleKey)) return false
+        if (where.grantedAt === null) return !row.grantedAt
+        if (where.points?.gt != null && !(row.points > where.points.gt)) return false
+        return Boolean(row.grantedAt && row.grantedAt >= where.grantedAt.gte && row.grantedAt < where.grantedAt.lt)
+      })
+    })
+    db.learningAward.update.mockImplementation(async ({ where, data }: { where: { id: string }; data: { grantedAt: Date } }) => {
+      const row = awards.find((item) => item.id === where.id)!
+      row.grantedAt = data.grantedAt
+      return row
+    })
+    db.pointAccount.upsert.mockResolvedValue({ userId, accumulated: 0, balance: 0 })
+    db.pointAccount.update.mockResolvedValue({ userId, accumulated: 4, balance: 4 })
+    db.pointLedgerEntry.create.mockResolvedValue({ id: 'ledger-claim' })
+    db.pointLedgerEntry.findFirst.mockResolvedValue(null)
+
+    const first = await app.inject({
+      method: 'POST',
+      url: '/api/v1/progress/learning-awards/claim',
+      headers: headers(),
+    })
+    expect(first.statusCode).toBe(200)
+    expect(first.json()).toEqual({ pointsReleased: 4 })
+    expect(awards.filter((row) => row.grantedAt)).toHaveLength(2)
+    expect(awards.filter((row) => !row.grantedAt)).toHaveLength(1)
+
+    const second = await app.inject({
+      method: 'POST',
+      url: '/api/v1/progress/learning-awards/claim',
+      headers: headers(),
+    })
+    expect(second.statusCode).toBe(200)
+    expect(second.json()).toEqual({ pointsReleased: 0 })
+  })
 })
