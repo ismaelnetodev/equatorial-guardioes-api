@@ -8,7 +8,7 @@ import type { ContentStatus } from './admin.schemas.js'
 
 const db = vi.hoisted(() => ({
   user: { findUnique: vi.fn() },
-  trail: { findMany: vi.fn(), findUnique: vi.fn(), aggregate: vi.fn(), create: vi.fn(), update: vi.fn() },
+  trail: { findMany: vi.fn(), findUnique: vi.fn(), findFirst: vi.fn(), aggregate: vi.fn(), create: vi.fn(), update: vi.fn() },
   trailModule: { findMany: vi.fn(), findUnique: vi.fn(), aggregate: vi.fn(), create: vi.fn(), update: vi.fn(), count: vi.fn() },
   moduleProgress: { upsert: vi.fn(), findUnique: vi.fn(), update: vi.fn() },
   quizAttempt: { findFirst: vi.fn() },
@@ -57,6 +57,21 @@ beforeEach(async () => {
   db.user.findUnique.mockImplementation(async () => ({ id: userId, role }))
   const withProgress = (m: ModuleRow) => ({ ...m, progressRecords: completed.has(m.id) ? [{ startedAt: new Date(), completedAt: new Date() }] : [] })
   db.trail.findMany.mockImplementation(async ({ where }: Query = {}) => sorted(trails.filter(t => matches(t, where))))
+  db.trail.findFirst.mockImplementation(async ({ where, select }: Query = {}) => {
+    const trail = sorted(trails.filter(t => matches(t, where)))[0]
+    if (!trail) return null
+    if (!select?.['modules']) return { ...trail }
+    const selection = select['modules'] as { where?: Where; take?: number }
+    const rows = sorted(modules.filter(m => m.trailId === trail.id && matches(m, selection.where)))
+    const limited = selection.take ? rows.slice(0, selection.take) : rows
+    return {
+      ...trail,
+      modules: limited.map((m) => ({
+        id: m.id,
+        progressRecords: completed.has(m.id) ? [{ completedAt: new Date() }] : [],
+      })),
+    }
+  })
   db.trail.findUnique.mockImplementation(async ({ where, select }: Query) => {
     const trail = trails.find(t => matches(t, where))
     if (!trail) return null
