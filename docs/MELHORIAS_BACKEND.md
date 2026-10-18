@@ -1,8 +1,8 @@
 # Melhorias back-end (Guardiões da Energia)
 
-Branch: `melhorias`  
-Base: `origin/main` (`9840b7b`)  
-Data do sync: 2026-10-18  
+Branch: `melhorias`
+Base: `origin/main` (`9840b7b`)
+Data do sync: 2026-10-18
 Stash: não houve alterações locais; `git stash` não foi necessário.
 
 ## 1. Estado das branches remotas
@@ -69,7 +69,7 @@ Todas as branches remotas analisadas estavam sem commits exclusivos em relação
 
 ### G. Pontos do quiz e do treinamento
 
-- Classificação: só back-end
+- Classificação: só back-end {}^:çL.K,.JMNHBG
 - Causa: regra `module_quiz` seedada com valor `0`; a fase de treinamento (`completeTraining`) gravava `trainingPointsAwarded: 0` sem regra configurável
 - Inventário das etapas:
 
@@ -89,9 +89,9 @@ Todas as branches remotas analisadas estavam sem commits exclusivos em relação
 
 - Classificação: só back-end
 - Causa: `neighborhood` era obrigatório no body e não havia fallback para o bairro do usuário; texto livre não era validado no catálogo
-- O que foi feito: `neighborhood` opcional; string vazia ou só espaços tratada como ausente (fallback); texto livre e id validados no catálogo de São Luís (`INVALID_NEIGHBORHOOD`); bairro na resposta e listagens
+- O que foi feito: `neighborhood` e `neighborhoodId` opcionais. `neighborhoodId` no body sempre valida o catálogo. Texto no body igual ao bairro do cadastro, depois de `normalizeNeighborhoodText` (trim, colapso de espaços, minúsculas e remoção de acentos), é aceito sem catálogo e grava o texto com o `neighborhoodId` do usuário ou nulo. Texto diferente do cadastro exige catálogo (`INVALID_NEIGHBORHOOD`). Sem body, ou string vazia, usa o fallback do cadastro (sem 400 quando não há match).
 - Arquivos: `reports.schemas.ts`, `reports.service.ts`, `reports.controller.ts`, testes
-- Commits: `f01f87b` `fix(back): persist report neighborhood with user fallback`; `48443a8` `fix(back): validate report neighborhood against catalog`
+- Commits: `f01f87b` `fix(back): persist report neighborhood with user fallback`; `48443a8` `fix(back): validate report neighborhood against catalog`; `dff1f39` `fix(back): accept report body matching user neighborhood without catalog`
 
 ## 3. Itens já resolvidos em outras branches
 
@@ -122,35 +122,36 @@ Nenhum item A a H estava resolvido de forma completa em branch remota pendente d
 ### Relatos (H)
 
 - Rota: `POST /api/v1/relatos`
-- Antes: `neighborhood` obrigatorio no body
+- Antes: `neighborhood` obrigatório no body
 - Depois: `neighborhood` e `neighborhoodId` opcionais. Regras:
-  1. `neighborhoodId` no body: sempre valida no catalogo de Sao Luis (IBGE 2111300). Id inexistente -> 400 `INVALID_NEIGHBORHOOD`.
-  2. Texto no body igual ao bairro do cadastro (normalizado: espacos colapsados, comparacao case-insensitive / sem diferenca de acentuacao tratada pela normalizacao do texto): aceito sem validar catalogo. Grava o texto enviado e o `neighborhoodId` do usuario (ou `null`), mesma regra do fallback.
-  3. Texto no body diferente do cadastro: exige match no catalogo; sem match -> 400 `INVALID_NEIGHBORHOOD`.
-  4. Sem `neighborhood` / `neighborhoodId` no body (ou string vazia / so espacos): fallback do cadastro (texto do perfil + id do usuario ou `null` se nao houver match opcional).
+  1. `neighborhoodId` no body: sempre valida no catálogo de São Luís (IBGE 2111300). Id inexistente responde 400 `INVALID_NEIGHBORHOOD`.
+  2. Texto no body igual ao bairro do cadastro depois de `normalizeNeighborhoodText`: aceito sem validar catálogo. Grava o texto enviado e o `neighborhoodId` do usuário (ou `null`), a mesma regra do fallback.
+  3. Texto no body diferente do cadastro: exige match no catálogo; sem match responde 400 `INVALID_NEIGHBORHOOD`.
+  4. Sem `neighborhood` / `neighborhoodId` no body (ou string vazia / só espaços): fallback do cadastro (texto do perfil + id do usuário, ou `null` se não houver match opcional).
+- `normalizeNeighborhoodText` faz, nesta ordem: `trim`, colapso de espaços (`/\s+/` vira um espaço), NFD com remoção das marcas Unicode (`\p{M}`, ou seja, acentos são removidos) e `toLowerCase`.
 - Resposta e listagens: continuam com `neighborhood` (e `neighborhoodId` quando houver).
-- Teste de regressao: `apps/api/src/modules/reports/reports.integration.test.ts` (body igual a "Outro bairro" do cadastro -> 201). Introduzido em `dff1f39` (o commit ja alterou o `.test.ts`; nao foi necessario recriar o caso).
+- Teste de regressão: `apps/api/src/modules/reports/reports.integration.test.ts` (body igual a "Outro bairro" do cadastro responde 201). Introduzido em `dff1f39` (o commit já alterou o `.test.ts`; não foi necessário recriar o caso).
 
 ### Claim
 
 - Rota: `POST /api/v1/progress/learning-awards/claim`
 - Resposta: `{ "pointsReleased": number, "pendingPoints": number }`
-- Comportamento: libera apenas o que cabe no teto do dia (`training_points_daily` / `training_modules_daily`, fuso `America/Sao_Paulo`). O excedente permanece na fila (`pendingPoints`); ranking nao sobe alem do liberado.
-- Conferencia mobile (`git grep -n "learning-awards/claim" -- apps/mobile`):
-  - `apps/mobile/README.md` (documentacao das telas trilha e pontos)
-  - `apps/mobile/src/features/trails/progress.api.ts:10` (`refreshLearningSummary` chama o claim e descarta o body; em seguida le `GET /progress/learning`)
-  - `apps/mobile/src/services/api.types.ts:4309` (OpenAPI gerado tipa so `pointsReleased`)
-- Conclusao: o mobile nao le campos do body do claim. O formato antigo era `{ pointsReleased }`; o atual adiciona `pendingPoints` sem remover `pointsReleased` (mudanca so aditiva). Nenhum commit de compatibilidade foi necessario.
+- Comportamento: libera apenas o que cabe no teto do dia (`training_points_daily` / `training_modules_daily`, fuso `America/Sao_Paulo`). O excedente permanece na fila (`pendingPoints`); o ranking não sobe além do liberado.
+- Conferência mobile (`git grep -n "learning-awards/claim" -- apps/mobile`):
+  - `apps/mobile/README.md` (documentação das telas trilha e pontos)
+  - `apps/mobile/src/features/trails/progress.api.ts:10` (`refreshLearningSummary` chama o claim e descarta o body; em seguida lê `GET /progress/learning`)
+  - `apps/mobile/src/services/api.types.ts:4309` (OpenAPI gerado tipa só `pointsReleased`)
+- Conclusão: o mobile não lê campos do body do claim. O formato antigo era `{ pointsReleased }`; o atual adiciona `pendingPoints` sem remover `pointsReleased` (mudança só aditiva). Nenhum commit de compatibilidade foi necessário.
 
 ### Quiz e progresso (G): novos campos de resposta
 
-- `POST /api/v1/modules/:moduleId/training/complete`: alem de `pointsAwarded`, retorna `pointsCapped`, `capReason` (`"DAILY_LIMIT"` ou `null`), `pendingPoints`
-- `POST /api/v1/progress/modules/:moduleId/complete`: mesmos campos opcionais quando ha credito de treino enfileirado
-- Pos-teste aprovado: 4 pontos (`module_quiz`) + melhoria quando aplicavel
+- `POST /api/v1/modules/:moduleId/training/complete`: além de `pointsAwarded`, retorna `pointsCapped`, `capReason` (`"DAILY_LIMIT"` ou `null`), `pendingPoints`
+- `POST /api/v1/progress/modules/:moduleId/complete`: mesmos campos opcionais quando há crédito de treino enfileirado
+- Pós-teste aprovado: 4 pontos (`module_quiz`) + melhoria quando aplicável
 - Treinamento: 3 pontos (`training_completion`, validar com a equipe)
-- Front: se `pointsCapped`, exibir que pontos entram na fila e saem no dia seguinte (ou apos claim / tela de pontos)
+- Front: se `pointsCapped`, exibir que pontos entram na fila e saem no dia seguinte (ou após claim / tela de pontos)
 
-### Limites diarios de treino e fila
+### Limites diários de treino e fila
 
 | key | Seed | O que conta | Ao atingir |
 |-----|------|-------------|-----------|
@@ -174,6 +175,10 @@ A fila in-process só roda enquanto a API estiver ativa. No deploy, use instânc
 | Pré/pós-teste separados | Dependência do mobile e do fluxo de progresso |
 | `quiz_retry_interval` e limites diários de treinamento | Configuração administrativa ativa |
 
+### Pendência: LearningAward sem usuário (não corrigido)
+
+O E2E `ranking-trail.e2e.test.ts` apaga o usuário e a trilha no `afterAll` (`user.delete` e `trail.delete`). `PointAccount`, `PointLedgerEntry`, progresso e relatos somem por `onDelete: Cascade`. `LearningAward` não tem FK (comentário no schema: snapshot sem FK para preservar auditoria após exclusão de conteúdo), então o award fica com `userId`, `moduleId` e `trailId` apontando para registros que não existem mais. Não há rota de exclusão de conta nem exclusão de usuário no admin; hoje só o cleanup do E2E produz esse órfão. Se uma exclusão de conta for adicionada com `user.delete`, o mesmo buraco permanece até existir decisão de cascade ou de arquivo. Não apagar órfãos automaticamente.
+
 ## 6. Riscos de conflito no merge
 
 Arquivos quentes nesta branch:
@@ -189,9 +194,9 @@ Como as outras branches remotas estavam alinhadas com `main`, o risco atual é b
 
 ### Baseline e commits
 
-Base da branch em relacao a `main`: `9840b7b` (`origin/main` no sync inicial).
+Base da branch em relação a `main`: `9840b7b` (`origin/main` no sync inicial).
 
-Baseline interno `43163c2` (`chore(back): update melhorias report for pre-merge fixes`) e o ultimo commit da rodada A-H / pre-merge fixes. Os commits exclusivos entre a base e esse baseline (`git log --oneline 9840b7b..43163c2`):
+Baseline interno `43163c2` (`chore(back): update melhorias report for pre-merge fixes`) é o último commit da rodada A a H / pre-merge fixes. Os commits exclusivos entre a base e esse baseline (`git log --oneline 9840b7b..43163c2`):
 
 ```
 43163c2 chore(back): update melhorias report for pre-merge fixes
@@ -211,7 +216,7 @@ fd0b558 fix(back): credit neighborhood ranking sources
 
 A lista abaixo cobre apenas o que veio depois de `43163c2`.
 
-### Commits na branch `melhorias` (apos baseline `43163c2`)
+### Commits na branch `melhorias` (após baseline `43163c2`)
 
 Rodada pontos/fila/ranking/E2E:
 
@@ -247,6 +252,13 @@ Rodada handoff / runbook / demo:
 - `9c6de9b` docs(back): front handoff for melhorias contract
 - `8977a5e` chore(back): post-merge runbook with backup
 - `9f13f51` chore(back): demo env example without daily limits
+- `c71d1ff` docs(back): refresh quality after handoff and runbook
+- `2d6a3f4` chore(back): regenerate OpenAPI types for claim and profile
+
+Rodada órfãos:
+
+- `3c1b3ea` feat(back): orphan check before post-merge
+- `6aeeffc` fix(back): skip orphan records in reconcile and backfills
 
 ### Onde estão os testes (claim e cenários 2 módulos / meia-noite)
 
@@ -257,7 +269,7 @@ Rodada handoff / runbook / demo:
 
 ## 7. Migrations e scripts de correção
 
-Runbook pos-merge (pessoa responsavel apos o merge em `main`):
+Runbook pós-merge (pessoa responsável após o merge em `main`):
 
 ```
 npm run db:post-merge -w guardioes-api
@@ -265,39 +277,40 @@ npm run db:post-merge -w guardioes-api
 
 Script: `apps/api/scripts/post-merge.sh` (npm `db:post-merge`).
 
-1. Exige `DATABASE_URL` e confirmacao digitada `sim`, mostrando o host do banco.
-2. Faz `pg_dump` em `backups/pre-melhorias-<data-hora>.sql` e aborta se falhar ou sair vazio.
-3. Roda em ordem: `db:deploy`, `db:backfill:module-quiz`, `db:backfill:training`, `db:backfill:user-neighborhood-id`, `db:reconcile:neighborhood`.
-4. Grava a saida de cada etapa em `backups/post-merge-<data-hora>.log` e para na primeira falha (informa a etapa e o caminho do backup).
-5. Diretorio `backups/` esta no `.gitignore`.
+1. Exige `DATABASE_URL`. Antes da confirmação, roda `db:check:orphans` (somente leitura) e mostra o JSON junto com o host.
+2. Pede confirmação digitada `sim`.
+3. Grava o JSON do check no log, faz `pg_dump` em `backups/pre-melhorias-<data-hora>.sql` e aborta se falhar ou sair vazio.
+4. Roda em ordem: `db:deploy`, `db:backfill:module-quiz`, `db:backfill:training`, `db:backfill:user-neighborhood-id`, `db:reconcile:neighborhood`.
+5. Grava a saída de cada etapa em `backups/post-merge-<data-hora>.log` e para na primeira falha (informa a etapa e o caminho do backup).
+6. Diretório `backups/` está no `.gitignore`.
 
-Teste local (2026-10-18), somente Postgres `pg-e2e` em `localhost:5433` (schema recriado antes do teste; nunca outro banco):
+Teste local (2026-10-18), somente Postgres `pg-e2e` em `localhost:5433`, schema **não** recriado (banco sujo do E2E):
 
-- Confirmacao `sim` com host `localhost:5433`
-- Backup `backups/pre-melhorias-20261018-155452.sql` (~110 KB, nao vazio)
-- Etapas `db:deploy` ... `db:reconcile:neighborhood` OK
-- Log `backups/post-merge-20261018-155452.log`
-- Observacao: em banco sujo de E2E (awards orfaos), o reconcile pode falhar com FK; o script aborta corretamente. Em schema limpo + migrate, o runbook completa.
+- `db:check:orphans`: 4 `LearningAward` com usuário, módulo e trilha inexistentes (ids `4053fe91-fa8c-44e7-a81f-be0ff3eca989`, `4e2c9cf9-2dc2-4755-bf14-731cc69216d0`, `98b87a35-6695-497c-965e-92389a42fe15`, `d77ebdec-c33c-45ac-b7c9-f41f163046fc`). Ledger e `PointAccount`: 0.
+- Confirmação `sim` com host `localhost:5433`. O resumo dos órfãos apareceu antes do prompt.
+- Backup `backups/pre-melhorias-20261018-173459.sql` (111713 bytes).
+- Etapas `db:deploy` até `db:reconcile:neighborhood` OK. O reconcile registrou `orphan LearningAward skipped` para os 4 ids e não apagou nada.
+- Log `backups/post-merge-20261018-173459.log`.
 
-Sob demanda: `npm run db:release:pending-points -w guardioes-api`.
+Sob demanda: `npm run db:release:pending-points -w guardioes-api` e `npm run db:check:orphans -w guardioes-api`.
 
-Sobre credito em dobro: `creditPoints` e idempotente por `(reason, sourceType, sourceId)`. `db:reconcile:neighborhood` ja chama `reconcileLearningPoints`. No pos-deploy, preferir o runbook sem repetir reconcile desnecessario.
+Sobre crédito em dobro: `creditPoints` é idempotente por `(reason, sourceType, sourceId)`. `db:reconcile:neighborhood` já chama `reconcileLearningPoints`. No pós-deploy, preferir o runbook sem repetir reconcile desnecessário.
 
-### Demo sem limites diarios
+### Demo sem limites diários
 
-Arquivo: `apps/api/.env.demo.example` (copie para um `.env` local de demo; nao versionar segredos).
+Arquivo: `apps/api/.env.demo.example` (copie para um `.env` local de demo; não versionar segredos).
 
-Quando usar: apresentacoes ou demos em que a narrativa nao deve ser interrompida pela fila `training_*_daily`. Com `POINTS_DAILY_LIMITS_ENABLED=false`, o credito de treino e imediato. Em producao e homologacao reais, mantenha os limites ligados (padrao do `.env.example`).
+Quando usar: apresentações ou demos em que a narrativa não deve ser interrompida pela fila `training_*_daily`. Com `POINTS_DAILY_LIMITS_ENABLED=false`, o crédito de treino é imediato. Em produção e homologação reais, mantenha os limites ligados (padrão do `.env.example`).
 
 ## 8. Qualidade (pré-merge)
 
-Validacao local apos handoff/runbook/demo (2026-10-18):
+Validação local após handoff/runbook/demo (2026-10-18):
 
 - `npm run typecheck`: ok (API + mobile)
 - `npm test`: 37 arquivos, 344 testes passando (inclui E2E com `DATABASE_URL` no Postgres local/`pg-e2e`)
 - `npm run build`: ok (API + export Expo)
-- Linter ESLint: nao configurado no monorepo; typecheck usado como checagem estatica
-- CI: `.github/workflows/delivery.yml` (ja existia) sobe Postgres 17, roda `db:deploy`, `typecheck`, `npm test` (inclui E2E quando `DATABASE_URL` esta definida) e `build`. Triggers: PR, push em `main`/`melhorias`, `workflow_dispatch`.
+- Linter ESLint: não configurado no monorepo; typecheck usado como checagem estática
+- CI: `.github/workflows/delivery.yml` (já existia) sobe Postgres 17, roda `db:deploy`, `typecheck`, `npm test` (inclui E2E quando `DATABASE_URL` está definida) e `build`. Triggers: PR, push em `main`/`melhorias`, `workflow_dispatch`.
 
 ### E2E local (2026-10-18)
 
@@ -328,12 +341,12 @@ Motivo de não executar agora: o mobile e os fluxos de progresso/treino dependem
 
 Handoff detalhado: `docs/PENDENCIAS_FRONT.md`.
 
-1. Apos cadastro, nao chamar `login()`; navegar para a tela de login
-2. Remover ou ocultar o botao Google ate existir API
+1. Após cadastro, não chamar `login()`; navegar para a tela de login
+2. Remover ou ocultar o botão Google até existir API
 3. Consumir `canReport` no perfil/progresso para a aba Reportar
-4. Ligar o icone de editar perfil a `PATCH /api/v1/perfil` (somente `name`)
-5. Bairro opcional no envio de relato: pode omitir o campo (fallback do cadastro). Se enviar texto igual ao cadastro (ex.: "Outro bairro"), o back aceita sem catalogo. Texto diferente do cadastro precisa ser do catalogo ou id valido; `neighborhoodId` no body sempre valida catalogo
-6. Exibir mensagem quando `pointsCapped` / `capReason: "DAILY_LIMIT"` / `pendingPoints` apos concluir treinamento ou modulo
+4. Ligar o ícone de editar perfil a `PATCH /api/v1/perfil` (somente `name`)
+5. Bairro opcional no envio de relato: pode omitir o campo (fallback do cadastro). Se enviar texto igual ao cadastro (ex.: "Outro bairro"), o back aceita sem catálogo. Texto diferente do cadastro precisa ser do catálogo ou id válido; `neighborhoodId` no body sempre valida catálogo
+6. Exibir mensagem quando `pointsCapped` / `capReason: "DAILY_LIMIT"` / `pendingPoints` após concluir treinamento ou módulo
 
 ## Catálogo de bairros (cadastro e relato)
 
@@ -341,6 +354,6 @@ Cadastro (`auth.service`) e relato (`reports.service`) usam a **mesma** tabela `
 
 - Município coberto: IBGE **2111300** (São Luís/MA, seed Prefeitura de São Luís / SEMGOP 2022).
 - Cadastro: `neighborhoodId` opcional; se informado, exige `municipalityCode = 2111300`; "Outro bairro" = texto sem id.
-- Relato: `neighborhoodId` no body sempre valida catálogo. Texto no body igual ao bairro do cadastro (normalizado) segue a regra do fallback (grava texto + `neighborhoodId` do usuário ou nulo). Texto diferente do cadastro exige catálogo. Fallback sem body: grava texto do cadastro com id nulo se não houver match (sem 400).
+- Relato: `neighborhoodId` no body sempre valida catálogo. Texto no body igual ao bairro do cadastro depois de `normalizeNeighborhoodText` (trim, colapso de espaços, remoção de acentos e minúsculas) segue a regra do fallback (grava texto + `neighborhoodId` do usuário ou nulo). Texto diferente do cadastro exige catálogo. Fallback sem body: grava texto do cadastro com id nulo se não houver match (sem 400).
 - Ranking público: agrega por id de catálogo (texto sem id mapeado pelo nome normalizado). Sem match fica fora do endpoint público (não há rota admin de ranking hoje).
 - Claim: `POST /api/v1/progress/learning-awards/claim` responde `{ pointsReleased, pendingPoints }` e só libera o que cabe no teto do dia (`America/Sao_Paulo`).

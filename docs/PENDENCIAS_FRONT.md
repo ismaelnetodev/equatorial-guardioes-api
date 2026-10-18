@@ -1,15 +1,15 @@
-# Pendencias front/mobile (contrato da branch `melhorias`)
+# Pendências front/mobile (contrato da branch `melhorias`)
 
-Escopo: so o que o app precisa consumir. Detalhes do back em `docs/MELHORIAS_BACKEND.md` secao 4.
-Nao altere este arquivo a partir do mobile; e handoff do back para o front.
+Escopo: só o que o app precisa consumir. Detalhes do back em `docs/MELHORIAS_BACKEND.md` seção 4.
+Não altere este arquivo a partir do mobile; é handoff do back para o front.
 
 ---
 
 ## 1. Cadastro voltando para login (sem `login()`)
 
-**Problema (testador):** apos cadastrar, o app autenticava sozinho e seguia logado.
+**Problema (testador):** após cadastrar, o app autenticava sozinho e seguia logado.
 
-**Back ja entrega**
+**Back já entrega**
 
 - Rota: `POST /api/v1/cadastrar`
 - Resposta 201 sem token:
@@ -27,20 +27,20 @@ Nao altere este arquivo a partir do mobile; e handoff do back para o front.
 }
 ```
 
-- Login continua exclusivo de `POST /api/v1/entrar` (ai vem `accessToken`).
+- Login continua exclusivo de `POST /api/v1/entrar` (aí vem `accessToken`).
 
 **Front precisa**
 
-- Em `cadastrar.tsx`, nao chamar `login()` apos 201.
-- Navegar para `/entrar` e autenticar so la.
+- Em `cadastrar.tsx`, não chamar `login()` após 201.
+- Navegar para `/entrar` e autenticar só lá.
 
 ---
 
 ## 2. Aba Reportar usando `canReport`
 
-**Problema:** cadeado/liberacao da aba Reportar nao refletia a regra do servidor.
+**Problema:** cadeado/liberação da aba Reportar não refletia a regra do servidor.
 
-**Back ja entrega**
+**Back já entrega**
 
 - `GET /api/v1/perfil` e `GET /api/v1/progress/trails/:trailId` incluem `canReport: boolean`.
 - Exemplo (perfil):
@@ -64,19 +64,19 @@ Nao altere este arquivo a partir do mobile; e handoff do back para o front.
 }
 ```
 
-- `canReport: true` somente apos concluir o modulo inicial da trilha (mesma regra do guard de `POST /api/v1/relatos`).
+- `canReport: true` somente após concluir o módulo inicial da trilha (mesma regra do guard de `POST /api/v1/relatos`).
 
 **Front precisa**
 
-- Liberar a aba Reportar com `canReport` do perfil/progresso, nao so com estado local.
+- Liberar a aba Reportar com `canReport` do perfil/progresso, não só com estado local.
 
 ---
 
-## 3. Icone editar perfil -> `PATCH /api/v1/perfil` (somente `name`)
+## 3. Ícone editar perfil chama `PATCH /api/v1/perfil` (somente `name`)
 
-**Problema:** icone de editar nao persistia o nome.
+**Problema:** ícone de editar não persistia o nome.
 
-**Back ja entrega**
+**Back já entrega**
 
 - Rota: `PATCH /api/v1/perfil`
 - Request:
@@ -86,19 +86,19 @@ Nao altere este arquivo a partir do mobile; e handoff do back para o front.
 ```
 
 - Resposta: mesmo formato de `GET /api/v1/perfil` (inclui `canReport`).
-- Body com `neighborhood` / `neighborhoodId` e rejeitado (`additionalProperties: false`). Troca de bairro so no admin.
+- Body com `neighborhood` / `neighborhoodId` é rejeitado (`additionalProperties: false`). Troca de bairro só no admin.
 
 **Front precisa**
 
-- Ligar o icone/caneta a este PATCH so com `name`.
+- Ligar o ícone/caneta a este PATCH só com `name`.
 
 ---
 
 ## 4. Mensagem para `pointsCapped` / `capReason` / `pendingPoints`
 
-**Problema:** usuario atinge limite diario e nao entende onde foram os pontos.
+**Problema:** usuário atinge limite diário e não entende onde foram os pontos.
 
-**Back ja entrega**
+**Back já entrega**
 
 - `POST /api/v1/modules/:moduleId/training/complete` e `POST /api/v1/progress/modules/:moduleId/complete` podem retornar:
 
@@ -121,11 +121,11 @@ Nao altere este arquivo a partir do mobile; e handoff do back para o front.
 { "pointsReleased": 4, "pendingPoints": 2 }
 ```
 
-- Saldo: `GET /api/v1/progress/learning` (ja tem `pendingPoints`).
+- Saldo: `GET /api/v1/progress/learning` (já tem `pendingPoints`).
 
 **Front precisa**
 
-- Se `pointsCapped` / `capReason: "DAILY_LIMIT"`, avisar que pontos entraram na fila e saem no dia seguinte (ou apos claim / visita a tela de pontos).
+- Se `pointsCapped` / `capReason: "DAILY_LIMIT"`, avisar que pontos entraram na fila e saem no dia seguinte (ou após claim / visita à tela de pontos).
 - Opcional: mostrar `pendingPoints` na UI de pontos.
 
 ---
@@ -134,26 +134,26 @@ Nao altere este arquivo a partir do mobile; e handoff do back para o front.
 
 **Problema:** relato exigia bairro no formulário mesmo com cadastro preenchido; "Outro bairro" gerava 400.
 
-**Back ja entrega**
+**Back já entrega**
 
 - `POST /api/v1/relatos`
 - `neighborhood` e `neighborhoodId` opcionais.
 - Regras:
-  - `neighborhoodId` no body: sempre valida no catalogo.
-  - Texto no body igual ao bairro do cadastro (normalizado: espacos, maiusculas/minusculas): aceito sem catalogo; grava o texto e o `neighborhoodId` do usuario (ou `null`).
-  - Texto diferente do cadastro: exige catalogo (400 `INVALID_NEIGHBORHOOD` se nao houver match).
+  - `neighborhoodId` no body: sempre valida no catálogo.
+  - Texto no body igual ao bairro do cadastro depois de `normalizeNeighborhoodText` (trim, colapso de espaços, remoção de acentos e minúsculas): aceito sem catálogo; grava o texto e o `neighborhoodId` do usuário (ou `null`).
+  - Texto diferente do cadastro: exige catálogo (400 `INVALID_NEIGHBORHOOD` se não houver match).
   - Sem body (ou string vazia): fallback do cadastro (mesmo comportamento do match acima).
 - Exemplo request (fallback):
 
 ```json
 {
-  "title": "Poste caido",
+  "title": "Poste caído",
   "description": "Risco",
   "address": "Rua Z"
 }
 ```
 
-- Exemplo response 201 (usuario de "Outro bairro"):
+- Exemplo response 201 (usuário de "Outro bairro"):
 
 ```json
 {
@@ -165,19 +165,19 @@ Nao altere este arquivo a partir do mobile; e handoff do back para o front.
 
 **Front precisa**
 
-- Tornar bairro opcional no formulario de relato.
-- Pode omitir o campo e deixar o back usar o cadastro; se enviar texto, preferir o mesmo do perfil ou um id/nome do catalogo.
+- Tornar bairro opcional no formulário de relato.
+- Pode omitir o campo e deixar o back usar o cadastro; se enviar texto, preferir o mesmo do perfil ou um id/nome do catálogo.
 
 ---
 
-## 6. Ocultar o botao Google
+## 6. Ocultar o botão Google
 
-**Problema:** botao "Entrar com Google" sem API.
+**Problema:** botão "Entrar com Google" sem API.
 
-**Back ja entrega**
+**Back já entrega**
 
 - Nenhuma rota OAuth/Google no back.
 
 **Front precisa**
 
-- Remover ou ocultar o botao em `entrar.tsx` ate existir integracao real.
+- Remover ou ocultar o botão em `entrar.tsx` até existir integração real.
