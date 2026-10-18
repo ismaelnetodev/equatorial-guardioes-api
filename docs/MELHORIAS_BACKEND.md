@@ -259,6 +259,8 @@ Rodada órfãos:
 
 - `3c1b3ea` feat(back): orphan check before post-merge
 - `6aeeffc` fix(back): skip orphan records in reconcile and backfills
+- `c3f385e` docs(back): restore accents, orphan handling and neighborhood rules
+- `8f528ba` fix(back): type orphan id lookup without union findMany
 
 ### Onde estão os testes (claim e cenários 2 módulos / meia-noite)
 
@@ -304,10 +306,10 @@ Quando usar: apresentações ou demos em que a narrativa não deve ser interromp
 
 ## 8. Qualidade (pré-merge)
 
-Validação local após handoff/runbook/demo (2026-10-18):
+Validação local após órfãos no runbook (2026-10-18):
 
 - `npm run typecheck`: ok (API + mobile)
-- `npm test`: 37 arquivos, 344 testes passando (inclui E2E com `DATABASE_URL` no Postgres local/`pg-e2e`)
+- `npm test`: 37 arquivos, 346 testes passando (inclui E2E com `DATABASE_URL` no Postgres local/`pg-e2e`)
 - `npm run build`: ok (API + export Expo)
 - Linter ESLint: não configurado no monorepo; typecheck usado como checagem estática
 - CI: `.github/workflows/delivery.yml` (já existia) sobe Postgres 17, roda `db:deploy`, `typecheck`, `npm test` (inclui E2E quando `DATABASE_URL` está definida) e `build`. Triggers: PR, push em `main`/`melhorias`, `workflow_dispatch`.
