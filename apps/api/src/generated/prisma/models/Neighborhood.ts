@@ -191,6 +191,7 @@ export type NeighborhoodWhereInput = {
   state?: Prisma.StringFilter<"Neighborhood"> | string
   source?: Prisma.StringFilter<"Neighborhood"> | string
   users?: Prisma.UserListRelationFilter
+  reports?: Prisma.ReportListRelationFilter
 }
 
 export type NeighborhoodOrderByWithRelationInput = {
@@ -201,6 +202,7 @@ export type NeighborhoodOrderByWithRelationInput = {
   state?: Prisma.SortOrder
   source?: Prisma.SortOrder
   users?: Prisma.UserOrderByRelationAggregateInput
+  reports?: Prisma.ReportOrderByRelationAggregateInput
 }
 
 export type NeighborhoodWhereUniqueInput = Prisma.AtLeast<{
@@ -214,6 +216,7 @@ export type NeighborhoodWhereUniqueInput = Prisma.AtLeast<{
   state?: Prisma.StringFilter<"Neighborhood"> | string
   source?: Prisma.StringFilter<"Neighborhood"> | string
   users?: Prisma.UserListRelationFilter
+  reports?: Prisma.ReportListRelationFilter
 }, "id">
 
 export type NeighborhoodOrderByWithAggregationInput = {
@@ -248,6 +251,7 @@ export type NeighborhoodCreateInput = {
   state: string
   source: string
   users?: Prisma.UserCreateNestedManyWithoutNeighborhoodRecordInput
+  reports?: Prisma.ReportCreateNestedManyWithoutNeighborhoodRecordInput
 }
 
 export type NeighborhoodUncheckedCreateInput = {
@@ -258,6 +262,7 @@ export type NeighborhoodUncheckedCreateInput = {
   state: string
   source: string
   users?: Prisma.UserUncheckedCreateNestedManyWithoutNeighborhoodRecordInput
+  reports?: Prisma.ReportUncheckedCreateNestedManyWithoutNeighborhoodRecordInput
 }
 
 export type NeighborhoodUpdateInput = {
@@ -268,6 +273,7 @@ export type NeighborhoodUpdateInput = {
   state?: Prisma.StringFieldUpdateOperationsInput | string
   source?: Prisma.StringFieldUpdateOperationsInput | string
   users?: Prisma.UserUpdateManyWithoutNeighborhoodRecordNestedInput
+  reports?: Prisma.ReportUpdateManyWithoutNeighborhoodRecordNestedInput
 }
 
 export type NeighborhoodUncheckedUpdateInput = {
@@ -278,6 +284,7 @@ export type NeighborhoodUncheckedUpdateInput = {
   state?: Prisma.StringFieldUpdateOperationsInput | string
   source?: Prisma.StringFieldUpdateOperationsInput | string
   users?: Prisma.UserUncheckedUpdateManyWithoutNeighborhoodRecordNestedInput
+  reports?: Prisma.ReportUncheckedUpdateManyWithoutNeighborhoodRecordNestedInput
 }
 
 export type NeighborhoodCreateManyInput = {
@@ -355,6 +362,22 @@ export type NeighborhoodUpdateOneWithoutUsersNestedInput = {
   update?: Prisma.XOR<Prisma.XOR<Prisma.NeighborhoodUpdateToOneWithWhereWithoutUsersInput, Prisma.NeighborhoodUpdateWithoutUsersInput>, Prisma.NeighborhoodUncheckedUpdateWithoutUsersInput>
 }
 
+export type NeighborhoodCreateNestedOneWithoutReportsInput = {
+  create?: Prisma.XOR<Prisma.NeighborhoodCreateWithoutReportsInput, Prisma.NeighborhoodUncheckedCreateWithoutReportsInput>
+  connectOrCreate?: Prisma.NeighborhoodCreateOrConnectWithoutReportsInput
+  connect?: Prisma.NeighborhoodWhereUniqueInput
+}
+
+export type NeighborhoodUpdateOneWithoutReportsNestedInput = {
+  create?: Prisma.XOR<Prisma.NeighborhoodCreateWithoutReportsInput, Prisma.NeighborhoodUncheckedCreateWithoutReportsInput>
+  connectOrCreate?: Prisma.NeighborhoodCreateOrConnectWithoutReportsInput
+  upsert?: Prisma.NeighborhoodUpsertWithoutReportsInput
+  disconnect?: Prisma.NeighborhoodWhereInput | boolean
+  delete?: Prisma.NeighborhoodWhereInput | boolean
+  connect?: Prisma.NeighborhoodWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.NeighborhoodUpdateToOneWithWhereWithoutReportsInput, Prisma.NeighborhoodUpdateWithoutReportsInput>, Prisma.NeighborhoodUncheckedUpdateWithoutReportsInput>
+}
+
 export type NeighborhoodCreateWithoutUsersInput = {
   id: string
   name: string
@@ -362,6 +385,7 @@ export type NeighborhoodCreateWithoutUsersInput = {
   municipalityName: string
   state: string
   source: string
+  reports?: Prisma.ReportCreateNestedManyWithoutNeighborhoodRecordInput
 }
 
 export type NeighborhoodUncheckedCreateWithoutUsersInput = {
@@ -371,6 +395,7 @@ export type NeighborhoodUncheckedCreateWithoutUsersInput = {
   municipalityName: string
   state: string
   source: string
+  reports?: Prisma.ReportUncheckedCreateNestedManyWithoutNeighborhoodRecordInput
 }
 
 export type NeighborhoodCreateOrConnectWithoutUsersInput = {
@@ -396,6 +421,7 @@ export type NeighborhoodUpdateWithoutUsersInput = {
   municipalityName?: Prisma.StringFieldUpdateOperationsInput | string
   state?: Prisma.StringFieldUpdateOperationsInput | string
   source?: Prisma.StringFieldUpdateOperationsInput | string
+  reports?: Prisma.ReportUpdateManyWithoutNeighborhoodRecordNestedInput
 }
 
 export type NeighborhoodUncheckedUpdateWithoutUsersInput = {
@@ -405,6 +431,63 @@ export type NeighborhoodUncheckedUpdateWithoutUsersInput = {
   municipalityName?: Prisma.StringFieldUpdateOperationsInput | string
   state?: Prisma.StringFieldUpdateOperationsInput | string
   source?: Prisma.StringFieldUpdateOperationsInput | string
+  reports?: Prisma.ReportUncheckedUpdateManyWithoutNeighborhoodRecordNestedInput
+}
+
+export type NeighborhoodCreateWithoutReportsInput = {
+  id: string
+  name: string
+  municipalityCode: string
+  municipalityName: string
+  state: string
+  source: string
+  users?: Prisma.UserCreateNestedManyWithoutNeighborhoodRecordInput
+}
+
+export type NeighborhoodUncheckedCreateWithoutReportsInput = {
+  id: string
+  name: string
+  municipalityCode: string
+  municipalityName: string
+  state: string
+  source: string
+  users?: Prisma.UserUncheckedCreateNestedManyWithoutNeighborhoodRecordInput
+}
+
+export type NeighborhoodCreateOrConnectWithoutReportsInput = {
+  where: Prisma.NeighborhoodWhereUniqueInput
+  create: Prisma.XOR<Prisma.NeighborhoodCreateWithoutReportsInput, Prisma.NeighborhoodUncheckedCreateWithoutReportsInput>
+}
+
+export type NeighborhoodUpsertWithoutReportsInput = {
+  update: Prisma.XOR<Prisma.NeighborhoodUpdateWithoutReportsInput, Prisma.NeighborhoodUncheckedUpdateWithoutReportsInput>
+  create: Prisma.XOR<Prisma.NeighborhoodCreateWithoutReportsInput, Prisma.NeighborhoodUncheckedCreateWithoutReportsInput>
+  where?: Prisma.NeighborhoodWhereInput
+}
+
+export type NeighborhoodUpdateToOneWithWhereWithoutReportsInput = {
+  where?: Prisma.NeighborhoodWhereInput
+  data: Prisma.XOR<Prisma.NeighborhoodUpdateWithoutReportsInput, Prisma.NeighborhoodUncheckedUpdateWithoutReportsInput>
+}
+
+export type NeighborhoodUpdateWithoutReportsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  municipalityCode?: Prisma.StringFieldUpdateOperationsInput | string
+  municipalityName?: Prisma.StringFieldUpdateOperationsInput | string
+  state?: Prisma.StringFieldUpdateOperationsInput | string
+  source?: Prisma.StringFieldUpdateOperationsInput | string
+  users?: Prisma.UserUpdateManyWithoutNeighborhoodRecordNestedInput
+}
+
+export type NeighborhoodUncheckedUpdateWithoutReportsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  municipalityCode?: Prisma.StringFieldUpdateOperationsInput | string
+  municipalityName?: Prisma.StringFieldUpdateOperationsInput | string
+  state?: Prisma.StringFieldUpdateOperationsInput | string
+  source?: Prisma.StringFieldUpdateOperationsInput | string
+  users?: Prisma.UserUncheckedUpdateManyWithoutNeighborhoodRecordNestedInput
 }
 
 
@@ -414,10 +497,12 @@ export type NeighborhoodUncheckedUpdateWithoutUsersInput = {
 
 export type NeighborhoodCountOutputType = {
   users: number
+  reports: number
 }
 
 export type NeighborhoodCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   users?: boolean | NeighborhoodCountOutputTypeCountUsersArgs
+  reports?: boolean | NeighborhoodCountOutputTypeCountReportsArgs
 }
 
 /**
@@ -437,6 +522,13 @@ export type NeighborhoodCountOutputTypeCountUsersArgs<ExtArgs extends runtime.Ty
   where?: Prisma.UserWhereInput
 }
 
+/**
+ * NeighborhoodCountOutputType without action
+ */
+export type NeighborhoodCountOutputTypeCountReportsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.ReportWhereInput
+}
+
 
 export type NeighborhoodSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
@@ -446,6 +538,7 @@ export type NeighborhoodSelect<ExtArgs extends runtime.Types.Extensions.Internal
   state?: boolean
   source?: boolean
   users?: boolean | Prisma.Neighborhood$usersArgs<ExtArgs>
+  reports?: boolean | Prisma.Neighborhood$reportsArgs<ExtArgs>
   _count?: boolean | Prisma.NeighborhoodCountOutputTypeDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["neighborhood"]>
 
@@ -479,6 +572,7 @@ export type NeighborhoodSelectScalar = {
 export type NeighborhoodOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "name" | "municipalityCode" | "municipalityName" | "state" | "source", ExtArgs["result"]["neighborhood"]>
 export type NeighborhoodInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   users?: boolean | Prisma.Neighborhood$usersArgs<ExtArgs>
+  reports?: boolean | Prisma.Neighborhood$reportsArgs<ExtArgs>
   _count?: boolean | Prisma.NeighborhoodCountOutputTypeDefaultArgs<ExtArgs>
 }
 export type NeighborhoodIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {}
@@ -488,6 +582,7 @@ export type $NeighborhoodPayload<ExtArgs extends runtime.Types.Extensions.Intern
   name: "Neighborhood"
   objects: {
     users: Prisma.$UserPayload<ExtArgs>[]
+    reports: Prisma.$ReportPayload<ExtArgs>[]
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: string
@@ -891,6 +986,7 @@ readonly fields: NeighborhoodFieldRefs;
 export interface Prisma__NeighborhoodClient<T, Null = never, ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
   readonly [Symbol.toStringTag]: "PrismaPromise"
   users<T extends Prisma.Neighborhood$usersArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Neighborhood$usersArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$UserPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  reports<T extends Prisma.Neighborhood$reportsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Neighborhood$reportsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$ReportPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
    * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -1340,6 +1436,30 @@ export type Neighborhood$usersArgs<ExtArgs extends runtime.Types.Extensions.Inte
   take?: number
   skip?: number
   distinct?: Prisma.UserScalarFieldEnum | Prisma.UserScalarFieldEnum[]
+}
+
+/**
+ * Neighborhood.reports
+ */
+export type Neighborhood$reportsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the Report
+   */
+  select?: Prisma.ReportSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the Report
+   */
+  omit?: Prisma.ReportOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.ReportInclude<ExtArgs> | null
+  where?: Prisma.ReportWhereInput
+  orderBy?: Prisma.ReportOrderByWithRelationInput | Prisma.ReportOrderByWithRelationInput[]
+  cursor?: Prisma.ReportWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.ReportScalarFieldEnum | Prisma.ReportScalarFieldEnum[]
 }
 
 /**

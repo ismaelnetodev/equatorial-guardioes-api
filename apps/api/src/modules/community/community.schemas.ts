@@ -140,6 +140,7 @@ export const profileResponseSchema = Type.Object(
     level: levelSchema,
     accumulated: Type.Integer({ minimum: 0 }),
     balance: Type.Integer({ minimum: 0 }),
+    canReport: Type.Boolean({ description: 'true quando o módulo inicial da trilha foi concluído' }),
     badges: Type.Object(
       {
         modulesCompleted: Type.Integer({ minimum: 0 }),
@@ -161,5 +162,13 @@ export const profileResponseSchema = Type.Object(
   { additionalProperties: false },
 )
 
+export const updateProfileBodySchema = Type.Object(
+  {
+    name: Type.String({ minLength: 2, maxLength: 100 }),
+  },
+  { additionalProperties: false },
+)
+
 export type RewardKeyParams = Static<typeof rewardKeyParamsSchema>
 export type AssignInviteBody = Static<typeof assignInviteBodySchema>
+export type UpdateProfileBody = Static<typeof updateProfileBodySchema>

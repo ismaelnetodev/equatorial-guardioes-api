@@ -1,20 +1,33 @@
 import { estimateReadingSeconds } from '../../lib/reading-time.js'
-import { assertMinimumTime, learningTransaction, queueModuleAward, releasePendingModules } from '../quiz/learning-rules.service.js'
+import { assertMinimumTime, learningTransaction, queueModuleAward, releasePendingModules, trainingPendingPoints } from '../quiz/learning-rules.service.js'
 import { publishedTrailWhere, publishedModuleWhere } from '../../lib/content-visibility.js'
 import { maybeAwardInviteOnModule0 } from '../../lib/invite-attribution.js'
 import { getPrisma } from '../../lib/prisma.js'
+import { canReport } from '../../lib/reports-unlock.js'
 import { getQuizCompletionStatus } from '../quiz/quiz.service.js'
 
 import { getModuleStatus, type ModuleStatus } from '../../lib/module-status.js'
 export type { ModuleStatus } from '../../lib/module-status.js'
 const readingSelect = { content: true, trainingSteps: { select: { title: true, introText: true, cards: { select: { title: true, description: true } } } } } as const
-export interface ModuleProgressView { readingSeconds: number; moduleId: string; title: string; order: number; status: ModuleStatus; requiresQuiz: boolean; startedAt: string | null; completedAt: string | null }
+export interface ModuleProgressView {
+  readingSeconds: number
+  moduleId: string
+  title: string
+  order: number
+  status: ModuleStatus
+  requiresQuiz: boolean
+  startedAt: string | null
+  completedAt: string | null
+  pointsCapped?: boolean
+  capReason?: 'DAILY_LIMIT' | null
+  pendingPoints?: number
+}
 
 export class ProgressError extends Error {
   constructor(public readonly code: 'MODULE_NOT_FOUND' | 'MODULE_LOCKED' | 'MODULE_NOT_STARTED' | 'MODULE_ALREADY_COMPLETED' | 'QUIZ_REQUIRED' | 'QUIZ_NOT_IMPLEMENTED', message: string) { super(message) }
 }
 
-export async function getTrailProgress(userId: string, trailId: string): Promise<{ trailId: string; modules: ModuleProgressView[] }> {
+async function loadTrailModules(userId: string, trailId: string): Promise<{ trailId: string; modules: ModuleProgressView[] }> {
   const trail = await getPrisma().trail.findUnique({ where: { id: trailId, ...publishedTrailWhere }, select: { id: true, modules: { where: publishedModuleWhere, orderBy: { order: 'asc' }, select: { id: true, title: true, order: true, requiresQuiz: true, ...readingSelect, progressRecords: { where: { userId }, select: { startedAt: true, completedAt: true } } } } } })
   if (!trail) throw new ProgressError('MODULE_NOT_FOUND', 'Trilha não encontrada.')
   let previousCompleted = true
@@ -27,10 +40,15 @@ export async function getTrailProgress(userId: string, trailId: string): Promise
   return { trailId: trail.id, modules }
 }
 
+export async function getTrailProgress(userId: string, trailId: string): Promise<{ trailId: string; modules: ModuleProgressView[]; canReport: boolean }> {
+  const progress = await loadTrailModules(userId, trailId)
+  return { ...progress, canReport: await canReport(userId) }
+}
+
 async function getModuleState(userId: string, moduleId: string) {
   const module = await getPrisma().trailModule.findUnique({ where: { id: moduleId, ...publishedModuleWhere, trail: publishedTrailWhere }, select: { id: true, trailId: true, isActive: true, requiresQuiz: true, ...readingSelect } })
   if (!module || !module.isActive) throw new ProgressError('MODULE_NOT_FOUND', 'Módulo não encontrado.')
-  const progress = await getTrailProgress(userId, module.trailId)
+  const progress = await loadTrailModules(userId, module.trailId)
   const state = progress.modules.find((item) => item.moduleId === moduleId)
   if (!state) throw new ProgressError('MODULE_NOT_FOUND', 'Módulo não encontrado.')
   return { module, state }
@@ -62,7 +80,26 @@ export async function completeModule(userId: string, moduleId: string): Promise<
     const result = await tx.moduleProgress.update({ where: { id: progress.id }, data: { completedAt: now }, select: { completedAt: true } })
     await queueModuleAward(tx, userId, moduleId, module.trailId)
     await releasePendingModules(tx, userId, now)
-    return result
+    await maybeAwardInviteOnModule0(userId, moduleId, tx)
+    const award = await tx.learningAward.findUnique({
+      where: { userId_ruleKey_sourceId: { userId, ruleKey: 'module_completion', sourceId: moduleId } },
+      select: { points: true, grantedAt: true },
+    })
+    const pendingPoints = await trainingPendingPoints(tx, userId)
+    const capped = Boolean(award && !award.grantedAt && award.points > 0)
+    return {
+      completedAt: result.completedAt,
+      pointsCapped: capped,
+      capReason: capped ? ('DAILY_LIMIT' as const) : null,
+      pendingPoints,
+    }
   })
-  return { ...state, status: 'completed', completedAt: completed.completedAt?.toISOString() ?? new Date().toISOString() }
+  return {
+    ...state,
+    status: 'completed',
+    completedAt: completed.completedAt?.toISOString() ?? new Date().toISOString(),
+    pointsCapped: completed.pointsCapped,
+    capReason: completed.capReason,
+    pendingPoints: completed.pendingPoints,
+  }
 }

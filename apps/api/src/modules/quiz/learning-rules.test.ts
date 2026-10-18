@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import type { Prisma } from '../../generated/prisma/client.js'
-import { assertMinimumTime, assertRetry, awardOnce, configuration, minimumCorrect, queueModuleAward, releasePendingModules, creditGrantedLearningAward, reconcileLearningPoints } from './learning-rules.service.js'
+import { assertMinimumTime, assertRetry, awardOnce, configuration, minimumCorrect, queueModuleAward, queueTrainingAward, releasePendingModules, creditGrantedLearningAward, reconcileLearningPoints, learningDayStart } from './learning-rules.service.js'
 
 const now = new Date('2026-11-01T02:30:00Z')
 type Award = { id: string; userId: string; ruleKey: string; sourceId: string; points: number; grantedAt: Date | null; createdAt: Date }
@@ -18,6 +18,7 @@ beforeEach(() => {
   rows = []
   settings = {
     module_completion: { kind: 'RULE', value: 2, isActive: true },
+    training_completion: { kind: 'RULE', value: 3, isActive: true },
     training_modules_daily: { kind: 'LIMIT', value: 2, isActive: true },
     training_points_daily: { kind: 'LIMIT', value: 4, isActive: true },
     module_minimum_time: { kind: 'LIMIT', value: 70, isActive: true },
@@ -25,7 +26,23 @@ beforeEach(() => {
     quiz_retry_interval: { kind: 'LIMIT', value: null, isActive: true },
   }
   db.programConfiguration.findUnique.mockImplementation(async ({ where }: { where: { key: string } }) => settings[where.key] ? { key: where.key, ...settings[where.key] } : null)
-  db.learningAward.findMany.mockImplementation(async ({ where }: { where: { grantedAt: null | { gte: Date; lt: Date } } }) => rows.filter(row => where.grantedAt === null ? !row.grantedAt : row.points > 0 && row.grantedAt && row.grantedAt >= where.grantedAt.gte && row.grantedAt < where.grantedAt.lt))
+  db.learningAward.findMany.mockImplementation(async ({ where }: {
+    where: {
+      ruleKey?: string | { in: string[] }
+      grantedAt: null | { gte: Date; lt: Date }
+      points?: { gt: number }
+    }
+  }) => {
+    const ruleKeys = typeof where.ruleKey === 'string'
+      ? [where.ruleKey]
+      : where.ruleKey?.in
+    return rows.filter(row => {
+      if (ruleKeys && !ruleKeys.includes(row.ruleKey)) return false
+      if (where.grantedAt === null) return !row.grantedAt
+      if (where.points?.gt != null && !(row.points > where.points.gt)) return false
+      return Boolean(row.grantedAt && row.grantedAt >= where.grantedAt.gte && row.grantedAt < where.grantedAt.lt)
+    })
+  })
   db.learningAward.update.mockImplementation(async ({ where, data }: { where: { id: string }; data: { grantedAt: Date } }) => {
     const row = rows.find(row => row.id === where.id)!
     row.grantedAt = data.grantedAt
@@ -90,10 +107,118 @@ describe('conclusão de módulos v2', () => {
     for (const module of ['a', 'b', 'c']) await queueModuleAward(tx, 'user', module, 'trail')
     expect(await releasePendingModules(tx, 'user', now)).toEqual({ pointsReleased: 6 })
   })
+  it('ignora limites diários quando POINTS_DAILY_LIMITS_ENABLED=false', async () => {
+    const previous = process.env['POINTS_DAILY_LIMITS_ENABLED']
+    process.env['POINTS_DAILY_LIMITS_ENABLED'] = 'false'
+    try {
+      settings.training_modules_daily!.value = 1
+      settings.training_points_daily!.value = 2
+      for (const module of ['a', 'b', 'c']) await queueModuleAward(tx, 'user', module, 'trail')
+      expect(await releasePendingModules(tx, 'user', now)).toEqual({ pointsReleased: 6 })
+    } finally {
+      if (previous === undefined) delete process.env['POINTS_DAILY_LIMITS_ENABLED']
+      else process.env['POINTS_DAILY_LIMITS_ENABLED'] = previous
+    }
+  })
+  it('claim/release no mesmo dia só libera o que cabe no teto', async () => {
+    settings.training_points_daily!.value = 4
+    settings.training_modules_daily!.value = 10
+    for (const module of ['a', 'b', 'c']) await queueModuleAward(tx, 'user', module, 'trail')
+    expect(await releasePendingModules(tx, 'user', now)).toEqual({ pointsReleased: 4 })
+    expect(rows.filter((row) => row.grantedAt)).toHaveLength(2)
+    expect(rows.filter((row) => !row.grantedAt)).toHaveLength(1)
+    expect(await releasePendingModules(tx, 'user', now)).toEqual({ pointsReleased: 0 })
+    expect(await releasePendingModules(tx, 'user', new Date(now.getTime() + 86400000))).toEqual({ pointsReleased: 2 })
+  })
+  it('com teto 10 libera dois módulos completos (3+2) no mesmo dia sem pendência', async () => {
+    settings.training_points_daily!.value = 10
+    settings.training_modules_daily!.value = 2
+    for (const module of ['m1', 'm2']) {
+      await queueTrainingAward(tx, 'user', module, 'trail')
+      await queueModuleAward(tx, 'user', module, 'trail')
+    }
+    expect(await releasePendingModules(tx, 'user', now)).toEqual({ pointsReleased: 10 })
+    expect(rows.every((row) => row.grantedAt)).toBe(true)
+    expect(rows.reduce((sum, row) => sum + row.points, 0)).toBe(10)
+  })
+  it('libera training_completion na mesma fila de pontos diários', async () => {
+    await queueTrainingAward(tx, 'user', 'm1', 'trail')
+    expect(await releasePendingModules(tx, 'user', now)).toEqual({ pointsReleased: 3 })
+    expect(db.pointLedgerEntry.create).toHaveBeenCalledWith({
+      data: expect.objectContaining({
+        delta: 3,
+        reason: 'QUIZ_TRAINING',
+        sourceType: 'LearningAward',
+        sourceId: JSON.stringify(['user', 'training_completion', 'm1']),
+      }),
+    })
+  })
+  it('adia training_completion quando o teto diário de pontos já está cheio', async () => {
+    settings.training_points_daily!.value = 4
+    await queueModuleAward(tx, 'user', 'a', 'trail')
+    await queueModuleAward(tx, 'user', 'b', 'trail')
+    expect(await releasePendingModules(tx, 'user', now)).toEqual({ pointsReleased: 4 })
+    await queueTrainingAward(tx, 'user', 'm1', 'trail')
+    expect(await releasePendingModules(tx, 'user', now)).toEqual({ pointsReleased: 0 })
+    expect(rows.filter(row => row.ruleKey === 'training_completion' && !row.grantedAt)).toHaveLength(1)
+    expect(await releasePendingModules(tx, 'user', new Date(now.getTime() + 86400000))).toEqual({ pointsReleased: 3 })
+  })
+  it('adia em vez de descartar quando o award excede o teto diário', async () => {
+    settings.training_points_daily!.value = 2
+    await queueTrainingAward(tx, 'user', 'm1', 'trail')
+    expect(await releasePendingModules(tx, 'user', now)).toEqual({ pointsReleased: 0 })
+    expect(rows.every(row => !row.grantedAt)).toBe(true)
+    settings.training_points_daily!.value = 4
+    expect(await releasePendingModules(tx, 'user', now)).toEqual({ pointsReleased: 3 })
+  })
   it('exige 70% do tempo previsto, calculado no servidor', async () => {
     await expect(assertMinimumTime(tx, new Date(now.getTime() - 41999), 60, now)).rejects.toMatchObject({ code: 'MINIMUM_TIME_REQUIRED' })
     await expect(assertMinimumTime(tx, new Date(now.getTime() - 42000), 60, now)).resolves.toBeUndefined()
     await expect(assertMinimumTime(tx, now, 0, now)).resolves.toBeUndefined()
+  })
+  it('vira o dia dos limites em America/Sao_Paulo perto da meia-noite local', async () => {
+    // 02:59 UTC ainda é 23:59 do dia anterior em São Paulo (UTC-3).
+    const beforeMidnightSp = new Date('2026-11-01T02:59:59.999Z')
+    // 03:00 UTC = 00:00 em São Paulo.
+    const atMidnightSp = new Date('2026-11-01T03:00:00.000Z')
+    expect(learningDayStart(beforeMidnightSp).toISOString()).toBe('2026-10-31T03:00:00.000Z')
+    expect(learningDayStart(atMidnightSp).toISOString()).toBe('2026-11-01T03:00:00.000Z')
+
+    settings.training_points_daily!.value = 2
+    settings.training_modules_daily!.value = 10
+    await queueModuleAward(tx, 'user', 'late', 'trail')
+    expect(await releasePendingModules(tx, 'user', beforeMidnightSp)).toEqual({ pointsReleased: 2 })
+    await queueModuleAward(tx, 'user', 'early', 'trail')
+    // Ainda no mesmo dia SP: teto cheio.
+    expect(await releasePendingModules(tx, 'user', beforeMidnightSp)).toEqual({ pointsReleased: 0 })
+    // Após meia-noite SP: novo bucket.
+    expect(await releasePendingModules(tx, 'user', atMidnightSp)).toEqual({ pointsReleased: 2 })
+  })
+
+  it('com limites atingidos às 23:50 SP libera pendentes após 00:00 local (fake timers)', async () => {
+    vi.useFakeTimers({ toFake: ['Date'] })
+    // 23:50 America/Sao_Paulo = 02:50 UTC do dia seguinte no calendário UTC.
+    const at2350Sp = new Date('2026-11-01T02:50:00.000Z')
+    vi.setSystemTime(at2350Sp)
+    db.learningAward.create.mockImplementation(async ({ data }: { data: Omit<Award, 'id' | 'createdAt'> }) => {
+      const row = { ...data, id: String(rows.length), createdAt: new Date(), grantedAt: data.grantedAt ?? null }
+      rows.push(row)
+      return row
+    })
+
+    settings.training_points_daily!.value = 2
+    settings.training_modules_daily!.value = 10
+    await queueModuleAward(tx, 'user', 'evening', 'trail')
+    expect(await releasePendingModules(tx, 'user', new Date())).toEqual({ pointsReleased: 2 })
+    await queueModuleAward(tx, 'user', 'pending', 'trail')
+    expect(await releasePendingModules(tx, 'user', new Date())).toEqual({ pointsReleased: 0 })
+    expect(rows.filter((row) => !row.grantedAt)).toHaveLength(1)
+
+    // Avança 10 minutos: 00:00 America/Sao_Paulo.
+    vi.setSystemTime(new Date('2026-11-01T03:00:00.000Z'))
+    expect(await releasePendingModules(tx, 'user', new Date())).toEqual({ pointsReleased: 2 })
+    expect(rows.every((row) => row.grantedAt)).toBe(true)
+    vi.useRealTimers()
   })
 })
 

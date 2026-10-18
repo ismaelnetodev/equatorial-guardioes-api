@@ -10,6 +10,7 @@ const moduleId = '33333333-3333-4333-8333-333333333333'
 
 const db = vi.hoisted(() => ({
   user: { findUnique: vi.fn() },
+  neighborhood: { findUnique: vi.fn(), findFirst: vi.fn() },
   trail: { findFirst: vi.fn() },
   programConfiguration: { findMany: vi.fn() },
   report: { count: vi.fn(), create: vi.fn(), findMany: vi.fn(), findFirst: vi.fn(), findUnique: vi.fn(), update: vi.fn() },
@@ -70,6 +71,18 @@ beforeEach(async () => {
   db.pointAccount.update.mockResolvedValue({ userId, accumulated: 10, balance: 10 })
   db.pointLedgerEntry.create.mockResolvedValue({ id: 'bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb' })
   db.pointLedgerEntry.findFirst.mockResolvedValue(null)
+  db.neighborhood.findFirst.mockImplementation(async ({ where }: { where?: { name?: { equals?: string } } }) => {
+    const name = where?.name?.equals
+    if (!name) return null
+    const catalog = [
+      { id: 'nb-cohama', name: 'Cohama' },
+      { id: 'nb-turu', name: 'Turú' },
+      { id: 'nb-centro', name: 'Centro' },
+    ]
+    const matched = catalog.find((item) => item.name.toLowerCase() === name.toLowerCase())
+    return matched ? { id: matched.id, name: matched.name } : null
+  })
+  db.neighborhood.findUnique.mockResolvedValue(null)
   db.$transaction.mockImplementation(async (operation: (tx: typeof db) => Promise<unknown>) => operation(db))
   db.programConfiguration.findMany.mockResolvedValue([
     ...['low', 'medium', 'high'].map((risk, i) => ({ key: 'report_' + risk, kind: 'RULE', value: [10, 25, 50][i], isActive: true })),
@@ -136,12 +149,214 @@ describe('criação de relatos', () => {
     expect(r.statusCode).toBe(201)
     expect(r.json()).toMatchObject({
       id: reportId,
+      neighborhood: 'Cohama',
       pointsAwarded: 0,
       status: { code: 'SENT', label: 'Enviado', iconHint: 'check' },
       urgency: { code: 'MEDIUM', label: 'Urgência média' },
     })
-    expect(db.report.create).toHaveBeenCalledWith(expect.objectContaining({ data: expect.objectContaining({ userId, pointsAwarded: 0 }) }))
+    expect(db.report.create).toHaveBeenCalledWith(expect.objectContaining({
+      data: expect.objectContaining({ userId, neighborhood: 'Cohama', neighborhoodId: 'nb-cohama', pointsAwarded: 0 }),
+    }))
     expect(r.json().timeline[0]).toMatchObject({ pending: false, status: { code: 'SENT' } })
+  })
+
+  it('usa o bairro do cadastro quando o body omite o bairro', async () => {
+    const submittedAt = new Date('2026-10-16T12:00:00.000Z')
+    db.user.findUnique
+      .mockResolvedValueOnce({ id: userId, role: 'USER' })
+      .mockResolvedValueOnce({ neighborhood: 'Turú', neighborhoodId: null })
+    db.report.create.mockResolvedValue({
+      id: reportId,
+      title: 'Poste inclinado',
+      description: 'Risco na via',
+      address: 'Rua A',
+      neighborhood: 'Turú',
+      photoUrl: null,
+      latitude: null,
+      longitude: null,
+      status: 'SENT',
+      urgency: 'MEDIUM',
+      pointsAwarded: 0,
+      submittedAt,
+      timeline: [{ status: 'SENT', occurredAt: submittedAt }],
+    })
+
+    const r = await app.inject({
+      method: 'POST',
+      url: '/api/v1/relatos',
+      headers: headers(),
+      payload: {
+        title: 'Poste inclinado',
+        description: 'Risco na via',
+        address: 'Rua A',
+      },
+    })
+    expect(r.statusCode).toBe(201)
+    expect(r.json()).toMatchObject({ neighborhood: 'Turú' })
+    expect(db.report.create).toHaveBeenCalledWith(expect.objectContaining({
+      data: expect.objectContaining({ neighborhood: 'Turú', neighborhoodId: 'nb-turu' }),
+    }))
+  })
+
+  it.each(['', '   '])('trata neighborhood %j como ausente e usa o cadastro', async (neighborhood) => {
+    const submittedAt = new Date('2026-10-16T12:00:00.000Z')
+    db.user.findUnique
+      .mockResolvedValueOnce({ id: userId, role: 'USER' })
+      .mockResolvedValueOnce({ neighborhood: 'Cohama', neighborhoodId: 'nb-cohama' })
+    db.neighborhood.findUnique.mockResolvedValue({
+      id: 'nb-cohama',
+      name: 'Cohama',
+      municipalityCode: '2111300',
+    })
+    db.report.create.mockResolvedValue({
+      id: reportId,
+      title: 'Pipa na rede',
+      description: 'Linha presa',
+      address: 'Rua 7',
+      neighborhood: 'Cohama',
+      photoUrl: null,
+      latitude: null,
+      longitude: null,
+      status: 'SENT',
+      urgency: 'MEDIUM',
+      pointsAwarded: 0,
+      submittedAt,
+      timeline: [{ status: 'SENT', occurredAt: submittedAt }],
+    })
+
+    const r = await app.inject({
+      method: 'POST',
+      url: '/api/v1/relatos',
+      headers: headers(),
+      payload: {
+        title: 'Pipa na rede',
+        description: 'Linha presa',
+        address: 'Rua 7',
+        neighborhood,
+      },
+    })
+    expect(r.statusCode).toBe(201)
+    expect(r.json()).toMatchObject({ neighborhood: 'Cohama' })
+    expect(db.report.create).toHaveBeenCalledWith(expect.objectContaining({
+      data: expect.objectContaining({ neighborhood: 'Cohama', neighborhoodId: 'nb-cohama' }),
+    }))
+  })
+
+  it('rejeita texto livre fora do catálogo', async () => {
+    const r = await app.inject({
+      method: 'POST',
+      url: '/api/v1/relatos',
+      headers: headers(),
+      payload: {
+        title: 'Pipa na rede',
+        description: 'Linha presa no fio',
+        address: 'Rua 7',
+        neighborhood: 'Bairro Inventado',
+      },
+    })
+    expect(r.statusCode).toBe(400)
+    expect(r.json()).toMatchObject({ code: 'INVALID_NEIGHBORHOOD' })
+    expect(db.report.create).not.toHaveBeenCalled()
+  })
+
+  it('aceita fallback de Outro bairro do cadastro sem validar catálogo (201)', async () => {
+    const submittedAt = new Date('2026-10-16T12:00:00.000Z')
+    db.user.findUnique
+      .mockResolvedValueOnce({ id: userId, role: 'USER' })
+      .mockResolvedValueOnce({ neighborhood: 'Outro bairro', neighborhoodId: null })
+    db.neighborhood.findFirst.mockResolvedValue(null)
+    db.report.create.mockResolvedValue({
+      id: reportId,
+      title: 'Poste caído',
+      description: 'Risco',
+      address: 'Rua Z',
+      neighborhood: 'Outro bairro',
+      neighborhoodId: null,
+      photoUrl: null,
+      latitude: null,
+      longitude: null,
+      status: 'SENT',
+      urgency: 'MEDIUM',
+      pointsAwarded: 0,
+      submittedAt,
+      timeline: [{ status: 'SENT', occurredAt: submittedAt }],
+    })
+
+    const r = await app.inject({
+      method: 'POST',
+      url: '/api/v1/relatos',
+      headers: headers(),
+      payload: {
+        title: 'Poste caído',
+        description: 'Risco',
+        address: 'Rua Z',
+      },
+    })
+    expect(r.statusCode).toBe(201)
+    expect(r.json()).toMatchObject({ neighborhood: 'Outro bairro' })
+    expect(db.report.create).toHaveBeenCalledWith(expect.objectContaining({
+      data: expect.objectContaining({ neighborhood: 'Outro bairro', neighborhoodId: null }),
+    }))
+  })
+
+  it('aceita no body o mesmo Outro bairro do cadastro sem validar catálogo (201)', async () => {
+    const submittedAt = new Date('2026-10-16T12:00:00.000Z')
+    const bodyNeighborhood = 'Outro bairro'
+    db.user.findUnique
+      .mockResolvedValueOnce({ id: userId, role: 'USER' })
+      .mockResolvedValueOnce({ neighborhood: 'Outro bairro', neighborhoodId: null })
+    db.report.create.mockResolvedValue({
+      id: reportId,
+      title: 'Fio solto',
+      description: 'Risco',
+      address: 'Rua Y',
+      neighborhood: bodyNeighborhood,
+      neighborhoodId: null,
+      photoUrl: null,
+      latitude: null,
+      longitude: null,
+      status: 'SENT',
+      urgency: 'MEDIUM',
+      pointsAwarded: 0,
+      submittedAt,
+      timeline: [{ status: 'SENT', occurredAt: submittedAt }],
+    })
+
+    const r = await app.inject({
+      method: 'POST',
+      url: '/api/v1/relatos',
+      headers: headers(),
+      payload: {
+        title: 'Fio solto',
+        description: 'Risco',
+        address: 'Rua Y',
+        neighborhood: bodyNeighborhood,
+      },
+    })
+    expect(r.statusCode).toBe(201)
+    expect(r.json()).toMatchObject({ neighborhood: bodyNeighborhood })
+    expect(db.report.create).toHaveBeenCalledWith(expect.objectContaining({
+      data: expect.objectContaining({ neighborhood: bodyNeighborhood, neighborhoodId: null }),
+    }))
+    expect(db.neighborhood.findFirst).not.toHaveBeenCalled()
+  })
+
+  it('rejeita neighborhoodId inexistente', async () => {
+    db.neighborhood.findUnique.mockResolvedValue(null)
+    const r = await app.inject({
+      method: 'POST',
+      url: '/api/v1/relatos',
+      headers: headers(),
+      payload: {
+        title: 'Pipa na rede',
+        description: 'Linha presa no fio',
+        address: 'Rua 7',
+        neighborhoodId: 'bairro-invalido',
+      },
+    })
+    expect(r.statusCode).toBe(400)
+    expect(r.json()).toMatchObject({ code: 'INVALID_NEIGHBORHOOD' })
+    expect(db.report.create).not.toHaveBeenCalled()
   })
 })
 
@@ -319,6 +534,28 @@ describe('regras de concessão', () => {
     await resolve(risk as string)
     expect(db.report.update).toHaveBeenCalledWith(expect.objectContaining({ data: expect.objectContaining({ pointsAwarded: points, confirmedRisk: risk, validatedAt: expect.any(Date) }) }))
     expect(db.$transaction).toHaveBeenCalledWith(expect.any(Function), { isolationLevel: 'Serializable' })
+  })
+  it('credita o extrato e o ranking ao resolver com pontos', async () => {
+    await resolve('MEDIUM')
+    expect(db.pointLedgerEntry.create).toHaveBeenCalledWith({
+      data: expect.objectContaining({
+        userId,
+        delta: 25,
+        reason: 'REPORT_CONFIRM',
+        sourceType: 'Report',
+        sourceId: reportId,
+      }),
+    })
+    expect(db.pointAccount.update).toHaveBeenCalledWith(expect.objectContaining({
+      where: { userId },
+      data: expect.objectContaining({ balance: { increment: 25 }, accumulated: { increment: 25 } }),
+    }))
+  })
+  it('não credita o extrato quando a resolução não concede pontos', async () => {
+    db.report.count.mockResolvedValueOnce(2).mockResolvedValueOnce(0)
+    await resolve('HIGH')
+    expect(db.report.update).toHaveBeenCalledWith(expect.objectContaining({ data: expect.objectContaining({ pointsAwarded: 0 }) }))
+    expect(db.pointLedgerEntry.create).not.toHaveBeenCalled()
   })
   it('exige classificação pela equipe', async () => {
     expect((await resolve()).statusCode).toBe(422)

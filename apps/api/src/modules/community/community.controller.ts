@@ -1,6 +1,6 @@
 import type { FastifyReply, FastifyRequest } from 'fastify'
 import { AuthenticationError, getAuthenticatedUser } from '../../lib/auth-user.js'
-import type { AssignInviteBody, RewardKeyParams } from './community.schemas.js'
+import type { AssignInviteBody, RewardKeyParams, UpdateProfileBody } from './community.schemas.js'
 import {
   CommunityError,
   assignInvite,
@@ -9,6 +9,7 @@ import {
   getRanking,
   getRewards,
   redeemReward,
+  updateProfile,
 } from './community.service.js'
 
 function statusFor(code: CommunityError['code']): number {
@@ -73,4 +74,24 @@ export async function assignInviteController(
 
 export async function getProfileController(request: FastifyRequest, reply: FastifyReply) {
   return withAuth(request, reply, (userId) => getProfile(userId))
+}
+
+export async function rejectProfileNeighborhoodFields(
+  request: FastifyRequest,
+  reply: FastifyReply,
+) {
+  const raw = request.body as Record<string, unknown> | undefined
+  if (raw && ('neighborhood' in raw || 'neighborhoodId' in raw)) {
+    return reply.status(400).send({
+      code: 'VALIDATION_ERROR',
+      message: 'A troca de bairro é restrita ao administrador. Envie apenas o nome.',
+    })
+  }
+}
+
+export async function updateProfileController(
+  request: FastifyRequest<{ Body: UpdateProfileBody }>,
+  reply: FastifyReply,
+) {
+  return withAuth(request, reply, (userId) => updateProfile(userId, request.body))
 }

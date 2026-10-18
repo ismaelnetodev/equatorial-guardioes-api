@@ -14,6 +14,7 @@ import {
 
 function statusFor(code: ReportError['code']): number {
   if (code === 'REPORT_NOT_FOUND' || code === 'IMPACT_NOT_AVAILABLE') return 404
+  if (code === 'INVALID_NEIGHBORHOOD') return 400
   if (code === 'REPORTS_LOCKED') return 409
   return 409
 }

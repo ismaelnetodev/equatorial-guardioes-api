@@ -1,7 +1,8 @@
 import { reportPhotoUrl, validateReportPhoto } from './report-photo.service.js'
 import { Prisma } from '../../generated/prisma/client.js'
-import { publishedModuleWhere, publishedTrailWhere } from '../../lib/content-visibility.js'
+import { creditPoints } from '../../lib/points-ledger.js'
 import { getPrisma } from '../../lib/prisma.js'
+import { canReport } from '../../lib/reports-unlock.js'
 import type {
   AdminReportStatusBody,
   CreateReport,
@@ -33,7 +34,8 @@ export class ReportError extends Error {
       | 'REPORT_NOT_FOUND'
       | 'IMPACT_NOT_AVAILABLE'
       | 'INVALID_STATUS_TRANSITION'
-      | 'REPORT_CONFLICT',
+      | 'REPORT_CONFLICT'
+      | 'INVALID_NEIGHBORHOOD',
     message: string,
   ) {
     super(message)
@@ -55,26 +57,7 @@ function pointsHint(pointsAwarded: number, status: ReportStatusCode): string {
 }
 
 export async function assertModuleZeroCompleted(userId: string): Promise<void> {
-  const trail = await getPrisma().trail.findFirst({
-    where: publishedTrailWhere,
-    orderBy: { order: 'asc' },
-    select: {
-      modules: {
-        where: publishedModuleWhere,
-        orderBy: { order: 'asc' },
-        take: 1,
-        select: {
-          id: true,
-          progressRecords: {
-            where: { userId },
-            select: { completedAt: true },
-          },
-        },
-      },
-    },
-  })
-  const firstModule = trail?.modules[0]
-  if (!firstModule?.progressRecords[0]?.completedAt) {
+  if (!(await canReport(userId))) {
     throw new ReportError('REPORTS_LOCKED', 'Conclua o primeiro módulo para liberar os relatos.')
   }
 }
@@ -132,9 +115,97 @@ async function toListItem(report: {
   }
 }
 
+async function findCatalogNeighborhoodById(id: string) {
+  const catalog = await getPrisma().neighborhood.findUnique({ where: { id } })
+  if (!catalog || catalog.municipalityCode !== '2111300') {
+    throw new ReportError('INVALID_NEIGHBORHOOD', 'Selecione um bairro de São Luís ou informe Outro bairro.')
+  }
+  return { id: catalog.id, name: catalog.name }
+}
+
+async function findCatalogNeighborhoodByName(name: string) {
+  const catalog = await getPrisma().neighborhood.findFirst({
+    where: {
+      municipalityCode: '2111300',
+      name: { equals: name, mode: 'insensitive' },
+    },
+    select: { id: true, name: true },
+  })
+  if (!catalog) {
+    throw new ReportError('INVALID_NEIGHBORHOOD', 'Selecione um bairro de São Luís ou informe Outro bairro.')
+  }
+  return catalog
+}
+
+function normalizeNeighborhoodText(value: string): string {
+  return value
+    .trim()
+    .replace(/\s+/g, ' ')
+    .normalize('NFD')
+    .replace(/\p{M}/gu, '')
+    .toLowerCase()
+}
+
+async function resolveFromUserProfile(userId: string): Promise<{ id: string | null; name: string }> {
+  const user = await getPrisma().user.findUnique({
+    where: { id: userId },
+    select: { neighborhood: true, neighborhoodId: true },
+  })
+  if (user?.neighborhoodId) {
+    return findCatalogNeighborhoodById(user.neighborhoodId)
+  }
+  const fallback = user?.neighborhood?.trim() ?? ''
+  if (fallback.length < 2) {
+    throw new ReportError('INVALID_NEIGHBORHOOD', 'Informe o bairro do relato ou atualize o bairro do seu cadastro.')
+  }
+  // Sem id no cadastro (ex.: Outro bairro): grava o texto; tenta match opcional no catálogo.
+  const catalog = await getPrisma().neighborhood.findFirst({
+    where: {
+      municipalityCode: '2111300',
+      name: { equals: fallback, mode: 'insensitive' },
+    },
+    select: { id: true, name: true },
+  })
+  if (catalog) return catalog
+  return { id: null, name: fallback }
+}
+
+async function resolveReportNeighborhood(
+  userId: string,
+  input: Pick<CreateReport, 'neighborhood' | 'neighborhoodId'>,
+): Promise<{ id: string | null; name: string }> {
+  if (input.neighborhoodId) {
+    return findCatalogNeighborhoodById(input.neighborhoodId)
+  }
+
+  const provided = input.neighborhood?.trim() ?? ''
+  if (provided.length < 2) {
+    return resolveFromUserProfile(userId)
+  }
+
+  // Mesmo bairro do cadastro (normalizado): mesma regra do fallback, sem exigir catálogo.
+  const user = await getPrisma().user.findUnique({
+    where: { id: userId },
+    select: { neighborhood: true, neighborhoodId: true },
+  })
+  if (
+    user?.neighborhood &&
+    normalizeNeighborhoodText(provided) === normalizeNeighborhoodText(user.neighborhood)
+  ) {
+    if (user.neighborhoodId) {
+      return findCatalogNeighborhoodById(user.neighborhoodId)
+    }
+    return { id: null, name: provided }
+  }
+
+  // Bairro diferente do cadastro: deve existir no catálogo.
+  return findCatalogNeighborhoodByName(provided)
+}
+
 export async function createReport(userId: string, input: CreateReport) {
   await assertModuleZeroCompleted(userId)
   await validateReportPhoto(userId, input.photoUrl)
+  const resolved = await resolveReportNeighborhood(userId, input)
   const now = new Date()
   const report = await getPrisma().report.create({
     data: {
@@ -142,7 +213,8 @@ export async function createReport(userId: string, input: CreateReport) {
       title: input.title.trim(),
       description: input.description.trim(),
       address: input.address.trim(),
-      neighborhood: input.neighborhood.trim(),
+      neighborhood: resolved.name,
+      neighborhoodId: resolved.id,
       photoUrl: input.photoUrl ?? null,
       latitude: input.latitude ?? null,
       longitude: input.longitude ?? null,
@@ -423,7 +495,7 @@ export async function updateAdminReportStatus(reportId: string, input: AdminRepo
           data: { reportId, status: input.status, occurredAt: now },
         })
       }
-      return tx.report.update({
+      const updated = await tx.report.update({
         where: { id: reportId },
         data: {
           status: input.status,
@@ -448,6 +520,19 @@ export async function updateAdminReportStatus(reportId: string, input: AdminRepo
           submittedAt: true,
         },
       })
+      if (validating && nextPoints > 0) {
+        await creditPoints(
+          {
+            userId: report.userId,
+            amount: nextPoints,
+            reason: 'REPORT_CONFIRM',
+            sourceType: 'Report',
+            sourceId: report.id,
+          },
+          tx,
+        )
+      }
+      return updated
     }, { isolationLevel: 'Serializable' })
     return {
       id: updated.id,

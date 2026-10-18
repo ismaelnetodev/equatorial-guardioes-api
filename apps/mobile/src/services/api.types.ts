@@ -3333,8 +3333,6 @@ export interface paths {
                                 cellphone?: string;
                                 neighborhood: string;
                             };
-                            /** @description Token Bearer para rotas autenticadas */
-                            accessToken?: string;
                         };
                     };
                 };
@@ -3433,7 +3431,7 @@ export interface paths {
                                 neighborhood: string;
                             };
                             /** @description Token Bearer para rotas autenticadas */
-                            accessToken?: string;
+                            accessToken: string;
                         };
                     };
                 };
@@ -4315,6 +4313,7 @@ export interface paths {
         };
         get?: never;
         put?: never;
+        /** Libera pontos pendentes de treino respeitando o teto diário */
         post: {
             parameters: {
                 query?: never;
@@ -4332,6 +4331,8 @@ export interface paths {
                     content: {
                         "application/json": {
                             pointsReleased: number;
+                            /** @description Pontos que permaneceram na fila após o claim */
+                            pendingPoints: number;
                         };
                     };
                 };
@@ -4407,7 +4408,14 @@ export interface paths {
                                 startedAt: string | null;
                                 /** Format: date-time */
                                 completedAt: string | null;
+                                /** @description Presente após complete; true quando crédito ficou na fila */
+                                pointsCapped?: boolean;
+                                /** @enum {string|null} */
+                                capReason?: "DAILY_LIMIT" | null;
+                                pendingPoints?: number;
                             }[];
+                            /** @description true quando o módulo inicial da trilha foi concluído */
+                            canReport: boolean;
                         };
                     };
                 };
@@ -4484,6 +4492,11 @@ export interface paths {
                             startedAt: string | null;
                             /** Format: date-time */
                             completedAt: string | null;
+                            /** @description Presente após complete; true quando crédito ficou na fila */
+                            pointsCapped?: boolean;
+                            /** @enum {string|null} */
+                            capReason?: "DAILY_LIMIT" | null;
+                            pendingPoints?: number;
                         };
                     };
                 };
@@ -4570,6 +4583,11 @@ export interface paths {
                             startedAt: string | null;
                             /** Format: date-time */
                             completedAt: string | null;
+                            /** @description Presente após complete; true quando crédito ficou na fila */
+                            pointsCapped?: boolean;
+                            /** @enum {string|null} */
+                            capReason?: "DAILY_LIMIT" | null;
+                            pendingPoints?: number;
                         };
                     };
                 };
@@ -5237,6 +5255,12 @@ export interface paths {
                             /** @enum {boolean} */
                             completed: true;
                             pointsAwarded: number;
+                            /** @description true quando o crédito ficou na fila por limite diário */
+                            pointsCapped: boolean;
+                            /** @enum {string|null} */
+                            capReason: "DAILY_LIMIT" | null;
+                            /** @description Pontos de treino ainda na fila do usuário */
+                            pendingPoints: number;
                         };
                     };
                 };
@@ -6089,7 +6113,8 @@ export interface paths {
                         title: string;
                         description: string;
                         address: string;
-                        neighborhood: string;
+                        neighborhood?: string;
+                        neighborhoodId?: string;
                         photoUrl?: string | null;
                         latitude?: number | null;
                         longitude?: number | null;
@@ -7101,6 +7126,8 @@ export interface paths {
                             };
                             accumulated: number;
                             balance: number;
+                            /** @description true quando o módulo inicial da trilha foi concluído */
+                            canReport: boolean;
                             badges: {
                                 modulesCompleted: number;
                                 modulesPublished: number;
@@ -7186,7 +7213,124 @@ export interface paths {
         delete?: never;
         options?: never;
         head?: never;
-        patch?: never;
+        /** Atualiza o nome do Guardião (bairro apenas via admin) */
+        patch: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": {
+                        name: string;
+                    };
+                };
+            };
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            name: string;
+                            neighborhood: string;
+                            level: {
+                                code: "BRONZE" | "SILVER" | "GOLD" | "PLATINUM";
+                                name: string;
+                                nextLevel: {
+                                    code: "BRONZE" | "SILVER" | "GOLD" | "PLATINUM";
+                                    name: string;
+                                } | null;
+                                pointsToNextLevel: number | null;
+                            };
+                            accumulated: number;
+                            balance: number;
+                            /** @description true quando o módulo inicial da trilha foi concluído */
+                            canReport: boolean;
+                            badges: {
+                                modulesCompleted: number;
+                                modulesPublished: number;
+                            };
+                            reportsCount: number;
+                            shortcuts: {
+                                /** @enum {string} */
+                                ranking: "/ranking";
+                                /** @enum {string} */
+                                rewards: "/recompensas";
+                                /** @enum {string} */
+                                invite: "/convidar";
+                                /** @enum {string} */
+                                reports: "/relatos";
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            code: string;
+                            message: string;
+                        };
+                    };
+                };
+                /** @description Default Response */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            code: string;
+                            message: string;
+                        };
+                    };
+                };
+                /** @description Default Response */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            code: string;
+                            message: string;
+                        };
+                    };
+                };
+                /** @description Default Response */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            code: string;
+                            message: string;
+                        };
+                    };
+                };
+                /** @description Default Response */
+                422: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            code: string;
+                            message: string;
+                        };
+                    };
+                };
+            };
+        };
         trace?: never;
     };
 }

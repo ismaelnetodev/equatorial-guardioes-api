@@ -38,11 +38,19 @@ export const authenticatedUserSchema = Type.Object(
   { additionalProperties: false },
 )
 
+export const registerResponseSchema = Type.Object(
+  {
+    message: Type.String(),
+    user: authenticatedUserSchema,
+  },
+  { additionalProperties: false },
+)
+
 export const authResponseSchema = Type.Object(
   {
     message: Type.String(),
     user: authenticatedUserSchema,
-    accessToken: Type.Optional(Type.String({ description: 'Token Bearer para rotas autenticadas' })),
+    accessToken: Type.String({ description: 'Token Bearer para rotas autenticadas' }),
   },
   { additionalProperties: false },
 )

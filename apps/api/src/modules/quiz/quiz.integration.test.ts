@@ -164,13 +164,15 @@ beforeEach(async () => {
   db.inviteAttribution.findUnique.mockResolvedValue(null)
   db.$transaction.mockImplementation(async (operation: (tx: typeof db) => Promise<unknown>) => operation(db))
   db.programConfiguration.findUnique.mockImplementation(async ({ where }: { where: { key: string } }) => ({
-    key: where.key, kind: ['module_completion', 'module_quiz', 'post_test_improvement', 'final_exam'].includes(where.key) ? 'RULE' : 'LIMIT',
-    value: ({ module_completion: 2, module_quiz: 0, post_test_improvement: 6, quiz_pass_score: 80, training_modules_daily: 2, training_points_daily: 4, module_minimum_time: 70, post_test_improvement_awards: 1, final_exam: 10, final_exam_delay: 24, final_exam_awards: 1 } as Record<string, number>)[where.key] ?? null,
+    key: where.key, kind: ['module_completion', 'module_quiz', 'post_test_improvement', 'final_exam', 'training_completion'].includes(where.key) ? 'RULE' : 'LIMIT',
+    value: ({ module_completion: 2, module_quiz: 4, post_test_improvement: 6, training_completion: 3, quiz_pass_score: 80, training_modules_daily: 2, training_points_daily: 4, module_minimum_time: 70, post_test_improvement_awards: 1, final_exam: 10, final_exam_delay: 24, final_exam_awards: 1 } as Record<string, number>)[where.key] ?? null,
     isActive: true,
     ...settings[where.key],
   }))
   db.learningAward.findMany.mockResolvedValue([])
   db.learningAward.findUnique.mockResolvedValue(null)
+  db.learningAward.create.mockImplementation(async ({ data }: { data: Record<string, unknown> }) => ({ id: 'award-1', grantedAt: null, ...data }))
+  db.learningAward.update.mockImplementation(async ({ data }: { data: Record<string, unknown> }) => ({ id: 'award-1', ...data }))
   db.learningAward.count.mockResolvedValue(0)
   db.moduleProgress.findUniqueOrThrow.mockImplementation(async () => ({ id: '88888888-8888-4888-8888-888888888888', startedAt: new Date(Date.now() - 3600000), completedAt: null, preTestCompletedAt: preCompleted ? new Date() : null, trainingCompletedAt: null }))
   db.$transaction.mockImplementation(async (operation: (tx: typeof db) => Promise<unknown>) => operation(db))
@@ -338,8 +340,11 @@ describe('pós-teste', () => {
       correctCount: 2,
       totalCount: 2,
       minimumCorrect: 2,
-      pointsAwarded: 6,
+      pointsAwarded: 10,
     })
+    expect(db.learningAward.create).toHaveBeenCalledWith(expect.objectContaining({
+      data: expect.objectContaining({ ruleKey: 'module_quiz', points: 4 }),
+    }))
   })
 
   it('reprova abaixo da nota mínima e sugere revisar o treino', async () => {
@@ -404,31 +409,140 @@ describe('configuração v2 do aprendizado', () => {
   })
   it('não pontua melhoria quando a regra está desativada', async () => {
     tenQuestions(10)
+    settings.module_quiz = { value: 4, isActive: false }
     settings.post_test_improvement = { value: 6, isActive: false }
     expect((await finish()).json()).toMatchObject({ isApproved: true, pointsAwarded: 0 })
     expect(db.learningAward.create).not.toHaveBeenCalled()
   })
-  it('não pontua novamente uma melhoria já concedida', async () => {
+  it('não pontua novamente o quiz nem a melhoria já concedidos', async () => {
     tenQuestions(10)
-    db.learningAward.findUnique.mockResolvedValue({ points: 6 })
+    db.learningAward.findUnique.mockResolvedValue({ points: 4 })
+    db.learningAward.count.mockResolvedValue(1)
     expect((await finish()).json()).toMatchObject({ pointsAwarded: 0 })
     expect(db.learningAward.create).not.toHaveBeenCalled()
   })
-  it('não pontua quando não houve melhoria mensurável', async () => {
+  it('não pontua quiz nem melhoria quando a aprovação falha e não há melhoria', async () => {
     tenQuestions(4)
-    expect((await finish()).json()).toMatchObject({ pointsAwarded: 0 })
+    expect((await finish()).json()).toMatchObject({ pointsAwarded: 0, isApproved: false })
     expect(db.learningAward.create).not.toHaveBeenCalled()
   })
-  it('aplica regra configurável do quiz sem repeti-la por módulo', async () => {
+  it('concede pontos do pós-teste aprovado pela regra module_quiz', async () => {
     tenQuestions(10)
-    settings.module_quiz = { value: 4, isActive: true }
     settings.post_test_improvement = { value: 6, isActive: false }
-    expect((await finish()).json()).toMatchObject({ pointsAwarded: 4 })
+    expect((await finish()).json()).toMatchObject({ isApproved: true, pointsAwarded: 4 })
     expect(db.learningAward.create).toHaveBeenCalledWith(expect.objectContaining({ data: expect.objectContaining({ ruleKey: 'module_quiz', sourceId: moduleId, points: 4 }) }))
+    expect(db.pointLedgerEntry.create).toHaveBeenCalledWith({
+      data: expect.objectContaining({
+        delta: 4,
+        reason: 'QUIZ_POST',
+        sourceType: 'LearningAward',
+      }),
+    })
   })
-  it('conclui treinamento sem pontos', async () => {
+  it('conclui treinamento com pontos da regra training_completion', async () => {
+    const queued = {
+      id: 'award-train',
+      userId,
+      ruleKey: 'training_completion',
+      sourceId: moduleId,
+      points: 3,
+      grantedAt: null as Date | null,
+      createdAt: new Date(),
+      created: false,
+    }
+    db.learningAward.findMany.mockImplementation(async ({ where }: { where: { grantedAt: null | object } }) => {
+      if (!queued.created) return []
+      if (where.grantedAt === null) return queued.grantedAt ? [] : [queued]
+      return queued.grantedAt ? [queued] : []
+    })
+    db.learningAward.create.mockImplementation(async ({ data }: { data: Record<string, unknown> }) => {
+      Object.assign(queued, data, { id: 'award-train', createdAt: new Date(), grantedAt: null, created: true })
+      return queued
+    })
+    db.learningAward.update.mockImplementation(async ({ data }: { data: { grantedAt: Date } }) => {
+      queued.grantedAt = data.grantedAt
+      return queued
+    })
+    db.learningAward.findUnique.mockImplementation(async ({ where }: { where: { userId_ruleKey_sourceId?: { ruleKey: string } } }) => {
+      if (where.userId_ruleKey_sourceId?.ruleKey === 'training_completion' && queued.created) {
+        return { id: queued.id, points: queued.points, grantedAt: queued.grantedAt }
+      }
+      return null
+    })
     const response = await app.inject({ method: 'POST', url: '/api/v1/modules/' + moduleId + '/training/complete', headers: headers() })
-    expect(response.json()).toMatchObject({ completed: true, pointsAwarded: 0 })
+    expect(response.statusCode).toBe(200)
+    expect(response.json()).toMatchObject({
+      completed: true,
+      pointsAwarded: 3,
+      pointsCapped: false,
+      capReason: null,
+      pendingPoints: 0,
+    })
+    expect(db.learningAward.create).toHaveBeenCalledWith(expect.objectContaining({
+      data: expect.objectContaining({ ruleKey: 'training_completion', sourceId: moduleId, points: 3 }),
+    }))
+    expect(db.pointLedgerEntry.create).toHaveBeenCalledWith({
+      data: expect.objectContaining({
+        delta: 3,
+        reason: 'QUIZ_TRAINING',
+        sourceType: 'LearningAward',
+      }),
+    })
+    expect(db.moduleProgress.update).toHaveBeenCalledWith(expect.objectContaining({
+      data: expect.objectContaining({ trainingPointsAwarded: 3 }),
+    }))
+  })
+  it('informa pointsCapped quando o crédito de treinamento fica na fila', async () => {
+    settings.training_points_daily = { value: 0, isActive: true }
+    const queued = {
+      id: 'award-train',
+      userId,
+      ruleKey: 'training_completion',
+      sourceId: moduleId,
+      points: 3,
+      grantedAt: null as Date | null,
+      createdAt: new Date(),
+      created: false,
+    }
+    db.learningAward.findMany.mockImplementation(async ({ where }: { where: { grantedAt: null | object; points?: { gt: number } } }) => {
+      if (!queued.created) return []
+      if (where.grantedAt === null) return [queued]
+      return []
+    })
+    db.learningAward.create.mockImplementation(async ({ data }: { data: Record<string, unknown> }) => {
+      Object.assign(queued, data, { id: 'award-train', createdAt: new Date(), grantedAt: null, created: true })
+      return queued
+    })
+    db.learningAward.findUnique.mockImplementation(async () =>
+      queued.created ? { id: queued.id, points: queued.points, grantedAt: queued.grantedAt } : null,
+    )
+    const response = await app.inject({ method: 'POST', url: '/api/v1/modules/' + moduleId + '/training/complete', headers: headers() })
+    expect(response.statusCode).toBe(200)
+    expect(response.json()).toMatchObject({
+      completed: true,
+      pointsAwarded: 0,
+      pointsCapped: true,
+      capReason: 'DAILY_LIMIT',
+      pendingPoints: 3,
+    })
+  })
+  it('não cria segundo award ao concluir treinamento de novo', async () => {
+    db.moduleProgress.findUniqueOrThrow.mockResolvedValue({
+      id: progressRecordId,
+      startedAt: new Date(),
+      completedAt: null,
+      preTestCompletedAt: new Date(),
+      trainingCompletedAt: new Date(),
+    })
+    db.learningAward.findUnique.mockResolvedValue({ id: 'award-train', points: 3, grantedAt: new Date() })
+    db.learningAward.findMany.mockResolvedValue([])
+    const response = await app.inject({ method: 'POST', url: '/api/v1/modules/' + moduleId + '/training/complete', headers: headers() })
+    expect(response.json()).toMatchObject({
+      completed: true,
+      pointsAwarded: 3,
+      pointsCapped: false,
+      pendingPoints: 0,
+    })
     expect(db.learningAward.create).not.toHaveBeenCalled()
   })
   it('não permite substituir o pré-teste inicial', async () => {

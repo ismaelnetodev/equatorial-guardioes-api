@@ -146,6 +146,7 @@ model Neighborhood {
   state            String
   source           String
   users            User[]
+  reports          Report[]
 
   @@index([municipalityCode, name])
 }
@@ -309,6 +310,8 @@ model Report {
   description   String                @db.Text
   address       String
   neighborhood  String
+  neighborhoodId String?
+  neighborhoodRecord Neighborhood?    @relation(fields: [neighborhoodId], references: [id])
   photoUrl      String?
   latitude      Float?
   longitude     Float?
@@ -327,6 +330,7 @@ model Report {
   @@index([userId, submittedAt])
   @@index([status, submittedAt])
   @@index([userId, validatedAt])
+  @@index([neighborhoodId])
 }
 
 model ReportTimelineEvent {

@@ -141,3 +141,7 @@ dist
 web-build/
 .env.*
 !.env.example
+!.env.demo.example
+
+# Backups do runbook pos-merge (pg_dump / logs)
+backups/

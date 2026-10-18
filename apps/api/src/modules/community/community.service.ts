@@ -10,6 +10,7 @@ import {
   PointsLedgerError,
 } from '../../lib/points-ledger.js'
 import { getPrisma } from '../../lib/prisma.js'
+import { canReport } from '../../lib/reports-unlock.js'
 
 export class CommunityError extends Error {
   constructor(
@@ -19,7 +20,8 @@ export class CommunityError extends Error {
       | 'INSUFFICIENT_BALANCE'
       | 'VALIDATED_REPORTS_REQUIRED'
       | 'INVITE_ALREADY_ATTRIBUTED'
-      | 'INVITE_INVALID',
+      | 'INVITE_INVALID'
+      | 'INVALID_PROFILE',
     message: string,
   ) {
     super(message)
@@ -44,32 +46,92 @@ function levelPayload(level: Awaited<ReturnType<typeof resolveGuardianLevel>>) {
   }
 }
 
+/** Normaliza rótulo de bairro sem catálogo (trim, sem acento, minúsculas). */
+export function normalizeNeighborhoodLabel(value: string): string {
+  return value
+    .trim()
+    .normalize('NFD')
+    .replace(/\p{M}/gu, '')
+    .toLowerCase()
+}
+
+const UNMATCHED_RANKING_KEY = 'other:sem-catalogo'
+
+function rankingDisplayName(neighborhood: string): string {
+  const trimmed = neighborhood.trim()
+  return trimmed || 'Sem bairro'
+}
+
+function resolveRankingGroup(
+  neighborhoodId: string | null,
+  neighborhood: string,
+  catalogById: Map<string, string>,
+  catalogByNormalized: Map<string, { id: string; name: string }>,
+): { key: string; label: string } {
+  if (neighborhoodId) {
+    const name = catalogById.get(neighborhoodId)
+    return {
+      key: `id:${neighborhoodId}`,
+      label: name ?? rankingDisplayName(neighborhood),
+    }
+  }
+  const normalized = normalizeNeighborhoodLabel(neighborhood)
+  const match = normalized ? catalogByNormalized.get(normalized) : undefined
+  if (match) return { key: `id:${match.id}`, label: match.name }
+  return { key: UNMATCHED_RANKING_KEY, label: 'Sem bairro' }
+}
+
 export async function getRanking(userId: string) {
   const user = await getPrisma().user.findUnique({
     where: { id: userId },
-    select: { neighborhood: true },
+    select: { neighborhood: true, neighborhoodId: true },
   })
   if (!user) throw new Error('Usuário não encontrado.')
 
   const account = await getOrCreatePointAccount(userId)
-  const rows = await getPrisma().user.findMany({
-    select: {
-      neighborhood: true,
-      pointAccount: { select: { accumulated: true } },
-    },
-  })
+  const [catalog, rows] = await Promise.all([
+    getPrisma().neighborhood.findMany({
+      where: { municipalityCode: '2111300' },
+      select: { id: true, name: true },
+    }),
+    getPrisma().user.findMany({
+      select: {
+        neighborhood: true,
+        neighborhoodId: true,
+        pointAccount: { select: { accumulated: true } },
+      },
+    }),
+  ])
 
-  const byNeighborhood = new Map<string, { accumulatedPoints: number; guardiansCount: number }>()
+  const catalogById = new Map(catalog.map((item) => [item.id, item.name]))
+  const catalogByNormalized = new Map(
+    catalog.map((item) => [normalizeNeighborhoodLabel(item.name), item]),
+  )
+
+  const userGroup = resolveRankingGroup(
+    user.neighborhoodId,
+    user.neighborhood,
+    catalogById,
+    catalogByNormalized,
+  )
+  const byNeighborhood = new Map<string, { neighborhood: string; accumulatedPoints: number; guardiansCount: number }>()
   for (const row of rows) {
-    const key = row.neighborhood.trim() || 'Sem bairro'
-    const current = byNeighborhood.get(key) ?? { accumulatedPoints: 0, guardiansCount: 0 }
+    const { key, label } = resolveRankingGroup(
+      row.neighborhoodId,
+      row.neighborhood,
+      catalogById,
+      catalogByNormalized,
+    )
+    const current = byNeighborhood.get(key) ?? { neighborhood: label, accumulatedPoints: 0, guardiansCount: 0 }
     current.accumulatedPoints += row.pointAccount?.accumulated ?? 0
     current.guardiansCount += 1
     byNeighborhood.set(key, current)
   }
 
+  // Bucket sem catálogo fica fora do ranking público (não há rota admin de ranking hoje).
   const ranked = [...byNeighborhood.entries()]
-    .map(([neighborhood, stats]) => ({ neighborhood, ...stats }))
+    .filter(([key]) => key !== UNMATCHED_RANKING_KEY)
+    .map(([key, stats]) => ({ key, ...stats }))
     .sort((a, b) => {
       if (b.accumulatedPoints !== a.accumulatedPoints) return b.accumulatedPoints - a.accumulatedPoints
       if (b.guardiansCount !== a.guardiansCount) return b.guardiansCount - a.guardiansCount
@@ -80,7 +142,7 @@ export async function getRanking(userId: string) {
       neighborhood: item.neighborhood,
       accumulatedPoints: item.accumulatedPoints,
       guardiansCount: item.guardiansCount,
-      isCurrentUserNeighborhood: item.neighborhood === user.neighborhood,
+      isCurrentUserNeighborhood: item.key === userGroup.key,
     }))
 
   const neighborhoodTotal =
@@ -295,6 +357,7 @@ export async function getProfile(userId: string) {
     0,
   )
   const reportsCount = await getPrisma().report.count({ where: { userId } })
+  const reportUnlocked = await canReport(userId)
 
   return {
     name: user.name,
@@ -302,6 +365,7 @@ export async function getProfile(userId: string) {
     level: levelPayload(level),
     accumulated: account.accumulated,
     balance: account.balance,
+    canReport: reportUnlocked,
     badges: {
       modulesCompleted,
       modulesPublished,
@@ -314,4 +378,18 @@ export async function getProfile(userId: string) {
       reports: '/relatos' as const,
     },
   }
+}
+
+export async function updateProfile(userId: string, input: { name: string }) {
+  const name = input.name.trim()
+  if (name.length < 2) {
+    throw new CommunityError('INVALID_PROFILE', 'Informe seu nome com pelo menos 2 caracteres.')
+  }
+
+  await getPrisma().user.update({
+    where: { id: userId },
+    data: { name },
+  })
+
+  return getProfile(userId)
 }

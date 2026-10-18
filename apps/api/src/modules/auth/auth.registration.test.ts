@@ -34,6 +34,33 @@ it('aceita uma senha de exatamente 8 caracteres no cadastro e no login', async (
   expect(login.json().accessToken).toBeTruthy()
 })
 
+it('cadastra sem emitir accessToken nem sessão; login continua exclusivo do entrar', async () => {
+  db.user.findFirst.mockResolvedValue(null)
+  db.user.create.mockImplementation(async ({ data }) => ({
+    id: '22222222-2222-4222-8222-222222222222',
+    name: data.name,
+    email: data.email ?? null,
+    cellphone: data.cellphone ?? null,
+    neighborhood: data.neighborhood,
+  }))
+  const registration = await app.inject({
+    method: 'POST',
+    url: '/api/v1/cadastrar',
+    payload: { ...credentials, email: 'sem-token@example.com', password: '12345678' },
+  })
+  expect(registration.statusCode).toBe(201)
+  const body = registration.json()
+  expect(body.user).toMatchObject({
+    id: '22222222-2222-4222-8222-222222222222',
+    name: 'Teste Cadastro',
+    email: 'sem-token@example.com',
+    neighborhood: 'Centro',
+  })
+  expect(body).not.toHaveProperty('accessToken')
+  expect(body).not.toHaveProperty('refreshToken')
+  expect(Object.keys(body).sort()).toEqual(['message', 'user'])
+})
+
 describe('conflitos no cadastro', () => {
   for (const contact of [{ email: 'teste@example.com' }, { cellphone: '+5585999999999' }]) {
     it('retorna 201 e 409 para cadastros concorrentes com o mesmo contato ' + Object.keys(contact)[0], async () => {

@@ -38,12 +38,14 @@ beforeEach(async () => {
   db.moduleProgress.findUnique.mockResolvedValue({ id: moduleId })
   db.moduleProgress.update.mockResolvedValue({ completedAt: new Date() })
   db.programConfiguration.findUnique.mockImplementation(async ({ where }: { where: { key: string } }) => ({
-    key: where.key, kind: ['module_completion', 'module_quiz', 'post_test_improvement', 'final_exam'].includes(where.key) ? 'RULE' : 'LIMIT',
-    value: ({ module_completion: 2, module_quiz: 0, post_test_improvement: 6, quiz_pass_score: 80, training_modules_daily: 2, training_points_daily: 4, module_minimum_time: 70, post_test_improvement_awards: 1, final_exam: 10, final_exam_delay: 24, final_exam_awards: 1 } as Record<string, number>)[where.key] ?? null,
+    key: where.key, kind: ['module_completion', 'module_quiz', 'post_test_improvement', 'final_exam', 'training_completion'].includes(where.key) ? 'RULE' : 'LIMIT',
+    value: ({ module_completion: 2, module_quiz: 0, post_test_improvement: 6, training_completion: 3, quiz_pass_score: 80, training_modules_daily: 2, training_points_daily: 4, module_minimum_time: 70, post_test_improvement_awards: 1, final_exam: 10, final_exam_delay: 24, final_exam_awards: 1 } as Record<string, number>)[where.key] ?? null,
     isActive: true,
   }))
   db.learningAward.findMany.mockResolvedValue([])
   db.learningAward.findUnique.mockResolvedValue(null)
+  db.learningAward.create.mockImplementation(async ({ data }: { data: Record<string, unknown> }) => ({ id: 'award-1', grantedAt: null, ...data }))
+  db.learningAward.update.mockImplementation(async ({ data }: { data: Record<string, unknown> }) => ({ id: 'award-1', ...data }))
   db.learningAward.count.mockResolvedValue(0)
   db.moduleProgress.findUniqueOrThrow.mockImplementation(async () => ({ id: '33333333-3333-4333-8333-333333333333', startedAt: new Date(Date.now() - 3600000), completedAt: null, preTestCompletedAt: new Date(), trainingCompletedAt: null }))
   db.trail.findFirst.mockResolvedValue({ modules: [{ id: moduleId }] })
@@ -129,6 +131,15 @@ describe('integração do quiz', () => {
     expect((await app.inject({ method: 'POST', url: completeUrl, headers: headers() })).statusCode).toBe(200)
     expect(integration).not.toHaveBeenCalled()
   })
+
+  it('expõe canReport no progresso da trilha', async () => {
+    db.trail.findFirst.mockResolvedValue({
+      modules: [{ id: moduleId, progressRecords: [{ completedAt: new Date() }] }],
+    })
+    const r = await app.inject({ method: 'GET', url: '/api/v1/progress/trails/' + trailId, headers: headers() })
+    expect(r.statusCode).toBe(200)
+    expect(r.json().canReport).toBe(true)
+  })
   it('conclui quando o pós-teste está aprovado para o usuário e módulo', async () => {
     requiresQuiz = true
     const integration = vi.spyOn(quiz, 'getQuizCompletionStatus').mockResolvedValue('approved')
@@ -143,5 +154,247 @@ describe('integração do quiz', () => {
     expect(r.statusCode).toBe(409)
     expect(r.json()).toMatchObject({ code: 'QUIZ_REQUIRED' })
     expect(db.moduleProgress.update).not.toHaveBeenCalled()
+  })
+  it('credita o convite ao concluir o módulo 0 e alimenta o ranking do bairro', async () => {
+    const inviterId = '22222222-2222-4222-8222-222222222222'
+    const attributionId = 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa'
+    db.inviteAttribution.findUnique.mockResolvedValue({
+      id: attributionId,
+      inviterId,
+      module0CompletedAt: null,
+      pointsAwarded: 0,
+    })
+    db.inviteAttribution.count.mockResolvedValue(0)
+    db.inviteAttribution.update.mockResolvedValue({})
+    db.programConfiguration.findUnique.mockImplementation(async ({ where }: { where: { key: string } }) => {
+      const values: Record<string, number> = {
+        module_completion: 2,
+        module_quiz: 0,
+        post_test_improvement: 6,
+        training_completion: 3,
+        quiz_pass_score: 80,
+        training_modules_daily: 2,
+        training_points_daily: 4,
+        module_minimum_time: 70,
+        post_test_improvement_awards: 1,
+        final_exam: 10,
+        final_exam_delay: 24,
+        final_exam_awards: 1,
+        invite_module0_reward: 50,
+        invite_reward_limit: 10,
+      }
+      return {
+        key: where.key,
+        kind: ['module_completion', 'module_quiz', 'post_test_improvement', 'final_exam', 'training_completion'].includes(where.key) ? 'RULE' : 'LIMIT',
+        value: values[where.key] ?? null,
+        isActive: true,
+      }
+    })
+    db.pointAccount.upsert.mockResolvedValue({ userId: inviterId, accumulated: 0, balance: 0 })
+    db.pointAccount.update.mockResolvedValue({ userId: inviterId, accumulated: 50, balance: 50 })
+    db.pointLedgerEntry.create.mockResolvedValue({ id: 'ledger-invite' })
+
+    const r = await app.inject({ method: 'POST', url: completeUrl, headers: headers() })
+    expect(r.statusCode).toBe(200)
+    expect(db.pointLedgerEntry.create).toHaveBeenCalledWith({
+      data: expect.objectContaining({
+        userId: inviterId,
+        delta: 50,
+        reason: 'INVITE_REWARD',
+        sourceType: 'InviteAttribution',
+        sourceId: attributionId,
+      }),
+    })
+    expect(db.inviteAttribution.update).toHaveBeenCalledWith({
+      where: { id: attributionId },
+      data: expect.objectContaining({ pointsAwarded: 50 }),
+    })
+  })
+
+  it('conclui 2 módulos no mesmo dia com teto 10 sem pointsCapped', async () => {
+    const moduleA = moduleId
+    const moduleB = '44444444-4444-4444-8444-444444444444'
+    type AwardRow = {
+      id: string
+      userId: string
+      ruleKey: string
+      sourceId: string
+      points: number
+      grantedAt: Date | null
+      createdAt: Date
+    }
+    const awards: AwardRow[] = []
+    const now = new Date()
+    db.programConfiguration.findUnique.mockImplementation(async ({ where }: { where: { key: string } }) => ({
+      key: where.key,
+      kind: ['module_completion', 'training_completion', 'module_quiz', 'post_test_improvement', 'final_exam'].includes(where.key)
+        ? 'RULE'
+        : 'LIMIT',
+      value: ({
+        module_completion: 2,
+        training_completion: 3,
+        training_modules_daily: 2,
+        training_points_daily: 10,
+        module_minimum_time: 0,
+      } as Record<string, number>)[where.key] ?? 0,
+      isActive: where.key === 'module_minimum_time' ? false : true,
+    }))
+    db.learningAward.create.mockImplementation(async ({ data }: { data: Omit<AwardRow, 'id' | 'createdAt' | 'grantedAt'> & { grantedAt?: Date | null } }) => {
+      const row: AwardRow = {
+        ...data,
+        id: `a${awards.length}`,
+        createdAt: now,
+        grantedAt: data.grantedAt ?? null,
+      }
+      awards.push(row)
+      return row
+    })
+    db.learningAward.findMany.mockImplementation(async ({ where }: { where: { grantedAt: null | { gte: Date; lt: Date }; ruleKey?: { in: string[] }; points?: { gt: number } } }) => {
+      const keys = where.ruleKey?.in
+      return awards.filter((row) => {
+        if (keys && !keys.includes(row.ruleKey)) return false
+        if (where.grantedAt === null) return !row.grantedAt
+        if (where.points?.gt != null && !(row.points > where.points.gt)) return false
+        return Boolean(row.grantedAt && row.grantedAt >= where.grantedAt.gte && row.grantedAt < where.grantedAt.lt)
+      })
+    })
+    db.learningAward.update.mockImplementation(async ({ where, data }: { where: { id: string }; data: { grantedAt: Date } }) => {
+      const row = awards.find((item) => item.id === where.id)!
+      row.grantedAt = data.grantedAt
+      return row
+    })
+    db.learningAward.findUnique.mockImplementation(async ({ where }: { where: { userId_ruleKey_sourceId: { sourceId: string; ruleKey: string } } }) => {
+      const row = awards.find(
+        (item) =>
+          item.ruleKey === where.userId_ruleKey_sourceId.ruleKey &&
+          item.sourceId === where.userId_ruleKey_sourceId.sourceId,
+      )
+      return row ? { id: row.id, points: row.points, grantedAt: row.grantedAt } : null
+    })
+    let credited = 0
+    db.pointAccount.upsert.mockResolvedValue({ userId, accumulated: 0, balance: 0 })
+    db.pointAccount.update.mockImplementation(async ({ data }: { data: { accumulated: { increment: number } } }) => {
+      credited += data.accumulated.increment
+      return { userId, accumulated: credited, balance: credited }
+    })
+    db.pointLedgerEntry.create.mockResolvedValue({ id: 'ledger' })
+    db.pointLedgerEntry.findFirst.mockResolvedValue(null)
+
+    for (const id of [moduleA, moduleB]) {
+      db.trailModule.findUnique.mockResolvedValueOnce({
+        id,
+        trailId,
+        isActive: true,
+        requiresQuiz: false,
+        durationMinutes: 1,
+        content: 'ok',
+        trainingSteps: [],
+      })
+      db.trail.findUnique.mockResolvedValueOnce({
+        id: trailId,
+        modules: [
+          { id: moduleA, title: 'A', order: 1, requiresQuiz: false, progressRecords: [{ startedAt: now, completedAt: id === moduleB ? now : null }] },
+          { id: moduleB, title: 'B', order: 2, requiresQuiz: false, progressRecords: id === moduleB ? [{ startedAt: now, completedAt: null }] : [] },
+        ],
+      })
+      db.moduleProgress.findUnique.mockResolvedValueOnce({ id })
+      db.moduleProgress.findUniqueOrThrow.mockResolvedValueOnce({
+        id,
+        startedAt: new Date(now.getTime() - 3_600_000),
+        completedAt: null,
+      })
+      db.moduleProgress.update.mockResolvedValueOnce({ completedAt: now })
+      // Prefill training award so completeModule only queues module_completion (3+2)×2 = 10
+      await db.learningAward.create({
+        data: { userId, ruleKey: 'training_completion', sourceId: id, points: 3, moduleId: id, trailId },
+      })
+      const response = await app.inject({ method: 'POST', url: `/api/v1/progress/modules/${id}/complete`, headers: headers() })
+      expect(response.statusCode).toBe(200)
+      expect(response.json()).toMatchObject({ status: 'completed', pointsCapped: false, capReason: null, pendingPoints: 0 })
+    }
+    expect(awards.filter((row) => row.ruleKey === 'module_completion' && row.grantedAt)).toHaveLength(2)
+    expect(awards.filter((row) => row.ruleKey === 'training_completion' && row.grantedAt)).toHaveLength(2)
+    expect(credited).toBe(10)
+    expect(db.pointLedgerEntry.create).toHaveBeenCalledTimes(4)
+  })
+
+  it('POST learning-awards/claim respeita o teto diário e deixa o excedente pendente', async () => {
+    type AwardRow = {
+      id: string
+      userId: string
+      ruleKey: string
+      sourceId: string
+      points: number
+      grantedAt: Date | null
+      createdAt: Date
+    }
+    const createdAt = new Date()
+    const awards: AwardRow[] = ['a', 'b', 'c'].map((sourceId, index) => ({
+      id: `p${index}`,
+      userId,
+      ruleKey: 'module_completion',
+      sourceId,
+      points: 2,
+      grantedAt: null,
+      createdAt,
+    }))
+    db.programConfiguration.findUnique.mockImplementation(async ({ where }: { where: { key: string } }) => ({
+      key: where.key,
+      kind: ['module_completion', 'training_completion'].includes(where.key) ? 'RULE' : 'LIMIT',
+      value: ({
+        module_completion: 2,
+        training_completion: 3,
+        training_modules_daily: 10,
+        training_points_daily: 4,
+      } as Record<string, number>)[where.key] ?? 0,
+      isActive: true,
+    }))
+    db.learningAward.findMany.mockImplementation(async ({ where }: { where: { grantedAt: null | { gte: Date; lt: Date }; ruleKey?: { in: string[] }; points?: { gt: number } } }) => {
+      const keys = where.ruleKey?.in
+      return awards.filter((row) => {
+        if (keys && !keys.includes(row.ruleKey)) return false
+        if (where.grantedAt === null) return !row.grantedAt
+        if (where.points?.gt != null && !(row.points > where.points.gt)) return false
+        return Boolean(row.grantedAt && row.grantedAt >= where.grantedAt.gte && row.grantedAt < where.grantedAt.lt)
+      })
+    })
+    db.learningAward.update.mockImplementation(async ({ where, data }: { where: { id: string }; data: { grantedAt: Date } }) => {
+      const row = awards.find((item) => item.id === where.id)!
+      row.grantedAt = data.grantedAt
+      return row
+    })
+    db.pointAccount.upsert.mockResolvedValue({ userId, accumulated: 0, balance: 0 })
+    db.pointAccount.update.mockResolvedValue({ userId, accumulated: 4, balance: 4 })
+    db.pointLedgerEntry.create.mockResolvedValue({ id: 'ledger-claim' })
+    db.pointLedgerEntry.findFirst.mockResolvedValue(null)
+
+    db.pointAccount.upsert.mockResolvedValue({ userId, accumulated: 100, balance: 100 })
+    db.pointAccount.update.mockImplementation(async ({ data }: { data: { balance: { increment: number }; accumulated: { increment: number } } }) => ({
+      userId,
+      accumulated: 100 + data.accumulated.increment,
+      balance: 100 + data.balance.increment,
+    }))
+
+    const first = await app.inject({
+      method: 'POST',
+      url: '/api/v1/progress/learning-awards/claim',
+      headers: headers(),
+    })
+    expect(first.statusCode).toBe(200)
+    expect(first.json()).toEqual({ pointsReleased: 4, pendingPoints: 2 })
+    expect(awards.filter((row) => row.grantedAt)).toHaveLength(2)
+    expect(awards.filter((row) => !row.grantedAt)).toHaveLength(1)
+
+    const rankingBefore = 100 + 4
+    db.pointAccount.upsert.mockResolvedValue({ userId, accumulated: rankingBefore, balance: rankingBefore })
+    const second = await app.inject({
+      method: 'POST',
+      url: '/api/v1/progress/learning-awards/claim',
+      headers: headers(),
+    })
+    expect(second.statusCode).toBe(200)
+    expect(second.json()).toEqual({ pointsReleased: 0, pendingPoints: 2 })
+    expect(db.pointAccount.update).toHaveBeenCalledTimes(2)
+    expect(db.pointLedgerEntry.create).toHaveBeenCalledTimes(2)
   })
 })
