@@ -167,8 +167,44 @@ Arquivos quentes nesta branch:
 - `apps/api/src/modules/community/community.*`
 - `apps/api/src/modules/quiz/quiz.integration.test.ts`
 - `apps/api/prisma/migrations/20261018180000_module_quiz_points/`
+- `apps/api/prisma/migrations/20261018210000_training_points_daily_10/`
 
 Como as outras branches remotas estavam alinhadas com `main`, o risco atual é baixo. Se novas branches reabrirem os mesmos arquivos, preferir merges pequenos e preservar nomes de rota/campos já expostos (`canReport`, `PATCH /perfil`, `module_quiz`).
+
+### Commits na branch `melhorias` (após baseline `43163c2`)
+
+Rodada pontos/fila/ranking/E2E:
+
+- `4e4980a` feat(back): award configurable training_completion points
+- `79d0e65` feat(back): expose daily point caps and queue consumer
+- `6b43e86` fix(back): backfill neighborhood ids and rank by catalog
+- `9348701` test(back): e2e ranking trail and daily cap queue
+- `364b853` docs(back): confirm shared Sao Luis neighborhood catalog
+- `9575b11` docs(back): update melhorias inventory and scripts
+
+Rodada teto 10 / E2E local / Outro bairro / ranking / claim / SP:
+
+- `b076cc6` fix(back): raise training_points_daily to 10 for two full modules
+- `3d46a64` test(back): run ranking E2E on local Postgres and document CI
+- `2227f75` fix(back): allow Outro bairro fallback on report without catalog 400
+- `6720515` fix(back): exclude unmatched neighborhoods from public ranking
+- `d1c32d1` test(back): ensure claim endpoint respects daily point limits
+- `d890744` fix(back): compute learning day boundary in America/Sao_Paulo
+- `935965d` docs(back): note queue needs always-on API and remove dashes
+- `045dece` docs(back): finalize qualidade counts after full suite
+
+Rodada final de verificação:
+
+- `dff1f39` fix(back): accept report body matching user neighborhood without catalog
+- `d2b7ba1` fix(back): claim returns pendingPoints under daily cap
+- `ae0df31` test(back): assert 10 pts for two modules and SP midnight fake timers
+
+### Onde estão os testes (claim e cenários 2 módulos / meia-noite)
+
+- Claim respeita teto e devolve `pendingPoints`: `apps/api/src/modules/progress/progress.integration.test.ts` (`POST learning-awards/claim respeita o teto diário...`); também `apps/api/src/modules/quiz/learning-rules.test.ts` (`claim/release no mesmo dia só libera o que cabe no teto`)
+- 2 módulos no mesmo dia, `pointsCapped: false`, 10 pontos creditados: `apps/api/src/modules/progress/progress.integration.test.ts` (`conclui 2 módulos no mesmo dia com teto 10 sem pointsCapped`); espelho em `learning-rules.test.ts` (`com teto 10 libera dois módulos completos`)
+- Limites às 23:50 SP e liberação após 00:00 (fake timers): `apps/api/src/modules/quiz/learning-rules.test.ts` (`com limites atingidos às 23:50 SP libera pendentes após 00:00 local`)
+- E2E trilha + claim: `apps/api/src/modules/community/ranking-trail.e2e.test.ts`
 
 ## 7. Migrations e scripts de correção
 
@@ -233,5 +269,6 @@ Cadastro (`auth.service`) e relato (`reports.service`) usam a **mesma** tabela `
 
 - Município coberto: IBGE **2111300** (São Luís/MA, seed Prefeitura de São Luís / SEMGOP 2022).
 - Cadastro: `neighborhoodId` opcional; se informado, exige `municipalityCode = 2111300`; "Outro bairro" = texto sem id.
-- Relato: valores no body (texto ou id) são validados no catálogo. Fallback do cadastro grava o texto como está com `neighborhoodId` nulo se não houver match (sem 400).
+- Relato: `neighborhoodId` no body sempre valida catálogo. Texto no body igual ao bairro do cadastro (normalizado) segue a regra do fallback (grava texto + `neighborhoodId` do usuário ou nulo). Texto diferente do cadastro exige catálogo. Fallback sem body: grava texto do cadastro com id nulo se não houver match (sem 400).
 - Ranking público: agrega por id de catálogo (texto sem id mapeado pelo nome normalizado). Sem match fica fora do endpoint público (não há rota admin de ranking hoje).
+- Claim: `POST /api/v1/progress/learning-awards/claim` responde `{ pointsReleased, pendingPoints }` e só libera o que cabe no teto do dia (`America/Sao_Paulo`).
