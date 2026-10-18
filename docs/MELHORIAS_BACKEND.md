@@ -239,6 +239,14 @@ Rodada final de verificação:
 - `d2b7ba1` fix(back): claim returns pendingPoints under daily cap
 - `ae0df31` test(back): assert 10 pts for two modules and SP midnight fake timers
 - `a53ac84` docs(back): list commits, migration and test file locations
+- `b6ff025` docs(back): finalize quality counts after final verification suite
+
+Rodada handoff / runbook / demo:
+
+- `fb9743d` docs(back): align report rules, claim contract and baseline
+- `9c6de9b` docs(back): front handoff for melhorias contract
+- `8977a5e` chore(back): post-merge runbook with backup
+- `9f13f51` chore(back): demo env example without daily limits
 
 ### Onde estão os testes (claim e cenários 2 módulos / meia-noite)
 
@@ -283,11 +291,13 @@ Quando usar: apresentacoes ou demos em que a narrativa nao deve ser interrompida
 
 ## 8. Qualidade (pré-merge)
 
+Validacao local apos handoff/runbook/demo (2026-10-18):
+
 - `npm run typecheck`: ok (API + mobile)
 - `npm test`: 37 arquivos, 344 testes passando (inclui E2E com `DATABASE_URL` no Postgres local/`pg-e2e`)
 - `npm run build`: ok (API + export Expo)
-- Linter ESLint: não configurado no monorepo; typecheck usado como checagem estática
-- CI: `.github/workflows/delivery.yml` (já existia) sobe Postgres 17, roda `db:deploy`, `typecheck`, `npm test` (inclui E2E quando `DATABASE_URL` está definida) e `build`. Triggers: PR, push em `main`/`melhorias`, `workflow_dispatch`.
+- Linter ESLint: nao configurado no monorepo; typecheck usado como checagem estatica
+- CI: `.github/workflows/delivery.yml` (ja existia) sobe Postgres 17, roda `db:deploy`, `typecheck`, `npm test` (inclui E2E quando `DATABASE_URL` esta definida) e `build`. Triggers: PR, push em `main`/`melhorias`, `workflow_dispatch`.
 
 ### E2E local (2026-10-18)
 
