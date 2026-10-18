@@ -1,5 +1,5 @@
 import type { Prisma } from '../../generated/prisma/client.js'
-import { assertRetry, awardOnce, configuration, learningTransaction, minimumCorrect, moduleAwards } from './learning-rules.service.js'
+import { assertRetry, awardOnce, configuration, learningTransaction, minimumCorrect, moduleAwards, queueTrainingAward, releasePendingModules } from './learning-rules.service.js'
 import { publishedModuleWhere, publishedTrailWhere } from '../../lib/content-visibility.js'
 import { getPrisma } from '../../lib/prisma.js'
 import type {
@@ -353,17 +353,31 @@ export async function getTraining(userId: string, moduleId: string) {
 }
 
 export async function completeTraining(userId: string, moduleId: string) {
-  const { progress } = await requireAccessibleModule(userId, moduleId)
+  const { progress, module } = await requireAccessibleModule(userId, moduleId)
   if (!progress.preTestCompletedAt) throw new QuizError('PRE_TEST_REQUIRED', 'Conclua o pré-teste antes do treinamento.')
-  const updated = await learningTransaction(async tx => {
+  return learningTransaction(async tx => {
     const fresh = await tx.moduleProgress.findUniqueOrThrow({ where: { id: progress.id } })
-    return tx.moduleProgress.update({
-      where: { id: progress.id },
-      data: { trainingCompletedAt: fresh.trainingCompletedAt ?? new Date(), trainingPointsAwarded: 0 },
-      select: { trainingPointsAwarded: true },
+    const rule = await configuration(tx, 'training_completion', 'RULE')
+    const rulePoints = rule.isActive ? rule.value! : 0
+    const now = new Date()
+    if (!fresh.trainingCompletedAt) {
+      await tx.moduleProgress.update({
+        where: { id: progress.id },
+        data: { trainingCompletedAt: now, trainingPointsAwarded: rulePoints },
+      })
+      await queueTrainingAward(tx, userId, moduleId, module.trailId)
+    }
+    await releasePendingModules(tx, userId, now)
+    const award = await tx.learningAward.findUnique({
+      where: { userId_ruleKey_sourceId: { userId, ruleKey: 'training_completion', sourceId: moduleId } },
+      select: { points: true, grantedAt: true },
     })
+    return {
+      moduleId,
+      completed: true as const,
+      pointsAwarded: award?.grantedAt ? award.points : 0,
+    }
   })
-  return { moduleId, completed: true as const, pointsAwarded: updated.trainingPointsAwarded }
 }
 
 export async function getPostTestQuestions(userId: string, moduleId: string) {

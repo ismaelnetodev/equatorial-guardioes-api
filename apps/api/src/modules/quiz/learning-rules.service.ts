@@ -2,12 +2,18 @@ import { Prisma } from '../../generated/prisma/client.js'
 import { getPrisma } from '../../lib/prisma.js'
 import { creditPoints } from '../../lib/points-ledger.js'
 
+const TRAINING_QUEUE_RULE_KEYS = ['module_completion', 'training_completion'] as const
+
+function ledgerReasonForLearningRule(ruleKey: string): 'QUIZ_TRAINING' | 'QUIZ_POST' {
+  return ruleKey === 'module_completion' || ruleKey === 'training_completion' ? 'QUIZ_TRAINING' : 'QUIZ_POST'
+}
+
 export async function creditGrantedLearningAward(tx: Prisma.TransactionClient, award: {
   userId: string; ruleKey: string; sourceId: string; points: number; grantedAt: Date | null
 }) {
   if (!award.grantedAt || award.points <= 0) return 0
   const sourceId = JSON.stringify([award.userId, award.ruleKey, award.sourceId])
-  const reason = award.ruleKey === 'module_completion' ? 'QUIZ_TRAINING' : 'QUIZ_POST'
+  const reason = ledgerReasonForLearningRule(award.ruleKey)
   // A consulta evita provocar uma violação de unicidade dentro da transação.
   const existing = await tx.pointLedgerEntry.findFirst({ where: { reason, sourceType: 'LearningAward', sourceId } })
   if (existing) {
@@ -99,35 +105,80 @@ export async function queueModuleAward(tx: Prisma.TransactionClient, userId: str
   await tx.learningAward.create({ data: { userId, moduleId, trailId, ruleKey: 'module_completion', sourceId: moduleId, points: rule.isActive ? rule.value! : 0 } })
 }
 
+export async function queueTrainingAward(tx: Prisma.TransactionClient, userId: string, moduleId: string, trailId: string) {
+  const rule = await configuration(tx, 'training_completion', 'RULE')
+  const existing = await tx.learningAward.findUnique({
+    where: { userId_ruleKey_sourceId: { userId, ruleKey: 'training_completion', sourceId: moduleId } },
+    select: { id: true, points: true },
+  })
+  if (existing) return existing.points
+  const points = rule.isActive ? rule.value! : 0
+  await tx.learningAward.create({
+    data: { userId, moduleId, trailId, ruleKey: 'training_completion', sourceId: moduleId, points },
+  })
+  return points
+}
+
 export async function releasePendingModules(tx: Prisma.TransactionClient, userId: string, now: Date) {
-  const rule = await configuration(tx, 'module_completion', 'RULE')
+  const moduleRule = await configuration(tx, 'module_completion', 'RULE')
+  const trainingRule = await configuration(tx, 'training_completion', 'RULE')
   const modulesLimit = await configuration(tx, 'training_modules_daily', 'LIMIT')
   const pointsLimit = await configuration(tx, 'training_points_daily', 'LIMIT')
-  if (!rule.isActive) return { pointsReleased: 0 }
-  const pending = await tx.learningAward.findMany({ where: { userId, ruleKey: 'module_completion', grantedAt: null }, orderBy: [{ createdAt: 'asc' }, { id: 'asc' }] })
+  const pending = await tx.learningAward.findMany({
+    where: { userId, ruleKey: { in: [...TRAINING_QUEUE_RULE_KEYS] }, grantedAt: null },
+    orderBy: [{ createdAt: 'asc' }, { id: 'asc' }],
+  })
   if (!pending.length) return { pointsReleased: 0 }
   const today = learningDayStart(now).getTime()
   const firstDay = Math.min(...pending.map(award => learningDayStart(award.createdAt).getTime()))
-  const granted = await tx.learningAward.findMany({ where: { userId, ruleKey: 'module_completion', points: { gt: 0 }, grantedAt: { gte: new Date(firstDay), lt: new Date(today + 86400000) } } })
+  const granted = await tx.learningAward.findMany({
+    where: {
+      userId,
+      ruleKey: { in: [...TRAINING_QUEUE_RULE_KEYS] },
+      points: { gt: 0 },
+      grantedAt: { gte: new Date(firstDay), lt: new Date(today + 86400000) },
+    },
+  })
   const buckets = new Map<number, { count: number; points: number }>()
   for (const award of granted) {
     const day = learningDayStart(award.grantedAt!).getTime()
     const bucket = buckets.get(day) ?? { count: 0, points: 0 }
-    bucket.count++; bucket.points += award.points; buckets.set(day, bucket)
+    if (award.ruleKey === 'module_completion') bucket.count++
+    bucket.points += award.points
+    buckets.set(day, bucket)
   }
   let pointsReleased = 0
   for (const award of pending) {
-    if (award.points > 0 && ((modulesLimit.isActive && modulesLimit.value! < 1) || (pointsLimit.isActive && award.points > pointsLimit.value!))) continue
+    const ruleActive = award.ruleKey === 'module_completion' ? moduleRule.isActive : trainingRule.isActive
+    if (!ruleActive) continue
+    // Limite de módulos zerado só bloqueia module_completion; pontos acima do teto diário
+    // ficam adiados (grantedAt null) em vez de descartados.
+    if (
+      award.ruleKey === 'module_completion' &&
+      award.points > 0 &&
+      modulesLimit.isActive &&
+      modulesLimit.value! < 1
+    ) {
+      continue
+    }
     // Reconcilia dias já vencidos: voltar ao aplicativo no dia 4 não perde as
     // liberações dos dias 2 e 3. Não altera concessões que já foram registradas.
     for (let day = learningDayStart(award.createdAt).getTime(); day <= today; day += 86400000) {
       const bucket = buckets.get(day) ?? { count: 0, points: 0 }
-      if (award.points > 0 && ((modulesLimit.isActive && bucket.count >= modulesLimit.value!) || (pointsLimit.isActive && bucket.points + award.points > pointsLimit.value!))) continue
+      const modulesBlocked =
+        award.ruleKey === 'module_completion' &&
+        award.points > 0 &&
+        modulesLimit.isActive &&
+        bucket.count >= modulesLimit.value!
+      const pointsBlocked =
+        award.points > 0 && pointsLimit.isActive && bucket.points + award.points > pointsLimit.value!
+      if (modulesBlocked || pointsBlocked) continue
       const grantedAt = day === today ? now : new Date(Math.max(day, award.createdAt.getTime()))
       await tx.learningAward.update({ where: { id: award.id }, data: { grantedAt } })
       await creditGrantedLearningAward(tx, { ...award, grantedAt })
-      if (award.points > 0) bucket.count++
-      bucket.points += award.points; buckets.set(day, bucket)
+      if (award.ruleKey === 'module_completion' && award.points > 0) bucket.count++
+      bucket.points += award.points
+      buckets.set(day, bucket)
       pointsReleased += award.points
       break
     }
