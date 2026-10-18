@@ -71,6 +71,7 @@ Configure `apps/api/.env`:
 | `NODE_ENV` | Ambiente de execução. |
 | `HOST` | Interface de rede. `0.0.0.0` permite acesso pela rede local. |
 | `PORT` | Porta da API. Padrão: `3000`. |
+| `TRUST_PROXY_HOPS` | Quantidade de proxies confiáveis antes da API. Padrão `0`; configure conforme a topologia da hospedagem. Afeta o IP usado nos limites de tentativas. |
 | `CORS_ORIGINS` | Origens web permitidas, separadas por vírgula, sem caminhos. Obrigatória em produção, com origens HTTPS explícitas. |
 | `CORS_ALLOW_LOCAL_NETWORK` | Em `NODE_ENV=development` (ou ausente), permite localhost, loopback e IPv4 privados em qualquer porta. Padrão: habilitado. Use `false` para exigir somente a lista explícita. Não habilita rede local em produção ou outros ambientes. |
 | `DATABASE_URL` | Conexão PostgreSQL usada pelo Prisma e pela API. |
@@ -227,6 +228,33 @@ npm run build
 Os testes da API usam persistência simulada. A exportação do mobile valida os bundles JavaScript; a geração de aplicativos nativos instaláveis é uma etapa separada, com builds locais ou EAS Build. No Windows, a compilação nativa local de iOS requer um Mac.
 
 Os deploys da API e do aplicativo são independentes, mesmo compartilhando o repositório.
+
+### Hospedagem e CI/CD
+
+Consulte o [resumo de deployment](docs/deployment.md) para a integração entre web,
+API, IA e banco. A hospedagem da API e da IA está em definição. O workflow
+`.github/workflows/delivery.yml` executa somente CI em pull requests e na `main`.
+`npm run build:web` exporta o web em `apps/mobile/dist`.
+
+Os Dockerfiles da API e da IA ficam em `apps/api/Dockerfile` e
+`apps/ia/Dockerfile`. Ambos usam a raiz do repositório como contexto de build:
+
+```sh
+docker build -f apps/api/Dockerfile -t guardioes-api .
+docker build -f apps/ia/Dockerfile -t guardioes-ia .
+```
+
+Configure as variáveis e os secrets na hospedagem ao executar os containers.
+O build da IA inclui o PDF e não recebe a chave Gemini nem o índice local Chroma.
+
+O workflow **Build container images** compila as duas imagens em runners
+Linux do GitHub e publica no GHCR, com tags do commit e `v1`. Ele usa o
+`GITHUB_TOKEN` temporário, sem credenciais Azure. Esse fluxo não aplica migrations
+nem publica os serviços; permite compilar fora do ACR Tasks quando esse recurso
+está indisponível na assinatura. As imagens podem ser importadas no registro da
+hospedagem depois, respeitando as permissões de leitura dos pacotes. Ele pode ser
+executado manualmente ou por pushes que alterem os arquivos de build e serviços
+na `main` ou em branches `codex/deployment-*`.
 
 ### Tela de trilha
 

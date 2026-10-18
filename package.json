@@ -17,6 +17,7 @@
     "start:api": "npm run start --workspace apps/api",
     "build:api": "npm run build --workspace apps/api",
     "build:mobile": "npm run build --workspace apps/mobile",
+    "build:web": "npm run build:web --workspace apps/mobile",
     "build": "npm run build --workspaces --if-present",
     "typecheck": "npm run typecheck --workspaces --if-present",
     "test": "npm run test --workspaces --if-present",
