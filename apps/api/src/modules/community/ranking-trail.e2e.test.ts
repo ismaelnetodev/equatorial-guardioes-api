@@ -341,7 +341,7 @@ suite('E2E ranking trail + daily cap queue', () => {
       headers: capHeaders,
     })
     expect(claim.statusCode).toBe(200)
-    expect(claim.json()).toMatchObject({ pointsReleased: 3 })
+    expect(claim.json()).toMatchObject({ pointsReleased: 3, pendingPoints: 0 })
 
     const accountAfter = await db.pointAccount.findUniqueOrThrow({ where: { userId: capUser.id } })
     expect(accountAfter.accumulated).toBe(3)

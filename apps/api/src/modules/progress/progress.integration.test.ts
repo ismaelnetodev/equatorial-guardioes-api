@@ -362,22 +362,33 @@ describe('integração do quiz', () => {
     db.pointLedgerEntry.create.mockResolvedValue({ id: 'ledger-claim' })
     db.pointLedgerEntry.findFirst.mockResolvedValue(null)
 
+    db.pointAccount.upsert.mockResolvedValue({ userId, accumulated: 100, balance: 100 })
+    db.pointAccount.update.mockImplementation(async ({ data }: { data: { balance: { increment: number }; accumulated: { increment: number } } }) => ({
+      userId,
+      accumulated: 100 + data.accumulated.increment,
+      balance: 100 + data.balance.increment,
+    }))
+
     const first = await app.inject({
       method: 'POST',
       url: '/api/v1/progress/learning-awards/claim',
       headers: headers(),
     })
     expect(first.statusCode).toBe(200)
-    expect(first.json()).toEqual({ pointsReleased: 4 })
+    expect(first.json()).toEqual({ pointsReleased: 4, pendingPoints: 2 })
     expect(awards.filter((row) => row.grantedAt)).toHaveLength(2)
     expect(awards.filter((row) => !row.grantedAt)).toHaveLength(1)
 
+    const rankingBefore = 100 + 4
+    db.pointAccount.upsert.mockResolvedValue({ userId, accumulated: rankingBefore, balance: rankingBefore })
     const second = await app.inject({
       method: 'POST',
       url: '/api/v1/progress/learning-awards/claim',
       headers: headers(),
     })
     expect(second.statusCode).toBe(200)
-    expect(second.json()).toEqual({ pointsReleased: 0 })
+    expect(second.json()).toEqual({ pointsReleased: 0, pendingPoints: 2 })
+    expect(db.pointAccount.update).toHaveBeenCalledTimes(2)
+    expect(db.pointLedgerEntry.create).toHaveBeenCalledTimes(2)
   })
 })

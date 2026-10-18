@@ -214,7 +214,11 @@ export function learningDayStart(date: Date): Date {
 }
 
 export async function claimLearningAwards(userId: string) {
-  return learningTransaction(tx => releasePendingModules(tx, userId, new Date()))
+  return learningTransaction(async (tx) => {
+    const { pointsReleased } = await releasePendingModules(tx, userId, new Date())
+    const pendingPoints = await trainingPendingPoints(tx, userId)
+    return { pointsReleased, pendingPoints }
+  })
 }
 
 export async function moduleAwards(tx: Prisma.TransactionClient, userId: string, moduleId: string) {
