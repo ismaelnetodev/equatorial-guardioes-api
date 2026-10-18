@@ -11,6 +11,9 @@ const db = {
   learningAward: { findMany: vi.fn(), findUnique: vi.fn(), create: vi.fn(), update: vi.fn() },
   pointLedgerEntry: { findFirst: vi.fn(), create: vi.fn() },
   pointAccount: { upsert: vi.fn(), update: vi.fn() },
+  user: { findMany: vi.fn() },
+  trailModule: { findMany: vi.fn() },
+  trail: { findMany: vi.fn() },
 }
 const tx = db as unknown as Prisma.TransactionClient
 beforeEach(() => {
@@ -26,6 +29,10 @@ beforeEach(() => {
     quiz_retry_interval: { kind: 'LIMIT', value: null, isActive: true },
   }
   db.programConfiguration.findUnique.mockImplementation(async ({ where }: { where: { key: string } }) => settings[where.key] ? { key: where.key, ...settings[where.key] } : null)
+  const echoIds = async ({ where }: { where: { id: { in: string[] } } }) => where.id.in.map((id) => ({ id }))
+  db.user.findMany.mockImplementation(echoIds)
+  db.trailModule.findMany.mockImplementation(echoIds)
+  db.trail.findMany.mockImplementation(echoIds)
   db.learningAward.findMany.mockImplementation(async ({ where }: {
     where: {
       ruleKey?: string | { in: string[] }
@@ -281,6 +288,12 @@ describe('crédito de aprendizagem no extrato geral', () => {
     db.pointLedgerEntry.findFirst.mockImplementation(async ({ where }: { where: { sourceType: unknown } }) => where.sourceType === 'LearningAward' ? { userId: 'user', delta: 2 } : null)
     expect(await reconcileLearningPoints(tx)).toEqual({ awardsChecked: 1, pointsCredited: 0 })
     expect(db.pointAccount.update).toHaveBeenCalledTimes(1)
+  })
+  it('pula award de usuário inexistente sem apagar o registro', async () => {
+    db.learningAward.findMany.mockResolvedValue([{ ...award, id: 'award-orphan' }])
+    db.user.findMany.mockResolvedValue([])
+    expect(await reconcileLearningPoints(tx)).toEqual({ awardsChecked: 1, pointsCredited: 0 })
+    expect(db.pointLedgerEntry.create).not.toHaveBeenCalled()
   })
   it('aborta diante de créditos legados para não duplicar valores já pagos', async () => {
     db.learningAward.findMany.mockResolvedValue([award])

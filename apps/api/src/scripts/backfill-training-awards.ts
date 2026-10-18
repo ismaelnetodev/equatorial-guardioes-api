@@ -30,7 +30,18 @@ async function backfill() {
   let queued = 0
   let alreadyHad = 0
   let released = 0
+  let skippedOrphans = 0
   for (const progress of progresses) {
+    const [user, trailModule, trail] = await Promise.all([
+      db.user.findUnique({ where: { id: progress.userId }, select: { id: true } }),
+      db.trailModule.findUnique({ where: { id: progress.moduleId }, select: { id: true } }),
+      db.trail.findUnique({ where: { id: progress.module.trailId }, select: { id: true } }),
+    ])
+    if (!user || !trailModule || !trail) {
+      skippedOrphans += 1
+      console.warn(`orphan training progress skipped id=${progress.id} missingUser=${user ? '' : progress.userId} missingModule=${trailModule ? '' : progress.moduleId} missingTrail=${trail ? '' : progress.module.trailId}`)
+      continue
+    }
     const existing = await db.learningAward.findUnique({
       where: {
         userId_ruleKey_sourceId: {
@@ -67,6 +78,7 @@ async function backfill() {
     queued,
     alreadyHad,
     released,
+    skippedOrphans,
     ruleValue: rule.value,
     ruleActive: rule.isActive,
   }))

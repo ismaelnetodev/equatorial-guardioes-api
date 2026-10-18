@@ -37,10 +37,17 @@ async function backfill() {
 
   const reports = await db.report.findMany({
     where: { neighborhoodId: null },
-    select: { id: true, neighborhood: true },
+    select: { id: true, neighborhood: true, userId: true },
     orderBy: { id: 'asc' },
   })
+  const skippedOrphans: Array<{ id: string; userId: string }> = []
   for (const report of reports) {
+    const owner = await db.user.findUnique({ where: { id: report.userId }, select: { id: true } })
+    if (!owner) {
+      skippedOrphans.push({ id: report.id, userId: report.userId })
+      console.warn(`orphan report skipped id=${report.id} missingUser=${report.userId}`)
+      continue
+    }
     const match = byNormalized.get(normalizeNeighborhoodLabel(report.neighborhood))
     if (!match) {
       unmatchedReports.push({ id: report.id, neighborhood: report.neighborhood })
@@ -54,7 +61,7 @@ async function backfill() {
   console.log(JSON.stringify({
     catalogSize: catalog.length,
     users: { scanned: users.length, matched: usersMatched, skipped: usersSkipped, unmatched: unmatchedUsers },
-    reports: { scanned: reports.length, matched: reportsMatched, skipped: reportsSkipped, unmatched: unmatchedReports },
+    reports: { scanned: reports.length, matched: reportsMatched, skipped: reportsSkipped, unmatched: unmatchedReports, skippedOrphans },
   }, null, 2))
 }
 

@@ -25,6 +25,15 @@ export async function creditGrantedLearningAward(tx: Prisma.TransactionClient, a
   return award.points
 }
 
+async function presentIds(
+  findMany: (args: { where: { id: { in: string[] } }; select: { id: true } }) => Promise<Array<{ id: string }>>,
+  ids: string[],
+): Promise<Set<string>> {
+  if (ids.length === 0) return new Set()
+  const rows = await findMany({ where: { id: { in: ids } }, select: { id: true } })
+  return new Set(rows.map((row) => row.id))
+}
+
 export async function reconcileLearningPoints(tx: Prisma.TransactionClient) {
   const awards = await tx.learningAward.findMany({ where: { grantedAt: { not: null }, points: { gt: 0 } }, orderBy: { id: 'asc' } })
   // Migrações antigas podem ter creditado QuizAttempt/ModuleProgressTraining.
@@ -34,8 +43,25 @@ export async function reconcileLearningPoints(tx: Prisma.TransactionClient) {
     reason: { in: ['QUIZ_PRE', 'QUIZ_TRAINING', 'QUIZ_POST'] }, sourceType: { not: 'LearningAward' },
   } })
   if (legacy) throw new Error('Há créditos legados de aprendizagem. Concilie suas origens antes de executar a reconciliação automática.')
+  const users = await presentIds((args) => tx.user.findMany(args), [...new Set(awards.map((award) => award.userId))])
+  const modules = await presentIds((args) => tx.trailModule.findMany(args), [...new Set(awards.flatMap((award) => award.moduleId ? [award.moduleId] : []))])
+  const trails = await presentIds((args) => tx.trail.findMany(args), [...new Set(awards.flatMap((award) => award.trailId ? [award.trailId] : []))])
   let pointsCredited = 0
-  for (const award of awards) pointsCredited += await creditGrantedLearningAward(tx, award)
+  for (const award of awards) {
+    if (!users.has(award.userId)) {
+      console.warn(`orphan LearningAward skipped id=${award.id} missingUser=${award.userId}`)
+      continue
+    }
+    if (award.moduleId && !modules.has(award.moduleId)) {
+      console.warn(`orphan LearningAward skipped id=${award.id} missingModule=${award.moduleId}`)
+      continue
+    }
+    if (award.trailId && !trails.has(award.trailId)) {
+      console.warn(`orphan LearningAward skipped id=${award.id} missingTrail=${award.trailId}`)
+      continue
+    }
+    pointsCredited += await creditGrantedLearningAward(tx, award)
+  }
   return { awardsChecked: awards.length, pointsCredited }
 }
 

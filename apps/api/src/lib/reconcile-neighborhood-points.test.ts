@@ -10,6 +10,7 @@ const db = {
   report: { findMany: vi.fn() },
   pointLedgerEntry: { findFirst: vi.fn(), create: vi.fn() },
   pointAccount: { upsert: vi.fn(), update: vi.fn() },
+  user: { findUnique: vi.fn() },
 }
 
 beforeEach(() => {
@@ -21,6 +22,7 @@ beforeEach(() => {
     { id: 'report-1', userId: 'user-report', pointsAwarded: 25 },
   ])
   db.pointLedgerEntry.findFirst.mockResolvedValue(null)
+  db.user.findUnique.mockResolvedValue({ id: 'present' })
   db.pointLedgerEntry.create.mockResolvedValue({ id: 'ledger' })
   db.pointAccount.upsert.mockImplementation(async ({ where }: { where: { userId: string } }) => ({
     userId: where.userId,
@@ -61,6 +63,14 @@ describe('reconcileNeighborhoodPoints', () => {
         delta: 25,
       }),
     })
+  })
+
+  it('pula convite e relato cujo usuário não existe', async () => {
+    db.user.findUnique.mockResolvedValue(null)
+    const result = await reconcileNeighborhoodPoints(db as never)
+    expect(result.invitesCredited).toBe(0)
+    expect(result.reportsCredited).toBe(0)
+    expect(db.pointLedgerEntry.create).not.toHaveBeenCalled()
   })
 
   it('não duplica créditos já presentes no extrato', async () => {
