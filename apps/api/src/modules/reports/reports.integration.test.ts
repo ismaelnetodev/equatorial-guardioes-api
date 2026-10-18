@@ -10,7 +10,7 @@ const moduleId = '33333333-3333-4333-8333-333333333333'
 
 const db = vi.hoisted(() => ({
   user: { findUnique: vi.fn() },
-  neighborhood: { findUnique: vi.fn() },
+  neighborhood: { findUnique: vi.fn(), findFirst: vi.fn() },
   trail: { findFirst: vi.fn() },
   programConfiguration: { findMany: vi.fn() },
   report: { count: vi.fn(), create: vi.fn(), findMany: vi.fn(), findFirst: vi.fn(), findUnique: vi.fn(), update: vi.fn() },
@@ -71,6 +71,19 @@ beforeEach(async () => {
   db.pointAccount.update.mockResolvedValue({ userId, accumulated: 10, balance: 10 })
   db.pointLedgerEntry.create.mockResolvedValue({ id: 'bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb' })
   db.pointLedgerEntry.findFirst.mockResolvedValue(null)
+  db.neighborhood.findFirst.mockImplementation(async ({ where }: { where?: { name?: { equals?: string } } }) => {
+    const name = where?.name?.equals
+    if (!name) return null
+    const known: Record<string, string> = {
+      Cohama: 'Cohama',
+      cohama: 'Cohama',
+      Turú: 'Turú',
+      'Turú': 'Turú',
+    }
+    const matched = known[name] ?? Object.entries(known).find(([key]) => key.toLowerCase() === name.toLowerCase())?.[1]
+    return matched ? { name: matched } : null
+  })
+  db.neighborhood.findUnique.mockResolvedValue(null)
   db.$transaction.mockImplementation(async (operation: (tx: typeof db) => Promise<unknown>) => operation(db))
   db.programConfiguration.findMany.mockResolvedValue([
     ...['low', 'medium', 'high'].map((risk, i) => ({ key: 'report_' + risk, kind: 'RULE', value: [10, 25, 50][i], isActive: true })),
@@ -150,7 +163,7 @@ describe('criação de relatos', () => {
     const submittedAt = new Date('2026-10-16T12:00:00.000Z')
     db.user.findUnique
       .mockResolvedValueOnce({ id: userId, role: 'USER' })
-      .mockResolvedValueOnce({ neighborhood: 'Turú' })
+      .mockResolvedValueOnce({ neighborhood: 'Turú', neighborhoodId: null })
     db.report.create.mockResolvedValue({
       id: reportId,
       title: 'Poste inclinado',
@@ -182,6 +195,64 @@ describe('criação de relatos', () => {
     expect(db.report.create).toHaveBeenCalledWith(expect.objectContaining({
       data: expect.objectContaining({ neighborhood: 'Turú' }),
     }))
+  })
+
+  it.each(['', '   '])('trata neighborhood %j como ausente e usa o cadastro', async (neighborhood) => {
+    const submittedAt = new Date('2026-10-16T12:00:00.000Z')
+    db.user.findUnique
+      .mockResolvedValueOnce({ id: userId, role: 'USER' })
+      .mockResolvedValueOnce({ neighborhood: 'Cohama', neighborhoodId: 'nb-cohama' })
+    db.neighborhood.findUnique.mockResolvedValue({
+      id: 'nb-cohama',
+      name: 'Cohama',
+      municipalityCode: '2111300',
+    })
+    db.report.create.mockResolvedValue({
+      id: reportId,
+      title: 'Pipa na rede',
+      description: 'Linha presa',
+      address: 'Rua 7',
+      neighborhood: 'Cohama',
+      photoUrl: null,
+      latitude: null,
+      longitude: null,
+      status: 'SENT',
+      urgency: 'MEDIUM',
+      pointsAwarded: 0,
+      submittedAt,
+      timeline: [{ status: 'SENT', occurredAt: submittedAt }],
+    })
+
+    const r = await app.inject({
+      method: 'POST',
+      url: '/api/v1/relatos',
+      headers: headers(),
+      payload: {
+        title: 'Pipa na rede',
+        description: 'Linha presa',
+        address: 'Rua 7',
+        neighborhood,
+      },
+    })
+    expect(r.statusCode).toBe(201)
+    expect(r.json()).toMatchObject({ neighborhood: 'Cohama' })
+  })
+
+  it('rejeita texto livre fora do catálogo', async () => {
+    const r = await app.inject({
+      method: 'POST',
+      url: '/api/v1/relatos',
+      headers: headers(),
+      payload: {
+        title: 'Pipa na rede',
+        description: 'Linha presa no fio',
+        address: 'Rua 7',
+        neighborhood: 'Bairro Inventado',
+      },
+    })
+    expect(r.statusCode).toBe(400)
+    expect(r.json()).toMatchObject({ code: 'INVALID_NEIGHBORHOOD' })
+    expect(db.report.create).not.toHaveBeenCalled()
   })
 
   it('rejeita neighborhoodId inexistente', async () => {

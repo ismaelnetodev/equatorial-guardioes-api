@@ -115,32 +115,53 @@ async function toListItem(report: {
   }
 }
 
+async function findCatalogNeighborhoodById(id: string) {
+  const catalog = await getPrisma().neighborhood.findUnique({ where: { id } })
+  if (!catalog || catalog.municipalityCode !== '2111300') {
+    throw new ReportError('INVALID_NEIGHBORHOOD', 'Selecione um bairro de São Luís ou informe Outro bairro.')
+  }
+  return catalog.name
+}
+
+async function findCatalogNeighborhoodByName(name: string) {
+  const catalog = await getPrisma().neighborhood.findFirst({
+    where: {
+      municipalityCode: '2111300',
+      name: { equals: name, mode: 'insensitive' },
+    },
+    select: { name: true },
+  })
+  if (!catalog) {
+    throw new ReportError('INVALID_NEIGHBORHOOD', 'Selecione um bairro de São Luís ou informe Outro bairro.')
+  }
+  return catalog.name
+}
+
 async function resolveReportNeighborhood(
   userId: string,
   input: Pick<CreateReport, 'neighborhood' | 'neighborhoodId'>,
 ): Promise<string> {
   if (input.neighborhoodId) {
-    const catalog = await getPrisma().neighborhood.findUnique({ where: { id: input.neighborhoodId } })
-    if (!catalog || catalog.municipalityCode !== '2111300') {
-      throw new ReportError('INVALID_NEIGHBORHOOD', 'Selecione um bairro de São Luís ou informe Outro bairro.')
-    }
-    return catalog.name
+    return findCatalogNeighborhoodById(input.neighborhoodId)
   }
 
-  const provided = input.neighborhood?.trim()
-  if (provided && provided.length >= 2) {
-    return provided
+  const provided = input.neighborhood?.trim() ?? ''
+  if (provided.length >= 2) {
+    return findCatalogNeighborhoodByName(provided)
   }
 
   const user = await getPrisma().user.findUnique({
     where: { id: userId },
-    select: { neighborhood: true },
+    select: { neighborhood: true, neighborhoodId: true },
   })
+  if (user?.neighborhoodId) {
+    return findCatalogNeighborhoodById(user.neighborhoodId)
+  }
   const fallback = user?.neighborhood?.trim() ?? ''
   if (fallback.length < 2) {
     throw new ReportError('INVALID_NEIGHBORHOOD', 'Informe o bairro do relato ou atualize o bairro do seu cadastro.')
   }
-  return fallback
+  return findCatalogNeighborhoodByName(fallback)
 }
 
 export async function createReport(userId: string, input: CreateReport) {

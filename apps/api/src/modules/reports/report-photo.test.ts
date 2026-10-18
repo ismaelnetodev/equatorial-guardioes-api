@@ -9,13 +9,30 @@ const userId = '11111111-1111-4111-8111-111111111111'
 const otherId = '22222222-2222-4222-8222-222222222222'
 const imageId = '33333333-3333-4333-8333-333333333333'
 const reference = `s3://relatos_imgs/reports/${userId}/${imageId}.jpg`
-const mocks = vi.hoisted(() => ({ send: vi.fn(), signed: vi.fn(), user: vi.fn(), trail: vi.fn(), findMany: vi.fn(), findFirst: vi.fn(), create: vi.fn() }))
+const mocks = vi.hoisted(() => ({
+  send: vi.fn(),
+  signed: vi.fn(),
+  user: vi.fn(),
+  trail: vi.fn(),
+  findMany: vi.fn(),
+  findFirst: vi.fn(),
+  create: vi.fn(),
+  neighborhoodFindFirst: vi.fn(),
+  neighborhoodFindUnique: vi.fn(),
+}))
 vi.mock('@aws-sdk/client-s3', async importOriginal => {
   const original = await importOriginal<typeof import('@aws-sdk/client-s3')>()
   return { ...original, S3Client: class { send = mocks.send; destroy() {} } }
 })
 vi.mock('@aws-sdk/s3-request-presigner', () => ({ getSignedUrl: mocks.signed }))
-vi.mock('../../lib/prisma.js', () => ({ getPrisma: () => ({ user: { findUnique: mocks.user }, trail: { findFirst: mocks.trail }, report: { findMany: mocks.findMany, findFirst: mocks.findFirst, create: mocks.create } }) }))
+vi.mock('../../lib/prisma.js', () => ({
+  getPrisma: () => ({
+    user: { findUnique: mocks.user },
+    trail: { findFirst: mocks.trail },
+    neighborhood: { findFirst: mocks.neighborhoodFindFirst, findUnique: mocks.neighborhoodFindUnique },
+    report: { findMany: mocks.findMany, findFirst: mocks.findFirst, create: mocks.create },
+  }),
+}))
 
 let app: FastifyInstance
 let image: Buffer
@@ -26,6 +43,8 @@ beforeEach(async () => {
   mocks.signed.mockResolvedValue('https://storage.example.com/signed-photo')
   mocks.user.mockResolvedValue({ id: userId, role: 'USER' })
   mocks.trail.mockResolvedValue({ modules: [{ progressRecords: [{ completedAt: new Date() }] }] })
+  mocks.neighborhoodFindFirst.mockResolvedValue({ name: 'Centro' })
+  mocks.neighborhoodFindUnique.mockResolvedValue(null)
   image = await sharp({ create: { width: 4, height: 4, channels: 3, background: '#fdbb12' } }).png().toBuffer()
   app = await buildApp({ logger: false })
 })
