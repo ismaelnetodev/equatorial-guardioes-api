@@ -4,7 +4,7 @@ import { buildApp } from '../../app.js'
 import { createSessionToken } from '../../lib/auth-session.js'
 
 const db = vi.hoisted(() => ({
-  learningAward: { create: vi.fn(), findMany: vi.fn() },
+  learningAward: { create: vi.fn(), findMany: vi.fn(), findUnique: vi.fn(), update: vi.fn() },
   user: { findUnique: vi.fn() },
   trail: { findUnique: vi.fn(), findFirst: vi.fn() },
   trailModule: { findUnique: vi.fn() },
@@ -38,8 +38,15 @@ beforeEach(async () => {
   db.moduleProgress.findUnique.mockImplementation(async ({ where }) => progress.get(where.userId_moduleId.moduleId) ?? null)
   db.moduleProgress.update.mockImplementation(async ({ where, data }) => { const record = progress.get(where.id)!; record.completedAt = data.completedAt; return record })
   db.$transaction.mockImplementation(async (operation: (tx: typeof db) => Promise<unknown>) => operation(db))
-  db.programConfiguration.findUnique.mockImplementation(async ({ where }: { where: { key: string } }) => ({ key: where.key, kind: where.key === 'module_completion' ? 'RULE' : 'LIMIT', value: 0, isActive: false }))
+  db.programConfiguration.findUnique.mockImplementation(async ({ where }: { where: { key: string } }) => ({
+    key: where.key,
+    kind: ['module_completion', 'training_completion', 'module_quiz', 'post_test_improvement', 'final_exam'].includes(where.key) ? 'RULE' : 'LIMIT',
+    value: 0,
+    isActive: false,
+  }))
   db.learningAward.findMany.mockResolvedValue([])
+  db.learningAward.findUnique.mockResolvedValue(null)
+  db.learningAward.create.mockResolvedValue({ id: 'award-1', grantedAt: null, points: 0 })
   db.moduleProgress.findUniqueOrThrow.mockResolvedValue({ id: ids[0], startedAt: new Date(), completedAt: null })
   db.trail.findFirst.mockResolvedValue({ modules: [{ id: ids[0] }] })
   db.inviteAttribution.findUnique.mockResolvedValue(null)

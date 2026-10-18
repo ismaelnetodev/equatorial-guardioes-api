@@ -33,9 +33,8 @@ Todas as branches remotas analisadas estavam sem commits exclusivos em relação
 
 - Classificação: só back-end
 - Causa: (1) `maybeAwardInviteOnModule0` importado e não chamado em `completeModule`; (2) resolução de relato gravava `pointsAwarded` sem `creditPoints` no extrato/`PointAccount.accumulated`; (3) agregação usava texto `neighborhood` e podia fragmentar o mesmo bairro
-- O que foi feito: convite na conclusão do módulo 0; crédito `REPORT_CONFIRM`; script `db:reconcile:neighborhood`; ranking agrega por `neighborhoodId` (fallback normalizado se id nulo); teste E2E de delta após créditos da trilha
-- Arquivos: `progress.service.ts`, `reports.service.ts`, `community.service.ts`, `lib/reconcile-neighborhood-points.ts`, scripts, testes
-- Commits: `fd0b558` `fix(back): credit neighborhood ranking sources`; `4d27b8c` `fix(back): rank neighborhoods by catalog id`
+- O que foi feito: convite na conclusão do módulo 0; crédito `REPORT_CONFIRM`; script `db:reconcile:neighborhood`; ranking agrega por id de catálogo (texto sem id mapeado ao catálogo; sem match → “Sem bairro”); backfill `db:backfill:user-neighborhood-id`; E2E real trilha→ranking + fila
+- Commits: `fd0b558`, `4d27b8c`, `6b43e86` `fix(back): backfill neighborhood ids and rank by catalog`; `9348701` `test(back): e2e ranking trail and daily cap queue`
 
 ### C. Login Google e funções sem uso
 
@@ -71,21 +70,20 @@ Todas as branches remotas analisadas estavam sem commits exclusivos em relação
 ### G. Pontos do quiz e do treinamento
 
 - Classificação: só back-end
-- Causa: regra `module_quiz` seedada com valor `0`; a fase de treinamento (`completeTraining`) grava `trainingPointsAwarded: 0` sem regra de pontos por passo/card
+- Causa: regra `module_quiz` seedada com valor `0`; a fase de treinamento (`completeTraining`) gravava `trainingPointsAwarded: 0` sem regra configurável
 - Inventário das etapas:
 
 | Etapa | Regra / código | Valor seed | Observação |
 |-------|----------------|------------|------------|
 | Pré-teste | `submitPreTest` | 0 | Diagnóstico; não credita ledger |
-| Conclusão do treinamento | `completeTraining` | 0 | Hardcoded; sem pontos por TrainingStep/Card |
-| Pós-teste aprovado | `module_quiz` | 0 → 4 | Única pontuação direta do quiz |
+| Conclusão do treinamento | `training_completion` | **3** | Fila + `training_points_daily`; **validar 3 com a equipe** |
+| Pós-teste aprovado | `module_quiz` | 0 → 4 | Pontuação direta do quiz; validar 4 com a equipe |
 | Melhoria pré→pós | `post_test_improvement` | 6 (1x) | Só com melhoria mensurável |
 | Conclusão do módulo | `module_completion` | 2 | Fila + limites `training_*_daily` |
 | Prova final | `final_exam` | 10 | 1x |
 
-- O que foi feito: migration `20261018180000_module_quiz_points` atualiza `module_quiz` para 4 somente se `value = 0` (não sobrescreve ajuste admin); script `db:backfill:module-quiz`; testes. O valor 4 precisa de validação da equipe de produto.
-- Arquivos: migration, `backfill-module-quiz-awards.ts`, `quiz.integration.test.ts`, `package.json`
-- Commits: `a9577b2` `fix(back): ensure quiz and module stages award points`; `cfc535b` `fix(back): conditional module_quiz points migration`
+- O que foi feito: `module_quiz` → 4 (migration condicional); regra `training_completion` = 3 (insert se não existir); `completeTraining` enfileira e libera; scripts `db:backfill:module-quiz` e `db:backfill:training`; limites diários adiando (não descartando); respostas com `pointsCapped` / `capReason` / `pendingPoints`; fila in-process + `db:release:pending-points`; flag `POINTS_DAILY_LIMITS_ENABLED`.
+- Commits: `a9577b2`, `cfc535b`, `4e4980a` `feat(back): award configurable training_completion points`; `79d0e65` `feat(back): expose daily point caps and queue consumer`
 
 ### H. Bairro no relato
 
@@ -128,10 +126,24 @@ Nenhum item A a H estava resolvido de forma completa em branch remota pendente d
 - Depois: `neighborhood` e `neighborhoodId` opcionais; vazio/espaços = fallback do cadastro; texto livre e id devem existir no catálogo; inválido → 400 `INVALID_NEIGHBORHOOD`
 - Resposta/listagens: continuam com `neighborhood`
 
-### Quiz (G)
+### Quiz e progresso (G) — novos campos de resposta
 
-- Comportamento: pós-teste aprovado passa a conceder 4 pontos (`module_quiz`), além da melhoria quando aplicável (valor sugerido; validar com a equipe)
-- Front: continuar exibindo `pointsAwarded` / `totalPoints` do finish do pós-teste
+- `POST /api/v1/modules/:moduleId/training/complete`: além de `pointsAwarded`, retorna `pointsCapped`, `capReason` (`"DAILY_LIMIT"` ou `null`), `pendingPoints`
+- `POST /api/v1/progress/modules/:moduleId/complete`: mesmos campos opcionais quando há crédito de treino enfileirado
+- Pós-teste aprovado: 4 pontos (`module_quiz`) + melhoria quando aplicável
+- Treinamento: 3 pontos (`training_completion`, validar com a equipe)
+- Front: se `pointsCapped`, exibir que pontos entram na fila e saem no dia seguinte (ou após `POST /api/v1/progress/learning-awards/claim`)
+
+### Limites diários de treino e fila
+
+| key | Seed | O que conta | Ao atingir |
+|-----|------|-------------|-----------|
+| `training_modules_daily` | 2 | awards `module_completion` liberados no dia (por usuário) | **adia** (`grantedAt` null) |
+| `training_points_daily` | 4 | pontos liberados de `module_completion` + `training_completion` no dia | **adia** (não descarta) |
+| `neighborhood_quiz_daily` | 3 | quizzes do bairro/dia | limite próprio (fora da fila de treino) |
+| `reports_daily` | 2 | relatos pontuados/dia | limite próprio |
+
+Consumidor da fila: **in-process** no processo da API (`POINTS_QUEUE_INTERVAL_MS`, padrão 1h; `0` desliga), mais `POST .../learning-awards/claim` e scripts de conclusão. Não há `docker-compose` nem CronJob no repositório. Script sob demanda: `npm run db:release:pending-points -w guardioes-api`. Demo: `POINTS_DAILY_LIMITS_ENABLED=false` ignora os limites de treino.
 
 ## 5. Candidatos a remoção (não removidos)
 
@@ -156,28 +168,26 @@ Como as outras branches remotas estavam alinhadas com `main`, o risco atual é b
 
 ## 7. Migrations e scripts de correção
 
-Ordem recomendada (em `apps/api`, com `DATABASE_URL` configurada):
+Ordem recomendada (na raiz ou `apps/api`, com `DATABASE_URL` configurada):
 
 1. Backup do banco
 2. `npm run db:deploy`
-3. `npm run db:backfill:module-quiz`
-4. `npm run db:reconcile:neighborhood`
+3. `npm run db:backfill:module-quiz -w guardioes-api`
+4. `npm run db:backfill:training -w guardioes-api`
+5. `npm run db:backfill:user-neighborhood-id -w guardioes-api` (lista unmatched no JSON)
+6. `npm run db:reconcile:neighborhood -w guardioes-api`
 
-Sobre crédito em dobro: `db:reconcile:neighborhood` já chama `reconcileLearningPoints` internamente. `creditPoints` é idempotente por `(reason, sourceType, sourceId)`. Rodar `db:reconcile:points` e depois `db:reconcile:neighborhood` não duplica créditos de aprendizagem. No pós-deploy, preferir apenas `db:reconcile:neighborhood`.
+Sob demanda: `npm run db:release:pending-points -w guardioes-api`.
 
-Comandos auxiliares:
-
-```bash
-npm run db:migrate
-npm run db:reconcile:points
-```
+Sobre crédito em dobro: `creditPoints` é idempotente por `(reason, sourceType, sourceId)`. `db:reconcile:neighborhood` já chama `reconcileLearningPoints`. No pós-deploy, preferir a ordem acima sem repetir reconcile desnecessário.
 
 ## 8. Qualidade (pré-merge)
 
 - `npm run typecheck`: ok (API + mobile)
-- `npm test`: 35 arquivos, 324 testes, todos passando
+- `npm test`: 36 arquivos, 334 testes passando, 2 E2E skipped localmente (sem `DATABASE_URL`); no CI os E2E rodam com Postgres
 - `npm run build`: ok (API + export Expo)
 - Linter ESLint: não configurado no monorepo; typecheck usado como checagem estática
+- E2E real: `ranking-trail.e2e.test.ts` (trilha→ranking + limite diário→claim)
 
 ## Proposta documentada (item D): questionário único
 
