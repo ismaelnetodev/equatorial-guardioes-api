@@ -23,6 +23,11 @@ export async function reconcileNeighborhoodPoints(
     orderBy: { id: 'asc' },
   })
   for (const invite of invites) {
+    const inviter = await db.user.findUnique({ where: { id: invite.inviterId }, select: { id: true } })
+    if (!inviter) {
+      console.warn(`orphan InviteAttribution skipped id=${invite.id} missingUser=${invite.inviterId}`)
+      continue
+    }
     const before = await db.pointLedgerEntry.findFirst({
       where: {
         reason: 'INVITE_REWARD',
@@ -52,6 +57,11 @@ export async function reconcileNeighborhoodPoints(
     orderBy: { id: 'asc' },
   })
   for (const report of reports) {
+    const owner = await db.user.findUnique({ where: { id: report.userId }, select: { id: true } })
+    if (!owner) {
+      console.warn(`orphan Report skipped id=${report.id} missingUser=${report.userId}`)
+      continue
+    }
     const before = await db.pointLedgerEntry.findFirst({
       where: {
         reason: 'REPORT_CONFIRM',
