@@ -198,6 +198,7 @@ Rodada final de verificação:
 - `dff1f39` fix(back): accept report body matching user neighborhood without catalog
 - `d2b7ba1` fix(back): claim returns pendingPoints under daily cap
 - `ae0df31` test(back): assert 10 pts for two modules and SP midnight fake timers
+- `a53ac84` docs(back): list commits, migration and test file locations
 
 ### Onde estão os testes (claim e cenários 2 módulos / meia-noite)
 
@@ -224,7 +225,7 @@ Sobre crédito em dobro: `creditPoints` é idempotente por `(reason, sourceType,
 ## 8. Qualidade (pré-merge)
 
 - `npm run typecheck`: ok (API + mobile)
-- `npm test`: 37 arquivos, 342 testes passando (inclui E2E com `DATABASE_URL` no Postgres local/`pg-e2e`)
+- `npm test`: 37 arquivos, 344 testes passando (inclui E2E com `DATABASE_URL` no Postgres local/`pg-e2e`)
 - `npm run build`: ok (API + export Expo)
 - Linter ESLint: não configurado no monorepo; typecheck usado como checagem estática
 - CI: `.github/workflows/delivery.yml` (já existia) sobe Postgres 17, roda `db:deploy`, `typecheck`, `npm test` (inclui E2E quando `DATABASE_URL` está definida) e `build`. Triggers: PR, push em `main`/`melhorias`, `workflow_dispatch`.
