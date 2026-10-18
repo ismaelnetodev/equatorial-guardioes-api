@@ -1,6 +1,6 @@
 import type { FastifyPluginAsyncTypebox } from '@fastify/type-provider-typebox'
 import { currentUserController, loginController, registerController } from './auth.controller.js'
-import { authenticatedUserSchema, authResponseSchema, credentialsSchema, errorResponseSchema, loginSchema } from './auth.schemas.js'
+import { authenticatedUserSchema, authResponseSchema, credentialsSchema, errorResponseSchema, loginSchema, registerResponseSchema } from './auth.schemas.js'
 
 export const authRoutes: FastifyPluginAsyncTypebox = async (app) => {
   app.get('/me', { schema: { tags: ['Auth'], summary: 'Consulta a conta e valida a sessão atual', security: [{ bearerAuth: [] }], response: { 200: authenticatedUserSchema, 401: errorResponseSchema } } }, currentUserController)
@@ -8,7 +8,7 @@ export const authRoutes: FastifyPluginAsyncTypebox = async (app) => {
     config: { rateLimit: { max: 5, timeWindow: '15 minutes' } },
     schema: {
       tags: ['Auth'], summary: 'Cadastra um usuário', body: credentialsSchema,
-      response: { 201: authResponseSchema, 400: errorResponseSchema, 429: errorResponseSchema, 409: errorResponseSchema },
+      response: { 201: registerResponseSchema, 400: errorResponseSchema, 429: errorResponseSchema, 409: errorResponseSchema },
     },
   }, registerController)
 
