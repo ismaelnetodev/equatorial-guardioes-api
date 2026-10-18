@@ -120,6 +120,17 @@ describe('conclusão de módulos v2', () => {
       else process.env['POINTS_DAILY_LIMITS_ENABLED'] = previous
     }
   })
+  it('com teto 10 libera dois módulos completos (3+2) no mesmo dia sem pendência', async () => {
+    settings.training_points_daily!.value = 10
+    settings.training_modules_daily!.value = 2
+    for (const module of ['m1', 'm2']) {
+      await queueTrainingAward(tx, 'user', module, 'trail')
+      await queueModuleAward(tx, 'user', module, 'trail')
+    }
+    expect(await releasePendingModules(tx, 'user', now)).toEqual({ pointsReleased: 10 })
+    expect(rows.every((row) => row.grantedAt)).toBe(true)
+    expect(rows.reduce((sum, row) => sum + row.points, 0)).toBe(10)
+  })
   it('libera training_completion na mesma fila de pontos diários', async () => {
     await queueTrainingAward(tx, 'user', 'm1', 'trail')
     expect(await releasePendingModules(tx, 'user', now)).toEqual({ pointsReleased: 3 })

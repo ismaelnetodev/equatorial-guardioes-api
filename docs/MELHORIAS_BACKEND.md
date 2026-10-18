@@ -139,9 +139,11 @@ Nenhum item A a H estava resolvido de forma completa em branch remota pendente d
 | key | Seed | O que conta | Ao atingir |
 |-----|------|-------------|-----------|
 | `training_modules_daily` | 2 | awards `module_completion` liberados no dia (por usuário) | **adia** (`grantedAt` null) |
-| `training_points_daily` | 4 | pontos liberados de `module_completion` + `training_completion` no dia | **adia** (não descarta) |
+| `training_points_daily` | **10** | pontos liberados de `module_completion` + `training_completion` no dia. Conta: 2 módulos/dia × (training_completion 3 + module_completion 2) = 10 | **adia** (não descarta) |
 | `neighborhood_quiz_daily` | 3 | quizzes do bairro/dia | limite próprio (fora da fila de treino) |
 | `reports_daily` | 2 | relatos pontuados/dia | limite próprio |
+
+Migration `20261018210000_training_points_daily_10` atualiza o valor de 4 para 10 somente se ainda estiver em 4.
 
 Consumidor da fila: **in-process** no processo da API (`POINTS_QUEUE_INTERVAL_MS`, padrão 1h; `0` desliga), mais `POST .../learning-awards/claim` e scripts de conclusão. Não há `docker-compose` nem CronJob no repositório. Script sob demanda: `npm run db:release:pending-points -w guardioes-api`. Demo: `POINTS_DAILY_LIMITS_ENABLED=false` ignora os limites de treino.
 
