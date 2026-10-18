@@ -1,8 +1,8 @@
 import { reportPhotoUrl, validateReportPhoto } from './report-photo.service.js'
 import { Prisma } from '../../generated/prisma/client.js'
-import { publishedModuleWhere, publishedTrailWhere } from '../../lib/content-visibility.js'
 import { creditPoints } from '../../lib/points-ledger.js'
 import { getPrisma } from '../../lib/prisma.js'
+import { canReport } from '../../lib/reports-unlock.js'
 import type {
   AdminReportStatusBody,
   CreateReport,
@@ -56,26 +56,7 @@ function pointsHint(pointsAwarded: number, status: ReportStatusCode): string {
 }
 
 export async function assertModuleZeroCompleted(userId: string): Promise<void> {
-  const trail = await getPrisma().trail.findFirst({
-    where: publishedTrailWhere,
-    orderBy: { order: 'asc' },
-    select: {
-      modules: {
-        where: publishedModuleWhere,
-        orderBy: { order: 'asc' },
-        take: 1,
-        select: {
-          id: true,
-          progressRecords: {
-            where: { userId },
-            select: { completedAt: true },
-          },
-        },
-      },
-    },
-  })
-  const firstModule = trail?.modules[0]
-  if (!firstModule?.progressRecords[0]?.completedAt) {
+  if (!(await canReport(userId))) {
     throw new ReportError('REPORTS_LOCKED', 'Conclua o primeiro módulo para liberar os relatos.')
   }
 }

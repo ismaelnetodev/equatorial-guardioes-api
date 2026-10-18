@@ -10,6 +10,7 @@ import {
   PointsLedgerError,
 } from '../../lib/points-ledger.js'
 import { getPrisma } from '../../lib/prisma.js'
+import { canReport } from '../../lib/reports-unlock.js'
 
 export class CommunityError extends Error {
   constructor(
@@ -295,6 +296,7 @@ export async function getProfile(userId: string) {
     0,
   )
   const reportsCount = await getPrisma().report.count({ where: { userId } })
+  const reportUnlocked = await canReport(userId)
 
   return {
     name: user.name,
@@ -302,6 +304,7 @@ export async function getProfile(userId: string) {
     level: levelPayload(level),
     accumulated: account.accumulated,
     balance: account.balance,
+    canReport: reportUnlocked,
     badges: {
       modulesCompleted,
       modulesPublished,

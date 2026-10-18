@@ -140,6 +140,7 @@ export const profileResponseSchema = Type.Object(
     level: levelSchema,
     accumulated: Type.Integer({ minimum: 0 }),
     balance: Type.Integer({ minimum: 0 }),
+    canReport: Type.Boolean({ description: 'true quando o módulo inicial da trilha foi concluído' }),
     badges: Type.Object(
       {
         modulesCompleted: Type.Integer({ minimum: 0 }),

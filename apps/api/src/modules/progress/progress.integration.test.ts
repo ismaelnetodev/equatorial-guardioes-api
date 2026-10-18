@@ -129,6 +129,15 @@ describe('integração do quiz', () => {
     expect((await app.inject({ method: 'POST', url: completeUrl, headers: headers() })).statusCode).toBe(200)
     expect(integration).not.toHaveBeenCalled()
   })
+
+  it('expõe canReport no progresso da trilha', async () => {
+    db.trail.findFirst.mockResolvedValue({
+      modules: [{ id: moduleId, progressRecords: [{ completedAt: new Date() }] }],
+    })
+    const r = await app.inject({ method: 'GET', url: '/api/v1/progress/trails/' + trailId, headers: headers() })
+    expect(r.statusCode).toBe(200)
+    expect(r.json().canReport).toBe(true)
+  })
   it('conclui quando o pós-teste está aprovado para o usuário e módulo', async () => {
     requiresQuiz = true
     const integration = vi.spyOn(quiz, 'getQuizCompletionStatus').mockResolvedValue('approved')

@@ -111,6 +111,9 @@ beforeEach(async () => {
       ],
     },
   ])
+  db.trail.findFirst.mockResolvedValue({
+    modules: [{ id: 'm0', progressRecords: [{ completedAt: new Date() }] }],
+  })
   db.$transaction.mockImplementation(async (operation: (tx: typeof db) => Promise<unknown>) => operation(db))
   app = await buildApp({ logger: false })
 })
@@ -280,6 +283,7 @@ describe('GET /api/v1/perfil', () => {
       neighborhood: 'Cohama',
       accumulated: 165,
       balance: 120,
+      canReport: true,
       level: { code: 'BRONZE' },
       badges: { modulesCompleted: 1, modulesPublished: 2 },
       reportsCount: 2,
@@ -290,6 +294,15 @@ describe('GET /api/v1/perfil', () => {
         reports: '/relatos',
       },
     })
+  })
+
+  it('expõe canReport false antes de concluir o módulo inicial', async () => {
+    db.trail.findFirst.mockResolvedValue({
+      modules: [{ id: 'm0', progressRecords: [] }],
+    })
+    const r = await app.inject({ method: 'GET', url: '/api/v1/perfil', headers: headers() })
+    expect(r.statusCode).toBe(200)
+    expect(r.json().canReport).toBe(false)
   })
 })
 

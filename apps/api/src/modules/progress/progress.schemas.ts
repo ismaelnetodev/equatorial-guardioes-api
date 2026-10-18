@@ -12,7 +12,11 @@ export const moduleProgressSchema = Type.Object({
   readingSeconds: Type.Integer({ minimum: 0 }),
   requiresQuiz: Type.Boolean(), startedAt: Type.Union([Type.String({ format: 'date-time' }), Type.Null()]), completedAt: Type.Union([Type.String({ format: 'date-time' }), Type.Null()]),
 }, { additionalProperties: false })
-export const trailProgressResponseSchema = Type.Object({ trailId: Type.String({ format: 'uuid' }), modules: Type.Array(moduleProgressSchema) }, { additionalProperties: false })
+export const trailProgressResponseSchema = Type.Object({
+  trailId: Type.String({ format: 'uuid' }),
+  modules: Type.Array(moduleProgressSchema),
+  canReport: Type.Boolean({ description: 'true quando o módulo inicial da trilha foi concluído' }),
+}, { additionalProperties: false })
 export const errorResponseSchema = Type.Object({ code: Type.String(), message: Type.String() }, { additionalProperties: false })
 const optionalLimit = Type.Union([Type.Integer({ minimum: 0 }), Type.Null()])
 export const learningSummarySchema = Type.Object({

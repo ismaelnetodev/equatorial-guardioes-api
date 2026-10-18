@@ -3,6 +3,7 @@ import { assertMinimumTime, learningTransaction, queueModuleAward, releasePendin
 import { publishedTrailWhere, publishedModuleWhere } from '../../lib/content-visibility.js'
 import { maybeAwardInviteOnModule0 } from '../../lib/invite-attribution.js'
 import { getPrisma } from '../../lib/prisma.js'
+import { canReport } from '../../lib/reports-unlock.js'
 import { getQuizCompletionStatus } from '../quiz/quiz.service.js'
 
 import { getModuleStatus, type ModuleStatus } from '../../lib/module-status.js'
@@ -14,7 +15,7 @@ export class ProgressError extends Error {
   constructor(public readonly code: 'MODULE_NOT_FOUND' | 'MODULE_LOCKED' | 'MODULE_NOT_STARTED' | 'MODULE_ALREADY_COMPLETED' | 'QUIZ_REQUIRED' | 'QUIZ_NOT_IMPLEMENTED', message: string) { super(message) }
 }
 
-export async function getTrailProgress(userId: string, trailId: string): Promise<{ trailId: string; modules: ModuleProgressView[] }> {
+async function loadTrailModules(userId: string, trailId: string): Promise<{ trailId: string; modules: ModuleProgressView[] }> {
   const trail = await getPrisma().trail.findUnique({ where: { id: trailId, ...publishedTrailWhere }, select: { id: true, modules: { where: publishedModuleWhere, orderBy: { order: 'asc' }, select: { id: true, title: true, order: true, requiresQuiz: true, ...readingSelect, progressRecords: { where: { userId }, select: { startedAt: true, completedAt: true } } } } } })
   if (!trail) throw new ProgressError('MODULE_NOT_FOUND', 'Trilha não encontrada.')
   let previousCompleted = true
@@ -27,10 +28,15 @@ export async function getTrailProgress(userId: string, trailId: string): Promise
   return { trailId: trail.id, modules }
 }
 
+export async function getTrailProgress(userId: string, trailId: string): Promise<{ trailId: string; modules: ModuleProgressView[]; canReport: boolean }> {
+  const progress = await loadTrailModules(userId, trailId)
+  return { ...progress, canReport: await canReport(userId) }
+}
+
 async function getModuleState(userId: string, moduleId: string) {
   const module = await getPrisma().trailModule.findUnique({ where: { id: moduleId, ...publishedModuleWhere, trail: publishedTrailWhere }, select: { id: true, trailId: true, isActive: true, requiresQuiz: true, ...readingSelect } })
   if (!module || !module.isActive) throw new ProgressError('MODULE_NOT_FOUND', 'Módulo não encontrado.')
-  const progress = await getTrailProgress(userId, module.trailId)
+  const progress = await loadTrailModules(userId, module.trailId)
   const state = progress.modules.find((item) => item.moduleId === moduleId)
   if (!state) throw new ProgressError('MODULE_NOT_FOUND', 'Módulo não encontrado.')
   return { module, state }
