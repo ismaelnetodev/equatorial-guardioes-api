@@ -4,6 +4,28 @@ O painel administrativo permite salvar a necessidade de equipe de emergência em
 
 Monorepo da plataforma Guardiões da Energia, com uma API para autenticação, administração de conteúdo e progresso em trilhas de capacitação, e um aplicativo React Native para acessar a plataforma.
 
+## Conteúdo dos sete módulos
+
+Para substituir o conteúdo da primeira trilha publicada pelos sete módulos de capacitação, execute na raiz:
+
+```sh
+npm run db:deploy
+npm run db:generate
+npm run db:seed:modules
+```
+
+O comando usa `apps/api/.env` e salva o conteúdo no PostgreSQL. A fonte versionada é `apps/api/src/scripts/guardioes-modules.ts`, adaptada de `guardioes_da_energia_7_modulos_completos.md`. São cinco perguntas de pré-quiz e dez perguntas distintas de quiz final por módulo, quatro etapas (Reconhecer, O que fazer, O que NÃO fazer e Como comunicar) e um fechamento com três lembretes. O pré-quiz continua diagnóstico, sem pontos, reprovação ou gabarito e com uma única submissão; o quiz final mantém correção imediata e o percentual administrativo de aprovação. Os tempos de 1, 2–3 e 3 minutos são estimativas, não limites de resposta.
+
+A carga preserva os IDs dos módulos, progressos, tentativas finalizadas e recompensas existentes. Perguntas antigas são arquivadas sem apagar respostas; tentativas de pós-teste ainda abertas são encerradas por substituição quando o banco de perguntas muda. Reexecutar o comando não duplica perguntas nem concede pontos. Ele atualiza a primeira trilha publicada (a mesma usada para liberar Reportar), mantém sua ordem entre trilhas e normaliza seus módulos para 1–7; se houver mais de sete módulos, aborta sem remover conteúdo. Em um banco sem trilha publicada, cria uma trilha publicada.
+
+O frontend mantém seus componentes, imagens e navegação atuais. As sugestões de novas imagens e microinterações do Markdown não são widgets novos nesta carga; as orientações são apresentadas nos cartões existentes. Offline, novas regras de pontuação e demais propostas do documento não fazem parte desta atualização. A conclusão do primeiro módulo continua liberando Reportar pela regra já existente da API.
+
+## Reconciliação dos pontos de aprendizagem
+
+Os pontos de aprendizagem liberados atualizam o extrato (`PointLedgerEntry`) e a conta (`PointAccount`) na mesma transação da recompensa. Pontos pendentes não entram no saldo. A home libera pendências antes de consultar o perfil.
+
+Para corrigir créditos antigos, execute `npm run db:reconcile:points` na raiz, usando `apps/api/.env`. A carga considera somente recompensas positivas já concedidas, preserva limites e pendências e pode ser repetida sem duplicar créditos. Se detectar créditos legados de quiz/treinamento com outra origem no extrato, aborta para permitir uma conciliação das origens antes de qualquer crédito. Não é necessária alteração no schema do banco.
+
 ## Tecnologias
 
 - **API:** Node.js, TypeScript, Fastify, TypeBox, Prisma e PostgreSQL.

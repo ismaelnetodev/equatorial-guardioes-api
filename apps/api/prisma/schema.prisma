@@ -205,6 +205,9 @@ model ModuleProgress {
 }
 
 model QuizQuestion {
+  // Null mantém os quizzes legados disponíveis nas duas fases.
+  phase            QuizPhase?
+  isActive         Boolean      @default(true)
   id               String       @id @default(uuid()) @db.Uuid
   moduleId         String       @db.Uuid
   module           TrailModule  @relation(fields: [moduleId], references: [id], onDelete: Cascade)

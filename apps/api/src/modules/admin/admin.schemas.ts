@@ -60,6 +60,7 @@ export const adminQuizOptionInputSchema = Type.Object({
 }, { additionalProperties: false })
 
 export const adminQuizQuestionInputSchema = Type.Object({
+  phase: Type.Optional(Type.Union([Type.Literal('PRE'), Type.Literal('POST'), Type.Null()])),
   statement: nonEmptyText,
   explanationTitle: nonEmptyText,
   explanationBody: nonEmptyText,
@@ -79,6 +80,7 @@ export const adminQuizOptionSchema = Type.Object({
 }, { additionalProperties: false })
 
 export const adminQuizQuestionSchema = Type.Object({
+  phase: Type.Optional(Type.Union([Type.Literal('PRE'), Type.Literal('POST'), Type.Null()])),
   id: uuid,
   statement: Type.String(),
   order: Type.Integer({ minimum: 1 }),

@@ -8,6 +8,8 @@ const db = vi.hoisted(() => ({
   user: { findUnique: vi.fn() }, trail: { findUnique: vi.fn() },
   programConfiguration: { findUnique: vi.fn() },
   learningAward: { findUnique: vi.fn(), count: vi.fn(), create: vi.fn() },
+  pointLedgerEntry: { findFirst: vi.fn(), create: vi.fn() },
+  pointAccount: { upsert: vi.fn(), update: vi.fn() },
   finalExamAttempt: { findFirst: vi.fn(), create: vi.fn() }, $transaction: vi.fn(),
 }))
 vi.mock('../../lib/prisma.js', () => ({ getPrisma: () => db }))
@@ -61,6 +63,8 @@ it('reprova 7/10 e concede a prova final somente após aprovação', async () =>
   expect((await submit(7)).json()).toMatchObject({ isApproved: false, pointsAwarded: 0, minimumCorrect: 8 })
   expect(db.learningAward.create).not.toHaveBeenCalled()
   expect((await submit(8)).json()).toMatchObject({ isApproved: true, pointsAwarded: 10 })
+  expect(db.pointLedgerEntry.create).toHaveBeenCalledWith({ data: expect.objectContaining({ userId, delta: 10, sourceType: 'LearningAward' }) })
+  expect(db.pointAccount.update).toHaveBeenCalledWith(expect.objectContaining({ data: { balance: { increment: 10 }, accumulated: { increment: 10 } } }))
   expect(db.learningAward.create).toHaveBeenCalledWith(expect.objectContaining({ data: expect.objectContaining({ userId, ruleKey: 'final_exam', sourceId: trailId, trailId, points: 10 }) }))
   expect(db.$transaction).toHaveBeenCalledWith(expect.any(Function), { isolationLevel: 'Serializable' })
 })

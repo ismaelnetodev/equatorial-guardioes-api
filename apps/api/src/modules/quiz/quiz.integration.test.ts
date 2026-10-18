@@ -3,6 +3,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import type { FastifyInstance } from 'fastify'
 import { buildApp } from '../../app.js'
 import { createSessionToken } from '../../lib/auth-session.js'
+import { guardioesModules } from '../../scripts/guardioes-modules.js'
 
 const q1 = 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa'
 const q2 = 'bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb'
@@ -67,6 +68,17 @@ const questions = [
     ],
   },
 ]
+
+const phasedQuestions = guardioesModules[0].questions.map((question, index) => ({
+  ...question,
+  id: `a0000000-0000-4000-8000-${String(index + 1).padStart(12, '0')}`,
+  order: index + 1,
+  imageUrl: null,
+  options: question.options.map((option, optionIndex) => ({
+    ...option,
+    id: `b0000000-0000-4000-8000-${String(index * 4 + optionIndex + 1).padStart(12, '0')}`,
+  })),
+}))
 
 beforeEach(async () => {
   vi.restoreAllMocks()
@@ -168,6 +180,74 @@ beforeEach(async () => {
 afterEach(async () => {
   vi.restoreAllMocks()
   await app.close()
+})
+
+describe('bancos separados por fase', () => {
+  beforeEach(() => {
+    db.trailModule.findUnique.mockResolvedValue({ id: moduleId, trailId, isActive: true, requiresQuiz: true, quizQuestions: phasedQuestions })
+  })
+
+  it('entrega cinco perguntas no diagnóstico e dez distintas no quiz final, sem gabarito', async () => {
+    const pre = await app.inject({ url: `/api/v1/modules/${moduleId}/quiz/pre`, headers: headers() })
+    const post = await app.inject({ url: `/api/v1/modules/${moduleId}/quiz/pos`, headers: headers() })
+    expect(pre.statusCode).toBe(200)
+    expect(post.statusCode).toBe(200)
+    expect(pre.json().totalCount).toBe(5)
+    expect(post.json().totalCount).toBe(10)
+    expect(pre.json().questions).toHaveLength(5)
+    expect(post.json().questions).toHaveLength(10)
+    const preIds = new Set(pre.json().questions.map((question: { id: string }) => question.id))
+    expect(post.json().questions.every((question: { id: string }) => !preIds.has(question.id))).toBe(true)
+    for (const response of [pre, post]) {
+      expect(response.body).not.toContain('isCorrect')
+      expect(response.body).not.toContain('explanationBody')
+      expect(response.body).not.toContain('phase":"PRE","statement')
+    }
+    expect(db.trailModule.findUnique).toHaveBeenCalledWith(expect.objectContaining({ select: expect.objectContaining({ quizQuestions: expect.objectContaining({ where: { isActive: true } }) }) }))
+  })
+
+  it('informa as contagens corretas no estado do módulo', async () => {
+    db.quizAttempt.findFirst.mockResolvedValue(null)
+    const response = await app.inject({ url: `/api/v1/modules/${moduleId}/learn`, headers: headers() })
+    expect(response.statusCode).toBe(200)
+    expect(response.json().preTest.totalCount).toBe(5)
+    expect(response.json().postTest).toMatchObject({ totalCount: 10, minimumCorrect: 8 })
+  })
+
+  it('preserva a aprovação de uma tentativa finalizada antes da atualização do conteúdo', async () => {
+    const response = await app.inject({ url: `/api/v1/modules/${moduleId}/learn`, headers: headers() })
+    expect(response.statusCode).toBe(200)
+    expect(response.json().postTest).toMatchObject({ status: 'completed', correctCount: 2, totalCount: 2, minimumCorrect: 2, isApproved: true })
+  })
+
+  it('aceita diagnóstico com zero acertos e não permite uma segunda submissão', async () => {
+    preCompleted = false
+    const answers = phasedQuestions.filter(question => question.phase === 'PRE').map(question => ({ questionId: question.id, optionId: question.options.find(option => !option.isCorrect)!.id }))
+    db.quizAttempt.create.mockResolvedValue({ id: attemptId, correctCount: 0, totalCount: 5, pointsAwarded: 0 })
+    const submit = () => app.inject({ method: 'POST', url: `/api/v1/modules/${moduleId}/quiz/pre`, headers: headers(), payload: { answers } })
+    expect((await submit()).json()).toMatchObject({ correctCount: 0, totalCount: 5, pointsAwarded: 0 })
+    expect(db.quizAttempt.create).toHaveBeenCalledWith(expect.objectContaining({ data: expect.objectContaining({ isApproved: true, pointsAwarded: 0, totalCount: 5 }) }))
+    expect(db.learningAward.create).not.toHaveBeenCalled()
+    preCompleted = true
+    const again = await submit()
+    expect(again.statusCode).toBe(409)
+    expect(again.json().code).toBe('ANSWER_ALREADY_SUBMITTED')
+  })
+
+  it('rejeita perguntas do pré-quiz enviadas como respostas do quiz final', async () => {
+    const question = phasedQuestions[0]!
+    const response = await app.inject({ method: 'POST', url: `/api/v1/modules/${moduleId}/quiz/pos/answers`, headers: headers(), payload: { attemptId, questionId: question.id, optionId: question.options[0]!.id } })
+    expect(response.statusCode).toBe(409)
+    expect(response.json().code).toBe('INVALID_ANSWERS')
+    expect(db.quizAnswer.create).not.toHaveBeenCalled()
+  })
+
+  it('calcula o resultado final sobre dez perguntas sem incluir o diagnóstico', async () => {
+    openPostAnswers = phasedQuestions.filter(question => question.phase === 'POST').map((question, index) => ({ questionId: question.id, optionId: question.options.find(option => option.isCorrect)!.id, isCorrect: index < 8 }))
+    const response = await app.inject({ method: 'POST', url: `/api/v1/modules/${moduleId}/quiz/pos/finish`, headers: headers(), payload: { attemptId } })
+    expect(response.statusCode).toBe(200)
+    expect(response.json()).toMatchObject({ correctCount: 8, totalCount: 10, minimumCorrect: 8, isApproved: true })
+  })
 })
 
 describe('pré-teste', () => {

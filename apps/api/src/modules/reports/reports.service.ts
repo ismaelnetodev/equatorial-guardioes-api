@@ -75,7 +75,7 @@ export async function assertModuleZeroCompleted(userId: string): Promise<void> {
   })
   const firstModule = trail?.modules[0]
   if (!firstModule?.progressRecords[0]?.completedAt) {
-    throw new ReportError('REPORTS_LOCKED', 'Conclua o módulo 0 para liberar os relatos.')
+    throw new ReportError('REPORTS_LOCKED', 'Conclua o primeiro módulo para liberar os relatos.')
   }
 }
 

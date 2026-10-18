@@ -56,11 +56,11 @@ export default function TrailScreen() {
       setLoading(true); setError(''); setTrail(null)
       try {
         if (!await getAccessToken()) { router.replace('/entrar'); return }
-        const [account, catalog, accountProfile, balance] = await Promise.all([
+        const balance = await refreshLearningSummary(controller.signal)
+        const [account, catalog, accountProfile] = await Promise.all([
           getCurrentUser(controller.signal),
           listTrails(controller.signal),
           getProfile(controller.signal),
-          refreshLearningSummary(controller.signal),
         ])
         const id = catalog.find(item => item.id === selected)?.id ?? catalog[0]?.id
         const [details, states, finished] = id ? await Promise.all([getTrail(id, controller.signal), getTrailProgress(id, controller.signal), getTrailCompletion(id, controller.signal)]) : [null, null, null]

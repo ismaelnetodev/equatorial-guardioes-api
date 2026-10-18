@@ -223,6 +223,8 @@ export type ModuleProgressScalarFieldEnum = (typeof ModuleProgressScalarFieldEnu
 
 
 export const QuizQuestionScalarFieldEnum = {
+  phase: 'phase',
+  isActive: 'isActive',
   id: 'id',
   moduleId: 'moduleId',
   statement: 'statement',

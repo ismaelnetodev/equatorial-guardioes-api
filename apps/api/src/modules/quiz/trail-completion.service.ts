@@ -8,7 +8,7 @@ const certificateView = (row: { id: string; holderName: string; trailTitle: stri
 export async function getTrailCompletion(userId: string, trailId: string) {
   const db = getPrisma()
   const trail = await db.trail.findUnique({ where: { id: trailId, ...publishedTrailWhere }, select: {
-    id: true, title: true, modules: { where: publishedModuleWhere, select: { id: true, progressRecords: { where: { userId }, select: { completedAt: true } }, _count: { select: { quizQuestions: true } } } },
+    id: true, title: true, modules: { where: publishedModuleWhere, select: { id: true, progressRecords: { where: { userId }, select: { completedAt: true } }, _count: { select: { quizQuestions: { where: { isActive: true, OR: [{ phase: null }, { phase: 'POST' }] } } } } } },
   } })
   if (!trail) throw new QuizError('MODULE_NOT_FOUND', 'Trilha não encontrada.')
   const completed = trail.modules.filter(module => module.progressRecords[0]?.completedAt)

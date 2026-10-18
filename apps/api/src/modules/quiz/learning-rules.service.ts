@@ -1,5 +1,36 @@
 import { Prisma } from '../../generated/prisma/client.js'
 import { getPrisma } from '../../lib/prisma.js'
+import { creditPoints } from '../../lib/points-ledger.js'
+
+export async function creditGrantedLearningAward(tx: Prisma.TransactionClient, award: {
+  userId: string; ruleKey: string; sourceId: string; points: number; grantedAt: Date | null
+}) {
+  if (!award.grantedAt || award.points <= 0) return 0
+  const sourceId = JSON.stringify([award.userId, award.ruleKey, award.sourceId])
+  const reason = award.ruleKey === 'module_completion' ? 'QUIZ_TRAINING' : 'QUIZ_POST'
+  // A consulta evita provocar uma violação de unicidade dentro da transação.
+  const existing = await tx.pointLedgerEntry.findFirst({ where: { reason, sourceType: 'LearningAward', sourceId } })
+  if (existing) {
+    if (existing.userId !== award.userId || existing.delta !== award.points) throw new Error('Crédito de aprendizagem divergente no extrato.')
+    return 0
+  }
+  await creditPoints({ userId: award.userId, amount: award.points, reason, sourceType: 'LearningAward', sourceId }, tx)
+  return award.points
+}
+
+export async function reconcileLearningPoints(tx: Prisma.TransactionClient) {
+  const awards = await tx.learningAward.findMany({ where: { grantedAt: { not: null }, points: { gt: 0 } }, orderBy: { id: 'asc' } })
+  // Migrações antigas podem ter creditado QuizAttempt/ModuleProgressTraining.
+  // Não somar novamente esses valores sem conciliar suas origens.
+  const legacy = await tx.pointLedgerEntry.findFirst({ where: {
+    userId: { in: [...new Set(awards.map(award => award.userId))] },
+    reason: { in: ['QUIZ_PRE', 'QUIZ_TRAINING', 'QUIZ_POST'] }, sourceType: { not: 'LearningAward' },
+  } })
+  if (legacy) throw new Error('Há créditos legados de aprendizagem. Concilie suas origens antes de executar a reconciliação automática.')
+  let pointsCredited = 0
+  for (const award of awards) pointsCredited += await creditGrantedLearningAward(tx, award)
+  return { awardsChecked: awards.length, pointsCredited }
+}
 
 export class LearningError extends Error {
   constructor(public readonly code: 'LEARNING_CONFIGURATION_PENDING' | 'LEARNING_CONFLICT' | 'MINIMUM_TIME_REQUIRED' | 'RETRY_NOT_AVAILABLE' | 'FINAL_EXAM_LOCKED', message: string) { super(message) }
@@ -47,6 +78,7 @@ export async function awardOnce(tx: Prisma.TransactionClient, input: {
   const existing = await tx.learningAward.findUnique({ where: { userId_ruleKey_sourceId: { userId: input.userId, ruleKey: input.ruleKey, sourceId: input.sourceId } } })
   if (existing) return 0
   await tx.learningAward.create({ data: { ...input, points: rule.value!, grantedAt: now } })
+  await creditGrantedLearningAward(tx, { ...input, points: rule.value!, grantedAt: now })
   return rule.value!
 }
 
@@ -93,6 +125,7 @@ export async function releasePendingModules(tx: Prisma.TransactionClient, userId
       if (award.points > 0 && ((modulesLimit.isActive && bucket.count >= modulesLimit.value!) || (pointsLimit.isActive && bucket.points + award.points > pointsLimit.value!))) continue
       const grantedAt = day === today ? now : new Date(Math.max(day, award.createdAt.getTime()))
       await tx.learningAward.update({ where: { id: award.id }, data: { grantedAt } })
+      await creditGrantedLearningAward(tx, { ...award, grantedAt })
       if (award.points > 0) bucket.count++
       bucket.points += award.points; buckets.set(day, bucket)
       pointsReleased += award.points

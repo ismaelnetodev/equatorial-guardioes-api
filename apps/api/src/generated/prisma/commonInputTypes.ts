@@ -297,6 +297,23 @@ export type IntNullableWithAggregatesFilter<$PrismaModel = never> = {
   _max?: Prisma.NestedIntNullableFilter<$PrismaModel>
 }
 
+export type EnumQuizPhaseNullableFilter<$PrismaModel = never> = {
+  equals?: $Enums.QuizPhase | Prisma.EnumQuizPhaseFieldRefInput<$PrismaModel> | null
+  in?: $Enums.QuizPhase[] | Prisma.ListEnumQuizPhaseFieldRefInput<$PrismaModel> | null
+  notIn?: $Enums.QuizPhase[] | Prisma.ListEnumQuizPhaseFieldRefInput<$PrismaModel> | null
+  not?: Prisma.NestedEnumQuizPhaseNullableFilter<$PrismaModel> | $Enums.QuizPhase | null
+}
+
+export type EnumQuizPhaseNullableWithAggregatesFilter<$PrismaModel = never> = {
+  equals?: $Enums.QuizPhase | Prisma.EnumQuizPhaseFieldRefInput<$PrismaModel> | null
+  in?: $Enums.QuizPhase[] | Prisma.ListEnumQuizPhaseFieldRefInput<$PrismaModel> | null
+  notIn?: $Enums.QuizPhase[] | Prisma.ListEnumQuizPhaseFieldRefInput<$PrismaModel> | null
+  not?: Prisma.NestedEnumQuizPhaseNullableWithAggregatesFilter<$PrismaModel> | $Enums.QuizPhase | null
+  _count?: Prisma.NestedIntNullableFilter<$PrismaModel>
+  _min?: Prisma.NestedEnumQuizPhaseNullableFilter<$PrismaModel>
+  _max?: Prisma.NestedEnumQuizPhaseNullableFilter<$PrismaModel>
+}
+
 export type EnumQuizPhaseFilter<$PrismaModel = never> = {
   equals?: $Enums.QuizPhase | Prisma.EnumQuizPhaseFieldRefInput<$PrismaModel>
   in?: $Enums.QuizPhase[] | Prisma.ListEnumQuizPhaseFieldRefInput<$PrismaModel>
@@ -904,6 +921,23 @@ export type NestedFloatNullableFilter<$PrismaModel = never> = {
   gt?: number | Prisma.FloatFieldRefInput<$PrismaModel>
   gte?: number | Prisma.FloatFieldRefInput<$PrismaModel>
   not?: Prisma.NestedFloatNullableFilter<$PrismaModel> | number | null
+}
+
+export type NestedEnumQuizPhaseNullableFilter<$PrismaModel = never> = {
+  equals?: $Enums.QuizPhase | Prisma.EnumQuizPhaseFieldRefInput<$PrismaModel> | null
+  in?: $Enums.QuizPhase[] | Prisma.ListEnumQuizPhaseFieldRefInput<$PrismaModel> | null
+  notIn?: $Enums.QuizPhase[] | Prisma.ListEnumQuizPhaseFieldRefInput<$PrismaModel> | null
+  not?: Prisma.NestedEnumQuizPhaseNullableFilter<$PrismaModel> | $Enums.QuizPhase | null
+}
+
+export type NestedEnumQuizPhaseNullableWithAggregatesFilter<$PrismaModel = never> = {
+  equals?: $Enums.QuizPhase | Prisma.EnumQuizPhaseFieldRefInput<$PrismaModel> | null
+  in?: $Enums.QuizPhase[] | Prisma.ListEnumQuizPhaseFieldRefInput<$PrismaModel> | null
+  notIn?: $Enums.QuizPhase[] | Prisma.ListEnumQuizPhaseFieldRefInput<$PrismaModel> | null
+  not?: Prisma.NestedEnumQuizPhaseNullableWithAggregatesFilter<$PrismaModel> | $Enums.QuizPhase | null
+  _count?: Prisma.NestedIntNullableFilter<$PrismaModel>
+  _min?: Prisma.NestedEnumQuizPhaseNullableFilter<$PrismaModel>
+  _max?: Prisma.NestedEnumQuizPhaseNullableFilter<$PrismaModel>
 }
 
 export type NestedEnumQuizPhaseFilter<$PrismaModel = never> = {

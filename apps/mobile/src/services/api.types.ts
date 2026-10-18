@@ -1439,6 +1439,7 @@ export interface paths {
                             /** Format: uuid */
                             moduleId: string;
                             questions: {
+                                phase?: "PRE" | "POST" | (never | null);
                                 /** Format: uuid */
                                 id: string;
                                 statement: string;
@@ -1545,6 +1546,7 @@ export interface paths {
                 content: {
                     "application/json": {
                         questions: {
+                            phase?: "PRE" | "POST" | (never | null);
                             statement: string;
                             explanationTitle: string;
                             explanationBody: string;
@@ -1568,6 +1570,7 @@ export interface paths {
                             /** Format: uuid */
                             moduleId: string;
                             questions: {
+                                phase?: "PRE" | "POST" | (never | null);
                                 /** Format: uuid */
                                 id: string;
                                 statement: string;

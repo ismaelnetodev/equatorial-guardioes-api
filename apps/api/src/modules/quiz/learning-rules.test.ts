@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import type { Prisma } from '../../generated/prisma/client.js'
-import { assertMinimumTime, assertRetry, awardOnce, configuration, minimumCorrect, queueModuleAward, releasePendingModules } from './learning-rules.service.js'
+import { assertMinimumTime, assertRetry, awardOnce, configuration, minimumCorrect, queueModuleAward, releasePendingModules, creditGrantedLearningAward, reconcileLearningPoints } from './learning-rules.service.js'
 
 const now = new Date('2026-11-01T02:30:00Z')
 type Award = { id: string; userId: string; ruleKey: string; sourceId: string; points: number; grantedAt: Date | null; createdAt: Date }
@@ -9,6 +9,8 @@ let settings: Record<string, { kind: 'RULE' | 'LIMIT'; value: number | null; isA
 const db = {
   programConfiguration: { findUnique: vi.fn() },
   learningAward: { findMany: vi.fn(), findUnique: vi.fn(), create: vi.fn(), update: vi.fn() },
+  pointLedgerEntry: { findFirst: vi.fn(), create: vi.fn() },
+  pointAccount: { upsert: vi.fn(), update: vi.fn() },
 }
 const tx = db as unknown as Prisma.TransactionClient
 beforeEach(() => {
@@ -43,6 +45,8 @@ describe('conclusão de módulos v2', () => {
     expect(await releasePendingModules(tx, 'user', new Date(now.getTime() + 3 * 86400000))).toEqual({ pointsReleased: 10 })
     expect(rows.filter(row => row.grantedAt)).toHaveLength(7)
     expect(await releasePendingModules(tx, 'user', new Date(now.getTime() + 3 * 86400000))).toEqual({ pointsReleased: 0 })
+    expect(db.pointLedgerEntry.create).toHaveBeenCalledTimes(7)
+    expect(db.pointAccount.update).toHaveBeenCalledTimes(7)
     const buckets = new Map<string, number>()
     for (const row of rows) { const day = new Date(row.grantedAt!.getTime() - 10800000).toISOString().slice(0, 10); buckets.set(day, (buckets.get(day) ?? 0) + row.points) }
     expect([...buckets.values()]).toEqual([4, 4, 4, 2])
@@ -51,6 +55,7 @@ describe('conclusão de módulos v2', () => {
     for (const module of ['a', 'b', 'c']) await queueModuleAward(tx, 'user', module, 'trail')
     expect(await releasePendingModules(tx, 'user', now)).toEqual({ pointsReleased: 4 })
     expect(rows.filter(row => row.grantedAt)).toHaveLength(2)
+    expect(db.pointLedgerEntry.create).toHaveBeenCalledTimes(2)
     expect(await releasePendingModules(tx, 'user', now)).toEqual({ pointsReleased: 0 })
     expect(await releasePendingModules(tx, 'user', new Date('2026-11-01T03:00:00Z'))).toEqual({ pointsReleased: 2 })
     expect(rows.every(row => row.grantedAt)).toBe(true)
@@ -123,4 +128,39 @@ it('evita repetir uma concessão registrada e respeita regra inativa', async () 
   db.learningAward.findUnique.mockResolvedValue({ points: 2 })
   expect(await awardOnce(tx, { userId: 'user', ruleKey: 'module_completion', sourceId: 'module' }, now)).toBe(0)
   expect(db.learningAward.create).not.toHaveBeenCalled()
+})
+
+describe('crédito de aprendizagem no extrato geral', () => {
+  const award = { userId: 'user', ruleKey: 'module_completion', sourceId: 'module', points: 2, grantedAt: now }
+  it('credita saldo e acumulado com uma identidade única por usuário e recompensa', async () => {
+    expect(await creditGrantedLearningAward(tx, award)).toBe(2)
+    expect(db.pointLedgerEntry.create).toHaveBeenCalledWith({ data: expect.objectContaining({ userId: 'user', delta: 2, reason: 'QUIZ_TRAINING', sourceType: 'LearningAward', sourceId: JSON.stringify(['user', 'module_completion', 'module']) }) })
+    expect(db.pointAccount.update).toHaveBeenCalledWith(expect.objectContaining({ data: { balance: { increment: 2 }, accumulated: { increment: 2 } } }))
+    db.pointLedgerEntry.findFirst.mockResolvedValue({ userId: 'user', delta: 2 })
+    expect(await creditGrantedLearningAward(tx, award)).toBe(0)
+    expect(db.pointAccount.update).toHaveBeenCalledTimes(1)
+  })
+  it('não credita pontos pendentes ou zero', async () => {
+    expect(await creditGrantedLearningAward(tx, { ...award, grantedAt: null })).toBe(0)
+    expect(await creditGrantedLearningAward(tx, { ...award, points: 0 })).toBe(0)
+    expect(db.pointLedgerEntry.create).not.toHaveBeenCalled()
+  })
+  it('propaga falhas de crédito para reverter a transação de aprendizagem', async () => {
+    db.pointAccount.update.mockRejectedValue(new Error('falha na conta'))
+    await expect(creditGrantedLearningAward(tx, award)).rejects.toThrow('falha na conta')
+  })
+  it('reconcilia apenas recompensas concedidas e não duplica lançamentos existentes', async () => {
+    db.learningAward.findMany.mockResolvedValue([award])
+    expect(await reconcileLearningPoints(tx)).toEqual({ awardsChecked: 1, pointsCredited: 2 })
+    expect(db.learningAward.findMany).toHaveBeenCalledWith(expect.objectContaining({ where: { grantedAt: { not: null }, points: { gt: 0 } } }))
+    db.pointLedgerEntry.findFirst.mockImplementation(async ({ where }: { where: { sourceType: unknown } }) => where.sourceType === 'LearningAward' ? { userId: 'user', delta: 2 } : null)
+    expect(await reconcileLearningPoints(tx)).toEqual({ awardsChecked: 1, pointsCredited: 0 })
+    expect(db.pointAccount.update).toHaveBeenCalledTimes(1)
+  })
+  it('aborta diante de créditos legados para não duplicar valores já pagos', async () => {
+    db.learningAward.findMany.mockResolvedValue([award])
+    db.pointLedgerEntry.findFirst.mockResolvedValue({ id: 'legacy' })
+    await expect(reconcileLearningPoints(tx)).rejects.toThrow('créditos legados')
+    expect(db.pointLedgerEntry.create).not.toHaveBeenCalled()
+  })
 })

@@ -10,7 +10,7 @@ async function examContext(tx: Prisma.TransactionClient, userId: string, trailId
     where: { id: trailId, ...publishedTrailWhere },
     select: { modules: { where: publishedModuleWhere, orderBy: { order: 'asc' }, select: {
       progressRecords: { where: { userId }, select: { completedAt: true } },
-      quizQuestions: { orderBy: { order: 'asc' }, include: { options: { orderBy: { createdAt: 'asc' } } } },
+      quizQuestions: { where: { isActive: true, OR: [{ phase: null }, { phase: 'POST' }] }, orderBy: { order: 'asc' }, include: { options: { orderBy: { createdAt: 'asc' } } } },
     } } },
   })
   if (!trail) throw new QuizError('MODULE_NOT_FOUND', 'Trilha não encontrada.')

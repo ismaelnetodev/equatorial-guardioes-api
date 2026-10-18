@@ -35,6 +35,8 @@ export type QuizQuestionSumAggregateOutputType = {
 }
 
 export type QuizQuestionMinAggregateOutputType = {
+  phase: $Enums.QuizPhase | null
+  isActive: boolean | null
   id: string | null
   moduleId: string | null
   statement: string | null
@@ -47,6 +49,8 @@ export type QuizQuestionMinAggregateOutputType = {
 }
 
 export type QuizQuestionMaxAggregateOutputType = {
+  phase: $Enums.QuizPhase | null
+  isActive: boolean | null
   id: string | null
   moduleId: string | null
   statement: string | null
@@ -59,6 +63,8 @@ export type QuizQuestionMaxAggregateOutputType = {
 }
 
 export type QuizQuestionCountAggregateOutputType = {
+  phase: number
+  isActive: number
   id: number
   moduleId: number
   statement: number
@@ -81,6 +87,8 @@ export type QuizQuestionSumAggregateInputType = {
 }
 
 export type QuizQuestionMinAggregateInputType = {
+  phase?: true
+  isActive?: true
   id?: true
   moduleId?: true
   statement?: true
@@ -93,6 +101,8 @@ export type QuizQuestionMinAggregateInputType = {
 }
 
 export type QuizQuestionMaxAggregateInputType = {
+  phase?: true
+  isActive?: true
   id?: true
   moduleId?: true
   statement?: true
@@ -105,6 +115,8 @@ export type QuizQuestionMaxAggregateInputType = {
 }
 
 export type QuizQuestionCountAggregateInputType = {
+  phase?: true
+  isActive?: true
   id?: true
   moduleId?: true
   statement?: true
@@ -204,6 +216,8 @@ export type QuizQuestionGroupByArgs<ExtArgs extends runtime.Types.Extensions.Int
 }
 
 export type QuizQuestionGroupByOutputType = {
+  phase: $Enums.QuizPhase | null
+  isActive: boolean
   id: string
   moduleId: string
   statement: string
@@ -239,6 +253,8 @@ export type QuizQuestionWhereInput = {
   AND?: Prisma.QuizQuestionWhereInput | Prisma.QuizQuestionWhereInput[]
   OR?: Prisma.QuizQuestionWhereInput[]
   NOT?: Prisma.QuizQuestionWhereInput | Prisma.QuizQuestionWhereInput[]
+  phase?: Prisma.EnumQuizPhaseNullableFilter<"QuizQuestion"> | $Enums.QuizPhase | null
+  isActive?: Prisma.BoolFilter<"QuizQuestion"> | boolean
   id?: Prisma.UuidFilter<"QuizQuestion"> | string
   moduleId?: Prisma.UuidFilter<"QuizQuestion"> | string
   statement?: Prisma.StringFilter<"QuizQuestion"> | string
@@ -254,6 +270,8 @@ export type QuizQuestionWhereInput = {
 }
 
 export type QuizQuestionOrderByWithRelationInput = {
+  phase?: Prisma.SortOrderInput | Prisma.SortOrder
+  isActive?: Prisma.SortOrder
   id?: Prisma.SortOrder
   moduleId?: Prisma.SortOrder
   statement?: Prisma.SortOrder
@@ -274,6 +292,8 @@ export type QuizQuestionWhereUniqueInput = Prisma.AtLeast<{
   AND?: Prisma.QuizQuestionWhereInput | Prisma.QuizQuestionWhereInput[]
   OR?: Prisma.QuizQuestionWhereInput[]
   NOT?: Prisma.QuizQuestionWhereInput | Prisma.QuizQuestionWhereInput[]
+  phase?: Prisma.EnumQuizPhaseNullableFilter<"QuizQuestion"> | $Enums.QuizPhase | null
+  isActive?: Prisma.BoolFilter<"QuizQuestion"> | boolean
   moduleId?: Prisma.UuidFilter<"QuizQuestion"> | string
   statement?: Prisma.StringFilter<"QuizQuestion"> | string
   order?: Prisma.IntFilter<"QuizQuestion"> | number
@@ -288,6 +308,8 @@ export type QuizQuestionWhereUniqueInput = Prisma.AtLeast<{
 }, "id" | "moduleId_order">
 
 export type QuizQuestionOrderByWithAggregationInput = {
+  phase?: Prisma.SortOrderInput | Prisma.SortOrder
+  isActive?: Prisma.SortOrder
   id?: Prisma.SortOrder
   moduleId?: Prisma.SortOrder
   statement?: Prisma.SortOrder
@@ -308,6 +330,8 @@ export type QuizQuestionScalarWhereWithAggregatesInput = {
   AND?: Prisma.QuizQuestionScalarWhereWithAggregatesInput | Prisma.QuizQuestionScalarWhereWithAggregatesInput[]
   OR?: Prisma.QuizQuestionScalarWhereWithAggregatesInput[]
   NOT?: Prisma.QuizQuestionScalarWhereWithAggregatesInput | Prisma.QuizQuestionScalarWhereWithAggregatesInput[]
+  phase?: Prisma.EnumQuizPhaseNullableWithAggregatesFilter<"QuizQuestion"> | $Enums.QuizPhase | null
+  isActive?: Prisma.BoolWithAggregatesFilter<"QuizQuestion"> | boolean
   id?: Prisma.UuidWithAggregatesFilter<"QuizQuestion"> | string
   moduleId?: Prisma.UuidWithAggregatesFilter<"QuizQuestion"> | string
   statement?: Prisma.StringWithAggregatesFilter<"QuizQuestion"> | string
@@ -320,6 +344,8 @@ export type QuizQuestionScalarWhereWithAggregatesInput = {
 }
 
 export type QuizQuestionCreateInput = {
+  phase?: $Enums.QuizPhase | null
+  isActive?: boolean
   id?: string
   statement: string
   order: number
@@ -334,6 +360,8 @@ export type QuizQuestionCreateInput = {
 }
 
 export type QuizQuestionUncheckedCreateInput = {
+  phase?: $Enums.QuizPhase | null
+  isActive?: boolean
   id?: string
   moduleId: string
   statement: string
@@ -348,6 +376,8 @@ export type QuizQuestionUncheckedCreateInput = {
 }
 
 export type QuizQuestionUpdateInput = {
+  phase?: Prisma.NullableEnumQuizPhaseFieldUpdateOperationsInput | $Enums.QuizPhase | null
+  isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   id?: Prisma.StringFieldUpdateOperationsInput | string
   statement?: Prisma.StringFieldUpdateOperationsInput | string
   order?: Prisma.IntFieldUpdateOperationsInput | number
@@ -362,6 +392,8 @@ export type QuizQuestionUpdateInput = {
 }
 
 export type QuizQuestionUncheckedUpdateInput = {
+  phase?: Prisma.NullableEnumQuizPhaseFieldUpdateOperationsInput | $Enums.QuizPhase | null
+  isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   id?: Prisma.StringFieldUpdateOperationsInput | string
   moduleId?: Prisma.StringFieldUpdateOperationsInput | string
   statement?: Prisma.StringFieldUpdateOperationsInput | string
@@ -376,6 +408,8 @@ export type QuizQuestionUncheckedUpdateInput = {
 }
 
 export type QuizQuestionCreateManyInput = {
+  phase?: $Enums.QuizPhase | null
+  isActive?: boolean
   id?: string
   moduleId: string
   statement: string
@@ -388,6 +422,8 @@ export type QuizQuestionCreateManyInput = {
 }
 
 export type QuizQuestionUpdateManyMutationInput = {
+  phase?: Prisma.NullableEnumQuizPhaseFieldUpdateOperationsInput | $Enums.QuizPhase | null
+  isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   id?: Prisma.StringFieldUpdateOperationsInput | string
   statement?: Prisma.StringFieldUpdateOperationsInput | string
   order?: Prisma.IntFieldUpdateOperationsInput | number
@@ -399,6 +435,8 @@ export type QuizQuestionUpdateManyMutationInput = {
 }
 
 export type QuizQuestionUncheckedUpdateManyInput = {
+  phase?: Prisma.NullableEnumQuizPhaseFieldUpdateOperationsInput | $Enums.QuizPhase | null
+  isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   id?: Prisma.StringFieldUpdateOperationsInput | string
   moduleId?: Prisma.StringFieldUpdateOperationsInput | string
   statement?: Prisma.StringFieldUpdateOperationsInput | string
@@ -426,6 +464,8 @@ export type QuizQuestionModuleIdOrderCompoundUniqueInput = {
 }
 
 export type QuizQuestionCountOrderByAggregateInput = {
+  phase?: Prisma.SortOrder
+  isActive?: Prisma.SortOrder
   id?: Prisma.SortOrder
   moduleId?: Prisma.SortOrder
   statement?: Prisma.SortOrder
@@ -442,6 +482,8 @@ export type QuizQuestionAvgOrderByAggregateInput = {
 }
 
 export type QuizQuestionMaxOrderByAggregateInput = {
+  phase?: Prisma.SortOrder
+  isActive?: Prisma.SortOrder
   id?: Prisma.SortOrder
   moduleId?: Prisma.SortOrder
   statement?: Prisma.SortOrder
@@ -454,6 +496,8 @@ export type QuizQuestionMaxOrderByAggregateInput = {
 }
 
 export type QuizQuestionMinOrderByAggregateInput = {
+  phase?: Prisma.SortOrder
+  isActive?: Prisma.SortOrder
   id?: Prisma.SortOrder
   moduleId?: Prisma.SortOrder
   statement?: Prisma.SortOrder
@@ -516,6 +560,10 @@ export type QuizQuestionUncheckedUpdateManyWithoutModuleNestedInput = {
   deleteMany?: Prisma.QuizQuestionScalarWhereInput | Prisma.QuizQuestionScalarWhereInput[]
 }
 
+export type NullableEnumQuizPhaseFieldUpdateOperationsInput = {
+  set?: $Enums.QuizPhase | null
+}
+
 export type QuizQuestionCreateNestedOneWithoutOptionsInput = {
   create?: Prisma.XOR<Prisma.QuizQuestionCreateWithoutOptionsInput, Prisma.QuizQuestionUncheckedCreateWithoutOptionsInput>
   connectOrCreate?: Prisma.QuizQuestionCreateOrConnectWithoutOptionsInput
@@ -545,6 +593,8 @@ export type QuizQuestionUpdateOneRequiredWithoutAnswersNestedInput = {
 }
 
 export type QuizQuestionCreateWithoutModuleInput = {
+  phase?: $Enums.QuizPhase | null
+  isActive?: boolean
   id?: string
   statement: string
   order: number
@@ -558,6 +608,8 @@ export type QuizQuestionCreateWithoutModuleInput = {
 }
 
 export type QuizQuestionUncheckedCreateWithoutModuleInput = {
+  phase?: $Enums.QuizPhase | null
+  isActive?: boolean
   id?: string
   statement: string
   order: number
@@ -600,6 +652,8 @@ export type QuizQuestionScalarWhereInput = {
   AND?: Prisma.QuizQuestionScalarWhereInput | Prisma.QuizQuestionScalarWhereInput[]
   OR?: Prisma.QuizQuestionScalarWhereInput[]
   NOT?: Prisma.QuizQuestionScalarWhereInput | Prisma.QuizQuestionScalarWhereInput[]
+  phase?: Prisma.EnumQuizPhaseNullableFilter<"QuizQuestion"> | $Enums.QuizPhase | null
+  isActive?: Prisma.BoolFilter<"QuizQuestion"> | boolean
   id?: Prisma.UuidFilter<"QuizQuestion"> | string
   moduleId?: Prisma.UuidFilter<"QuizQuestion"> | string
   statement?: Prisma.StringFilter<"QuizQuestion"> | string
@@ -612,6 +666,8 @@ export type QuizQuestionScalarWhereInput = {
 }
 
 export type QuizQuestionCreateWithoutOptionsInput = {
+  phase?: $Enums.QuizPhase | null
+  isActive?: boolean
   id?: string
   statement: string
   order: number
@@ -625,6 +681,8 @@ export type QuizQuestionCreateWithoutOptionsInput = {
 }
 
 export type QuizQuestionUncheckedCreateWithoutOptionsInput = {
+  phase?: $Enums.QuizPhase | null
+  isActive?: boolean
   id?: string
   moduleId: string
   statement: string
@@ -654,6 +712,8 @@ export type QuizQuestionUpdateToOneWithWhereWithoutOptionsInput = {
 }
 
 export type QuizQuestionUpdateWithoutOptionsInput = {
+  phase?: Prisma.NullableEnumQuizPhaseFieldUpdateOperationsInput | $Enums.QuizPhase | null
+  isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   id?: Prisma.StringFieldUpdateOperationsInput | string
   statement?: Prisma.StringFieldUpdateOperationsInput | string
   order?: Prisma.IntFieldUpdateOperationsInput | number
@@ -667,6 +727,8 @@ export type QuizQuestionUpdateWithoutOptionsInput = {
 }
 
 export type QuizQuestionUncheckedUpdateWithoutOptionsInput = {
+  phase?: Prisma.NullableEnumQuizPhaseFieldUpdateOperationsInput | $Enums.QuizPhase | null
+  isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   id?: Prisma.StringFieldUpdateOperationsInput | string
   moduleId?: Prisma.StringFieldUpdateOperationsInput | string
   statement?: Prisma.StringFieldUpdateOperationsInput | string
@@ -680,6 +742,8 @@ export type QuizQuestionUncheckedUpdateWithoutOptionsInput = {
 }
 
 export type QuizQuestionCreateWithoutAnswersInput = {
+  phase?: $Enums.QuizPhase | null
+  isActive?: boolean
   id?: string
   statement: string
   order: number
@@ -693,6 +757,8 @@ export type QuizQuestionCreateWithoutAnswersInput = {
 }
 
 export type QuizQuestionUncheckedCreateWithoutAnswersInput = {
+  phase?: $Enums.QuizPhase | null
+  isActive?: boolean
   id?: string
   moduleId: string
   statement: string
@@ -722,6 +788,8 @@ export type QuizQuestionUpdateToOneWithWhereWithoutAnswersInput = {
 }
 
 export type QuizQuestionUpdateWithoutAnswersInput = {
+  phase?: Prisma.NullableEnumQuizPhaseFieldUpdateOperationsInput | $Enums.QuizPhase | null
+  isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   id?: Prisma.StringFieldUpdateOperationsInput | string
   statement?: Prisma.StringFieldUpdateOperationsInput | string
   order?: Prisma.IntFieldUpdateOperationsInput | number
@@ -735,6 +803,8 @@ export type QuizQuestionUpdateWithoutAnswersInput = {
 }
 
 export type QuizQuestionUncheckedUpdateWithoutAnswersInput = {
+  phase?: Prisma.NullableEnumQuizPhaseFieldUpdateOperationsInput | $Enums.QuizPhase | null
+  isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   id?: Prisma.StringFieldUpdateOperationsInput | string
   moduleId?: Prisma.StringFieldUpdateOperationsInput | string
   statement?: Prisma.StringFieldUpdateOperationsInput | string
@@ -748,6 +818,8 @@ export type QuizQuestionUncheckedUpdateWithoutAnswersInput = {
 }
 
 export type QuizQuestionCreateManyModuleInput = {
+  phase?: $Enums.QuizPhase | null
+  isActive?: boolean
   id?: string
   statement: string
   order: number
@@ -759,6 +831,8 @@ export type QuizQuestionCreateManyModuleInput = {
 }
 
 export type QuizQuestionUpdateWithoutModuleInput = {
+  phase?: Prisma.NullableEnumQuizPhaseFieldUpdateOperationsInput | $Enums.QuizPhase | null
+  isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   id?: Prisma.StringFieldUpdateOperationsInput | string
   statement?: Prisma.StringFieldUpdateOperationsInput | string
   order?: Prisma.IntFieldUpdateOperationsInput | number
@@ -772,6 +846,8 @@ export type QuizQuestionUpdateWithoutModuleInput = {
 }
 
 export type QuizQuestionUncheckedUpdateWithoutModuleInput = {
+  phase?: Prisma.NullableEnumQuizPhaseFieldUpdateOperationsInput | $Enums.QuizPhase | null
+  isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   id?: Prisma.StringFieldUpdateOperationsInput | string
   statement?: Prisma.StringFieldUpdateOperationsInput | string
   order?: Prisma.IntFieldUpdateOperationsInput | number
@@ -785,6 +861,8 @@ export type QuizQuestionUncheckedUpdateWithoutModuleInput = {
 }
 
 export type QuizQuestionUncheckedUpdateManyWithoutModuleInput = {
+  phase?: Prisma.NullableEnumQuizPhaseFieldUpdateOperationsInput | $Enums.QuizPhase | null
+  isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   id?: Prisma.StringFieldUpdateOperationsInput | string
   statement?: Prisma.StringFieldUpdateOperationsInput | string
   order?: Prisma.IntFieldUpdateOperationsInput | number
@@ -836,6 +914,8 @@ export type QuizQuestionCountOutputTypeCountAnswersArgs<ExtArgs extends runtime.
 
 
 export type QuizQuestionSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
+  phase?: boolean
+  isActive?: boolean
   id?: boolean
   moduleId?: boolean
   statement?: boolean
@@ -852,6 +932,8 @@ export type QuizQuestionSelect<ExtArgs extends runtime.Types.Extensions.Internal
 }, ExtArgs["result"]["quizQuestion"]>
 
 export type QuizQuestionSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
+  phase?: boolean
+  isActive?: boolean
   id?: boolean
   moduleId?: boolean
   statement?: boolean
@@ -865,6 +947,8 @@ export type QuizQuestionSelectCreateManyAndReturn<ExtArgs extends runtime.Types.
 }, ExtArgs["result"]["quizQuestion"]>
 
 export type QuizQuestionSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
+  phase?: boolean
+  isActive?: boolean
   id?: boolean
   moduleId?: boolean
   statement?: boolean
@@ -878,6 +962,8 @@ export type QuizQuestionSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.
 }, ExtArgs["result"]["quizQuestion"]>
 
 export type QuizQuestionSelectScalar = {
+  phase?: boolean
+  isActive?: boolean
   id?: boolean
   moduleId?: boolean
   statement?: boolean
@@ -889,7 +975,7 @@ export type QuizQuestionSelectScalar = {
   updatedAt?: boolean
 }
 
-export type QuizQuestionOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "moduleId" | "statement" | "order" | "explanationTitle" | "explanationBody" | "imageUrl" | "createdAt" | "updatedAt", ExtArgs["result"]["quizQuestion"]>
+export type QuizQuestionOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"phase" | "isActive" | "id" | "moduleId" | "statement" | "order" | "explanationTitle" | "explanationBody" | "imageUrl" | "createdAt" | "updatedAt", ExtArgs["result"]["quizQuestion"]>
 export type QuizQuestionInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   module?: boolean | Prisma.TrailModuleDefaultArgs<ExtArgs>
   options?: boolean | Prisma.QuizQuestion$optionsArgs<ExtArgs>
@@ -911,6 +997,8 @@ export type $QuizQuestionPayload<ExtArgs extends runtime.Types.Extensions.Intern
     answers: Prisma.$QuizAnswerPayload<ExtArgs>[]
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
+    phase: $Enums.QuizPhase | null
+    isActive: boolean
     id: string
     moduleId: string
     statement: string
@@ -1003,8 +1091,8 @@ export interface QuizQuestionDelegate<ExtArgs extends runtime.Types.Extensions.I
    * // Get first 10 QuizQuestions
    * const quizQuestions = await prisma.quizQuestion.findMany({ take: 10 })
    * 
-   * // Only select the `id`
-   * const quizQuestionWithIdOnly = await prisma.quizQuestion.findMany({ select: { id: true } })
+   * // Only select the `isActive`
+   * const quizQuestionWithIsActiveOnly = await prisma.quizQuestion.findMany({ select: { isActive: true } })
    * 
    */
   findMany<T extends QuizQuestionFindManyArgs>(args?: Prisma.SelectSubset<T, QuizQuestionFindManyArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$QuizQuestionPayload<ExtArgs>, T, "findMany", GlobalOmitOptions>>
@@ -1048,9 +1136,9 @@ export interface QuizQuestionDelegate<ExtArgs extends runtime.Types.Extensions.I
    *   ]
    * })
    * 
-   * // Create many QuizQuestions and only return the `id`
-   * const quizQuestionWithIdOnly = await prisma.quizQuestion.createManyAndReturn({
-   *   select: { id: true },
+   * // Create many QuizQuestions and only return the `isActive`
+   * const quizQuestionWithIsActiveOnly = await prisma.quizQuestion.createManyAndReturn({
+   *   select: { isActive: true },
    *   data: [
    *     // ... provide data here
    *   ]
@@ -1139,9 +1227,9 @@ export interface QuizQuestionDelegate<ExtArgs extends runtime.Types.Extensions.I
    *   ]
    * })
    * 
-   * // Update zero or more QuizQuestions and only return the `id`
-   * const quizQuestionWithIdOnly = await prisma.quizQuestion.updateManyAndReturn({
-   *   select: { id: true },
+   * // Update zero or more QuizQuestions and only return the `isActive`
+   * const quizQuestionWithIsActiveOnly = await prisma.quizQuestion.updateManyAndReturn({
+   *   select: { isActive: true },
    *   where: {
    *     // ... provide filter here
    *   },
@@ -1346,6 +1434,8 @@ export interface Prisma__QuizQuestionClient<T, Null = never, ExtArgs extends run
  * Fields of the QuizQuestion model
  */
 export interface QuizQuestionFieldRefs {
+  readonly phase: Prisma.FieldRef<"QuizQuestion", 'QuizPhase'>
+  readonly isActive: Prisma.FieldRef<"QuizQuestion", 'Boolean'>
   readonly id: Prisma.FieldRef<"QuizQuestion", 'String'>
   readonly moduleId: Prisma.FieldRef<"QuizQuestion", 'String'>
   readonly statement: Prisma.FieldRef<"QuizQuestion", 'String'>

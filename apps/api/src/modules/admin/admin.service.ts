@@ -28,6 +28,7 @@ export async function authorizeAdministrator(authorization: string | undefined):
 const trailSelect = { id: true, title: true, description: true, order: true, publicationStatus: true } as const
 const moduleSelect = { id: true, trailId: true, title: true, description: true, content: true, order: true, publicationStatus: true, durationMinutes: true, isActive: true, requiresQuiz: true, quizMinimumScore: true } as const
 const quizQuestionSelect = {
+  phase: true,
   id: true,
   statement: true,
   order: true,
@@ -201,7 +202,7 @@ function validateQuizQuestions(questions: ReplaceQuiz['questions']) {
 export async function getModuleQuiz(trailId: string, moduleId: string) {
   await requireModule(getPrisma(), trailId, moduleId)
   const questions = await getPrisma().quizQuestion.findMany({
-    where: { moduleId },
+    where: { moduleId, isActive: true },
     orderBy: { order: 'asc' },
     select: quizQuestionSelect,
   })
@@ -224,6 +225,7 @@ export async function replaceModuleQuiz(trailId: string, moduleId: string, input
       await tx.quizQuestion.create({
         data: {
           moduleId,
+          phase: question.phase ?? null,
           statement: question.statement.trim(),
           order: index + 1,
           explanationTitle: question.explanationTitle.trim(),
@@ -239,7 +241,7 @@ export async function replaceModuleQuiz(trailId: string, moduleId: string, input
       })
     }
     const questions = await tx.quizQuestion.findMany({
-      where: { moduleId },
+      where: { moduleId, isActive: true },
       orderBy: { order: 'asc' },
       select: quizQuestionSelect,
     })
