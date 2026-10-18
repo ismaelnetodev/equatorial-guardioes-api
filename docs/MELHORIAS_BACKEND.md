@@ -32,10 +32,10 @@ Todas as branches remotas analisadas estavam sem commits exclusivos em relação
 ### B. Ranking por bairro sem pontos
 
 - Classificação: só back-end
-- Causa: (1) `maybeAwardInviteOnModule0` importado e não chamado em `completeModule`; (2) resolução de relato gravava `pointsAwarded` sem `creditPoints` no extrato/`PointAccount.accumulated`
-- O que foi feito: chamada do convite na conclusão do módulo 0; crédito `REPORT_CONFIRM` na primeira resolução com pontos; script idempotente `db:reconcile:neighborhood`
-- Arquivos: `progress.service.ts`, `reports.service.ts`, `lib/reconcile-neighborhood-points.ts`, `scripts/reconcile-neighborhood-points.ts`, testes e `package.json`
-- Commit: `fd0b558` `fix(back): credit neighborhood ranking sources`
+- Causa: (1) `maybeAwardInviteOnModule0` importado e não chamado em `completeModule`; (2) resolução de relato gravava `pointsAwarded` sem `creditPoints` no extrato/`PointAccount.accumulated`; (3) agregação usava texto `neighborhood` e podia fragmentar o mesmo bairro
+- O que foi feito: convite na conclusão do módulo 0; crédito `REPORT_CONFIRM`; script `db:reconcile:neighborhood`; ranking agrega por `neighborhoodId` (fallback normalizado se id nulo); teste E2E de delta após créditos da trilha
+- Arquivos: `progress.service.ts`, `reports.service.ts`, `community.service.ts`, `lib/reconcile-neighborhood-points.ts`, scripts, testes
+- Commits: `fd0b558` `fix(back): credit neighborhood ranking sources`; `4d27b8c` `fix(back): rank neighborhoods by catalog id`
 
 ### C. Login Google e funções sem uso
 
@@ -63,17 +63,28 @@ Todas as branches remotas analisadas estavam sem commits exclusivos em relação
 
 - Classificação: só front (UI); back garantido
 - Causa: não existia endpoint de atualização de perfil
-- O que foi feito: `PATCH /api/v1/perfil` com `name`, `neighborhood`, `neighborhoodId` (validação alinhada ao cadastro). Não há `photoUrl` no model `User`
+- O que foi feito: `PATCH /api/v1/perfil` aceita apenas `name`. Troca de bairro restrita ao admin. Não há `photoUrl` no model `User`
 - Arquivos: `community.schemas.ts`, `community.service.ts`, `community.controller.ts`, `community.routes.ts`, teste
-- Commit: `9dce907` `feat(back): add profile update endpoint`
+- Commits: `9dce907` `feat(back): add profile update endpoint`; `a0d71b6` `fix(back): restrict profile patch to name only`
 
-### G. Pontos do quiz em algumas etapas
+### G. Pontos do quiz e do treinamento
 
 - Classificação: só back-end
-- Causa: regra `module_quiz` seedada com valor `0` (“não pontua”), então pós-teste aprovado com todas as respostas certas não creditava pontos (exceto melhoria pontual)
-- O que foi feito: migration `20261018180000_module_quiz_points` define `module_quiz = 4`; script `db:backfill:module-quiz` para tentativas já aprovadas; testes atualizados
+- Causa: regra `module_quiz` seedada com valor `0`; a fase de treinamento (`completeTraining`) grava `trainingPointsAwarded: 0` sem regra de pontos por passo/card
+- Inventário das etapas:
+
+| Etapa | Regra / código | Valor seed | Observação |
+|-------|----------------|------------|------------|
+| Pré-teste | `submitPreTest` | 0 | Diagnóstico; não credita ledger |
+| Conclusão do treinamento | `completeTraining` | 0 | Hardcoded; sem pontos por TrainingStep/Card |
+| Pós-teste aprovado | `module_quiz` | 0 → 4 | Única pontuação direta do quiz |
+| Melhoria pré→pós | `post_test_improvement` | 6 (1x) | Só com melhoria mensurável |
+| Conclusão do módulo | `module_completion` | 2 | Fila + limites `training_*_daily` |
+| Prova final | `final_exam` | 10 | 1x |
+
+- O que foi feito: migration `20261018180000_module_quiz_points` atualiza `module_quiz` para 4 **somente se value = 0** (não sobrescreve ajuste admin); script `db:backfill:module-quiz`; testes. O valor 4 precisa de validação da equipe de produto.
 - Arquivos: migration, `backfill-module-quiz-awards.ts`, `quiz.integration.test.ts`, `package.json`
-- Commit: `a9577b2` `fix(back): ensure quiz and module stages award points`
+- Commits: `a9577b2` `fix(back): ensure quiz and module stages award points`; `fix(back): conditional module_quiz points migration`
 
 ### H. Bairro no relato
 
