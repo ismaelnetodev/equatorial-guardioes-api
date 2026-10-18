@@ -7,7 +7,6 @@ import { Image, Modal, Pressable, RefreshControl, ScrollView, StyleSheet, Text, 
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context'
 import { AppIcon } from '../components/app-icon'
 import { Button, colors } from '../components/ui'
-import { EmergencyBanner } from '../components/emergency-banner'
 import { TrailPath } from '../components/trail-path'
 import { TrailSkeleton } from '../components/trail-skeleton'
 import { MyReportsScreen } from '../features/reports/my-reports-screen'
@@ -19,7 +18,7 @@ import { getProfile, getRanking, type Profile, type Ranking } from '../features/
 import { ApiError } from '../services/api'
 import { clearAccessToken, getAccessToken } from '../services/session'
 
-type Panel = 'help' | 'report' | 'ranking' | 'profile' | null
+type Panel = 'report' | 'ranking' | 'profile' | null
 
 export default function TrailScreen() {
   const params = useLocalSearchParams<{ panel?: string; trailId?: string }>()
@@ -82,7 +81,7 @@ export default function TrailScreen() {
   }, [selected, attempt]))
 
   useEffect(() => {
-    if (!panel || panel === 'help' || panel === 'report') return
+    if (!panel || panel === 'report') return
     const controller = new AbortController()
     async function loadPanel() {
       setPanelLoading(true); setActionError('')
@@ -138,7 +137,7 @@ export default function TrailScreen() {
             <View style={styles.greeting}>
               <View style={styles.avatar}><Text style={styles.initials}>{initials}</Text></View>
               <View style={styles.nameGroup}><Text accessibilityRole="header" style={styles.name}>Olá, {firstName}</Text><View style={styles.badge}><AppIcon name="shield" size={13} color={colors.primary} /><Text style={styles.badgeText}>{profile?.level.name ?? 'Guardião'}</Text></View></View>
-              <Pressable accessibilityRole="button" accessibilityLabel="Ajuda e segurança" onPress={() => openPanel('help')} style={styles.help}><AppIcon name="help" color={colors.text} /></Pressable>
+              <Pressable accessibilityRole="button" accessibilityLabel="Abrir chat de dúvidas da plataforma" onPress={() => router.push('/chat-duvidas')} style={styles.help}><AppIcon name="help" color={colors.text} /></Pressable>
             </View>
             <Pressable accessibilityRole="button" accessibilityLabel="Ver extrato de pontos do aprendizado" onPress={() => router.push('/pontos')} style={styles.points}>
               <View style={styles.pointsLine}>
@@ -175,9 +174,8 @@ export default function TrailScreen() {
     <ReportBlockedModal visible={panel === 'report' && !loading && !error && reportsLocked} available={!!firstModule} minutes={firstModule?.durationMinutes} onClose={() => setPanel(null)} onModule={() => { if (firstModule) openModule(firstModule) }} />
     <Modal visible={panel !== null && panel !== 'report'} transparent animationType="slide" onRequestClose={() => setPanel(null)}>
       <View style={styles.overlay}><SafeAreaView edges={['bottom']} style={styles.sheet}><ScrollView contentContainerStyle={styles.sheetContent}>
-        <View style={styles.sheetHeader}><Text accessibilityRole="header" style={styles.sheetTitle}>{panel === 'help' ? 'Ajuda e segurança' : panel === 'profile' ? 'Seu perfil' : panel === 'ranking' ? 'Ranking' : 'Reportar risco'}</Text><Pressable accessibilityRole="button" accessibilityLabel="Fechar" onPress={() => setPanel(null)} hitSlop={12}><Text style={styles.close}>×</Text></Pressable></View>
+        <View style={styles.sheetHeader}><Text accessibilityRole="header" style={styles.sheetTitle}>{panel === 'profile' ? 'Seu perfil' : panel === 'ranking' ? 'Ranking' : 'Reportar risco'}</Text><Pressable accessibilityRole="button" accessibilityLabel="Fechar" onPress={() => setPanel(null)} hitSlop={12}><Text style={styles.close}>×</Text></Pressable></View>
         {panelLoading ? <ContentSkeleton variant={panel === 'ranking' ? 'ranking' : 'profile'} surface="sheet" /> : null}
-        {panel === 'help' ? <><Text style={styles.description}>Observe de longe, afaste-se e avise. Nunca toque em fios ou postes e nunca tente consertar.</Text><Text style={styles.description}>Toque no módulo disponível para ler o conteúdo. Os próximos são liberados conforme você conclui os anteriores.</Text><EmergencyBanner onError={() => setActionError('Não foi possível abrir a ligação. Ligue 116 pelo telefone.')} /></> : null}
         {panel === 'ranking' && !panelLoading && !actionError ? <>
           {ranking ? <>
             <Text style={styles.description}>

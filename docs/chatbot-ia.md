@@ -44,6 +44,8 @@ As dependências nativas usadas pelas telas estão declaradas em `apps/mobile/pa
 
 ## Abrir as telas
 
+O botão “?” no cabeçalho da tela de trilhas abre `/chat-duvidas`. Ao fechar o chat, o usuário retorna à tela anterior. As sugestões iniciais abordam o uso da plataforma, a liberação e o acompanhamento de relatos.
+
 ```
 router.push('/chat-reportar')   // Fazer relato / Novo relato
 router.push('/chat-duvidas')    // ajuda

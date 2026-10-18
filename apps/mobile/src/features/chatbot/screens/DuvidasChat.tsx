@@ -9,9 +9,9 @@ import { cor } from '../theme';
 type Msg = { de: 'bot' | 'voce'; texto: string; modulo?: string | null };
 
 const COMUNS = [
-  'Cabo de internet também é perigoso?',
-  'Como tirar uma boa foto do risco?',
-  'Quantos pontos vale cada tipo de relato?',
+  'Como começar a usar a plataforma?',
+  'Como liberar o envio de relatos?',
+  'Como acompanhar meus relatos?',
 ];
 
 export default function DuvidasChat({ nome, onFechar }: { nome: string; onFechar: () => void }) {
@@ -35,9 +35,9 @@ export default function DuvidasChat({ nome, onFechar }: { nome: string; onFechar
 
   return (
     <Tela>
-      <Cabecalho subtitulo="Tirar dúvidas" onFechar={onFechar} onLigar={() => Linking.openURL(`tel:${EMERGENCIA.equatorial}`)} />
+      <Cabecalho subtitulo="Dúvidas sobre a plataforma" onFechar={onFechar} onLigar={() => Linking.openURL(`tel:${EMERGENCIA.equatorial}`)} />
       <ScrollView ref={rolagem} contentContainerStyle={s.conteudo} onContentSizeChange={() => rolagem.current?.scrollToEnd()}>
-        <Balao de="bot">{`Oi, ${nome}! Pode perguntar sobre riscos na rede ou sobre o app.`}</Balao>
+        <Balao de="bot">{`Oi, ${nome}! Posso ajudar com dúvidas sobre como usar a plataforma, as trilhas e os relatos. Você também pode perguntar sobre riscos na rede.`}</Balao>
         <Text style={s.rotulo}>Perguntas comuns</Text>
         {COMUNS.map((p) => (
           <TouchableOpacity key={p} style={[s.card, { flexDirection: 'row', alignItems: 'center' }]} onPress={() => enviar(p)}>
