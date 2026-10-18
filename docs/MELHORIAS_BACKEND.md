@@ -275,6 +275,12 @@ Sob demanda: `npm run db:release:pending-points -w guardioes-api`.
 
 Sobre credito em dobro: `creditPoints` e idempotente por `(reason, sourceType, sourceId)`. `db:reconcile:neighborhood` ja chama `reconcileLearningPoints`. No pos-deploy, preferir o runbook sem repetir reconcile desnecessario.
 
+### Demo sem limites diarios
+
+Arquivo: `apps/api/.env.demo.example` (copie para um `.env` local de demo; nao versionar segredos).
+
+Quando usar: apresentacoes ou demos em que a narrativa nao deve ser interrompida pela fila `training_*_daily`. Com `POINTS_DAILY_LIMITS_ENABLED=false`, o credito de treino e imediato. Em producao e homologacao reais, mantenha os limites ligados (padrao do `.env.example`).
+
 ## 8. Qualidade (pré-merge)
 
 - `npm run typecheck`: ok (API + mobile)
