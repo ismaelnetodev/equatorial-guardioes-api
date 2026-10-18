@@ -194,6 +194,32 @@ describe('conclusão de módulos v2', () => {
     // Após meia-noite SP: novo bucket.
     expect(await releasePendingModules(tx, 'user', atMidnightSp)).toEqual({ pointsReleased: 2 })
   })
+
+  it('com limites atingidos às 23:50 SP libera pendentes após 00:00 local (fake timers)', async () => {
+    vi.useFakeTimers({ toFake: ['Date'] })
+    // 23:50 America/Sao_Paulo = 02:50 UTC do dia seguinte no calendário UTC.
+    const at2350Sp = new Date('2026-11-01T02:50:00.000Z')
+    vi.setSystemTime(at2350Sp)
+    db.learningAward.create.mockImplementation(async ({ data }: { data: Omit<Award, 'id' | 'createdAt'> }) => {
+      const row = { ...data, id: String(rows.length), createdAt: new Date(), grantedAt: data.grantedAt ?? null }
+      rows.push(row)
+      return row
+    })
+
+    settings.training_points_daily!.value = 2
+    settings.training_modules_daily!.value = 10
+    await queueModuleAward(tx, 'user', 'evening', 'trail')
+    expect(await releasePendingModules(tx, 'user', new Date())).toEqual({ pointsReleased: 2 })
+    await queueModuleAward(tx, 'user', 'pending', 'trail')
+    expect(await releasePendingModules(tx, 'user', new Date())).toEqual({ pointsReleased: 0 })
+    expect(rows.filter((row) => !row.grantedAt)).toHaveLength(1)
+
+    // Avança 10 minutos: 00:00 America/Sao_Paulo.
+    vi.setSystemTime(new Date('2026-11-01T03:00:00.000Z'))
+    expect(await releasePendingModules(tx, 'user', new Date())).toEqual({ pointsReleased: 2 })
+    expect(rows.every((row) => row.grantedAt)).toBe(true)
+    vi.useRealTimers()
+  })
 })
 
 it('aplica aprovação administrativa e não usa 70% como fallback', async () => {

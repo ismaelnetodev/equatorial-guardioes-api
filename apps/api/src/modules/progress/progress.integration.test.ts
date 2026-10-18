@@ -271,8 +271,12 @@ describe('integração do quiz', () => {
       )
       return row ? { id: row.id, points: row.points, grantedAt: row.grantedAt } : null
     })
+    let credited = 0
     db.pointAccount.upsert.mockResolvedValue({ userId, accumulated: 0, balance: 0 })
-    db.pointAccount.update.mockResolvedValue({ userId, accumulated: 1, balance: 1 })
+    db.pointAccount.update.mockImplementation(async ({ data }: { data: { accumulated: { increment: number } } }) => {
+      credited += data.accumulated.increment
+      return { userId, accumulated: credited, balance: credited }
+    })
     db.pointLedgerEntry.create.mockResolvedValue({ id: 'ledger' })
     db.pointLedgerEntry.findFirst.mockResolvedValue(null)
 
@@ -306,10 +310,12 @@ describe('integração do quiz', () => {
       })
       const response = await app.inject({ method: 'POST', url: `/api/v1/progress/modules/${id}/complete`, headers: headers() })
       expect(response.statusCode).toBe(200)
-      expect(response.json()).toMatchObject({ status: 'completed', pointsCapped: false, capReason: null })
+      expect(response.json()).toMatchObject({ status: 'completed', pointsCapped: false, capReason: null, pendingPoints: 0 })
     }
     expect(awards.filter((row) => row.ruleKey === 'module_completion' && row.grantedAt)).toHaveLength(2)
     expect(awards.filter((row) => row.ruleKey === 'training_completion' && row.grantedAt)).toHaveLength(2)
+    expect(credited).toBe(10)
+    expect(db.pointLedgerEntry.create).toHaveBeenCalledTimes(4)
   })
 
   it('POST learning-awards/claim respeita o teto diário e deixa o excedente pendente', async () => {
