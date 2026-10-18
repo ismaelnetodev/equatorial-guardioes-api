@@ -11,7 +11,7 @@ const attributionId = 'bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb'
 
 const db = vi.hoisted(() => ({
   user: { findUnique: vi.fn(), findFirst: vi.fn(), findMany: vi.fn(), update: vi.fn() },
-  neighborhood: { findUnique: vi.fn() },
+  neighborhood: { findUnique: vi.fn(), findMany: vi.fn() },
   pointAccount: { upsert: vi.fn(), update: vi.fn() },
   pointLedgerEntry: { create: vi.fn(), findFirst: vi.fn() },
   programConfiguration: { findUnique: vi.fn(), findMany: vi.fn() },
@@ -51,6 +51,10 @@ beforeEach(async () => {
     return null
   })
   db.user.findFirst.mockResolvedValue(null)
+  db.neighborhood.findMany.mockResolvedValue([
+    { id: 'nb-cohama', name: 'Cohama' },
+    { id: 'nb-centro', name: 'Centro' },
+  ])
   db.user.findMany.mockResolvedValue([
     { neighborhood: 'Cohama', neighborhoodId: 'nb-cohama', pointAccount: { accumulated: 100 } },
     { neighborhood: 'Cohama', neighborhoodId: 'nb-cohama', pointAccount: { accumulated: 65 } },
@@ -163,6 +167,24 @@ describe('GET /api/v1/ranking', () => {
     expect(r.statusCode).toBe(200)
     const cohama = r.json().neighborhoods.find((item: { isCurrentUserNeighborhood: boolean }) => item.isCurrentUserNeighborhood)
     expect(cohama).toMatchObject({ accumulatedPoints: 100, guardiansCount: 2 })
+  })
+
+  it('mapeia texto sem id para o catálogo e não duplica o mesmo bairro', async () => {
+    db.user.findMany.mockResolvedValue([
+      { neighborhood: 'Cohama', neighborhoodId: 'nb-cohama', pointAccount: { accumulated: 40 } },
+      { neighborhood: 'COHAMA', neighborhoodId: null, pointAccount: { accumulated: 60 } },
+      { neighborhood: 'Bairro Inventado', neighborhoodId: null, pointAccount: { accumulated: 5 } },
+    ])
+    db.pointAccount.upsert.mockResolvedValue({ userId, accumulated: 100, balance: 100 })
+
+    const r = await app.inject({ method: 'GET', url: '/api/v1/ranking', headers: headers() })
+    expect(r.statusCode).toBe(200)
+    const body = r.json()
+    const cohama = body.neighborhoods.find((item: { neighborhood: string }) => item.neighborhood === 'Cohama')
+    expect(cohama).toMatchObject({ accumulatedPoints: 100, guardiansCount: 2 })
+    const unmatched = body.neighborhoods.filter((item: { neighborhood: string }) => item.neighborhood === 'Sem bairro')
+    expect(unmatched).toHaveLength(1)
+    expect(unmatched[0]).toMatchObject({ accumulatedPoints: 5, guardiansCount: 1 })
   })
 
   it('após crédito da trilha o total do bairro sobe exatamente pela soma esperada', async () => {

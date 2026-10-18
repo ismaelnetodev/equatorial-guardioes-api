@@ -120,7 +120,7 @@ async function findCatalogNeighborhoodById(id: string) {
   if (!catalog || catalog.municipalityCode !== '2111300') {
     throw new ReportError('INVALID_NEIGHBORHOOD', 'Selecione um bairro de São Luís ou informe Outro bairro.')
   }
-  return catalog.name
+  return { id: catalog.id, name: catalog.name }
 }
 
 async function findCatalogNeighborhoodByName(name: string) {
@@ -129,18 +129,18 @@ async function findCatalogNeighborhoodByName(name: string) {
       municipalityCode: '2111300',
       name: { equals: name, mode: 'insensitive' },
     },
-    select: { name: true },
+    select: { id: true, name: true },
   })
   if (!catalog) {
     throw new ReportError('INVALID_NEIGHBORHOOD', 'Selecione um bairro de São Luís ou informe Outro bairro.')
   }
-  return catalog.name
+  return catalog
 }
 
 async function resolveReportNeighborhood(
   userId: string,
   input: Pick<CreateReport, 'neighborhood' | 'neighborhoodId'>,
-): Promise<string> {
+): Promise<{ id: string; name: string }> {
   if (input.neighborhoodId) {
     return findCatalogNeighborhoodById(input.neighborhoodId)
   }
@@ -167,7 +167,7 @@ async function resolveReportNeighborhood(
 export async function createReport(userId: string, input: CreateReport) {
   await assertModuleZeroCompleted(userId)
   await validateReportPhoto(userId, input.photoUrl)
-  const neighborhood = await resolveReportNeighborhood(userId, input)
+  const resolved = await resolveReportNeighborhood(userId, input)
   const now = new Date()
   const report = await getPrisma().report.create({
     data: {
@@ -175,7 +175,8 @@ export async function createReport(userId: string, input: CreateReport) {
       title: input.title.trim(),
       description: input.description.trim(),
       address: input.address.trim(),
-      neighborhood,
+      neighborhood: resolved.name,
+      neighborhoodId: resolved.id,
       photoUrl: input.photoUrl ?? null,
       latitude: input.latitude ?? null,
       longitude: input.longitude ?? null,

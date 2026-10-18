@@ -45,6 +45,7 @@ export type ReportMinAggregateOutputType = {
   description: string | null
   address: string | null
   neighborhood: string | null
+  neighborhoodId: string | null
   photoUrl: string | null
   latitude: number | null
   longitude: number | null
@@ -67,6 +68,7 @@ export type ReportMaxAggregateOutputType = {
   description: string | null
   address: string | null
   neighborhood: string | null
+  neighborhoodId: string | null
   photoUrl: string | null
   latitude: number | null
   longitude: number | null
@@ -89,6 +91,7 @@ export type ReportCountAggregateOutputType = {
   description: number
   address: number
   neighborhood: number
+  neighborhoodId: number
   photoUrl: number
   latitude: number
   longitude: number
@@ -125,6 +128,7 @@ export type ReportMinAggregateInputType = {
   description?: true
   address?: true
   neighborhood?: true
+  neighborhoodId?: true
   photoUrl?: true
   latitude?: true
   longitude?: true
@@ -147,6 +151,7 @@ export type ReportMaxAggregateInputType = {
   description?: true
   address?: true
   neighborhood?: true
+  neighborhoodId?: true
   photoUrl?: true
   latitude?: true
   longitude?: true
@@ -169,6 +174,7 @@ export type ReportCountAggregateInputType = {
   description?: true
   address?: true
   neighborhood?: true
+  neighborhoodId?: true
   photoUrl?: true
   latitude?: true
   longitude?: true
@@ -278,6 +284,7 @@ export type ReportGroupByOutputType = {
   description: string
   address: string
   neighborhood: string
+  neighborhoodId: string | null
   photoUrl: string | null
   latitude: number | null
   longitude: number | null
@@ -323,6 +330,7 @@ export type ReportWhereInput = {
   description?: Prisma.StringFilter<"Report"> | string
   address?: Prisma.StringFilter<"Report"> | string
   neighborhood?: Prisma.StringFilter<"Report"> | string
+  neighborhoodId?: Prisma.StringNullableFilter<"Report"> | string | null
   photoUrl?: Prisma.StringNullableFilter<"Report"> | string | null
   latitude?: Prisma.FloatNullableFilter<"Report"> | number | null
   longitude?: Prisma.FloatNullableFilter<"Report"> | number | null
@@ -337,6 +345,7 @@ export type ReportWhereInput = {
   createdAt?: Prisma.DateTimeFilter<"Report"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"Report"> | Date | string
   user?: Prisma.XOR<Prisma.UserScalarRelationFilter, Prisma.UserWhereInput>
+  neighborhoodRecord?: Prisma.XOR<Prisma.NeighborhoodNullableScalarRelationFilter, Prisma.NeighborhoodWhereInput> | null
   timeline?: Prisma.ReportTimelineEventListRelationFilter
 }
 
@@ -347,6 +356,7 @@ export type ReportOrderByWithRelationInput = {
   description?: Prisma.SortOrder
   address?: Prisma.SortOrder
   neighborhood?: Prisma.SortOrder
+  neighborhoodId?: Prisma.SortOrderInput | Prisma.SortOrder
   photoUrl?: Prisma.SortOrderInput | Prisma.SortOrder
   latitude?: Prisma.SortOrderInput | Prisma.SortOrder
   longitude?: Prisma.SortOrderInput | Prisma.SortOrder
@@ -361,6 +371,7 @@ export type ReportOrderByWithRelationInput = {
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
   user?: Prisma.UserOrderByWithRelationInput
+  neighborhoodRecord?: Prisma.NeighborhoodOrderByWithRelationInput
   timeline?: Prisma.ReportTimelineEventOrderByRelationAggregateInput
 }
 
@@ -374,6 +385,7 @@ export type ReportWhereUniqueInput = Prisma.AtLeast<{
   description?: Prisma.StringFilter<"Report"> | string
   address?: Prisma.StringFilter<"Report"> | string
   neighborhood?: Prisma.StringFilter<"Report"> | string
+  neighborhoodId?: Prisma.StringNullableFilter<"Report"> | string | null
   photoUrl?: Prisma.StringNullableFilter<"Report"> | string | null
   latitude?: Prisma.FloatNullableFilter<"Report"> | number | null
   longitude?: Prisma.FloatNullableFilter<"Report"> | number | null
@@ -388,6 +400,7 @@ export type ReportWhereUniqueInput = Prisma.AtLeast<{
   createdAt?: Prisma.DateTimeFilter<"Report"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"Report"> | Date | string
   user?: Prisma.XOR<Prisma.UserScalarRelationFilter, Prisma.UserWhereInput>
+  neighborhoodRecord?: Prisma.XOR<Prisma.NeighborhoodNullableScalarRelationFilter, Prisma.NeighborhoodWhereInput> | null
   timeline?: Prisma.ReportTimelineEventListRelationFilter
 }, "id">
 
@@ -398,6 +411,7 @@ export type ReportOrderByWithAggregationInput = {
   description?: Prisma.SortOrder
   address?: Prisma.SortOrder
   neighborhood?: Prisma.SortOrder
+  neighborhoodId?: Prisma.SortOrderInput | Prisma.SortOrder
   photoUrl?: Prisma.SortOrderInput | Prisma.SortOrder
   latitude?: Prisma.SortOrderInput | Prisma.SortOrder
   longitude?: Prisma.SortOrderInput | Prisma.SortOrder
@@ -428,6 +442,7 @@ export type ReportScalarWhereWithAggregatesInput = {
   description?: Prisma.StringWithAggregatesFilter<"Report"> | string
   address?: Prisma.StringWithAggregatesFilter<"Report"> | string
   neighborhood?: Prisma.StringWithAggregatesFilter<"Report"> | string
+  neighborhoodId?: Prisma.StringNullableWithAggregatesFilter<"Report"> | string | null
   photoUrl?: Prisma.StringNullableWithAggregatesFilter<"Report"> | string | null
   latitude?: Prisma.FloatNullableWithAggregatesFilter<"Report"> | number | null
   longitude?: Prisma.FloatNullableWithAggregatesFilter<"Report"> | number | null
@@ -463,6 +478,7 @@ export type ReportCreateInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   user: Prisma.UserCreateNestedOneWithoutReportsInput
+  neighborhoodRecord?: Prisma.NeighborhoodCreateNestedOneWithoutReportsInput
   timeline?: Prisma.ReportTimelineEventCreateNestedManyWithoutReportInput
 }
 
@@ -473,6 +489,7 @@ export type ReportUncheckedCreateInput = {
   description: string
   address: string
   neighborhood: string
+  neighborhoodId?: string | null
   photoUrl?: string | null
   latitude?: number | null
   longitude?: number | null
@@ -509,6 +526,7 @@ export type ReportUpdateInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   user?: Prisma.UserUpdateOneRequiredWithoutReportsNestedInput
+  neighborhoodRecord?: Prisma.NeighborhoodUpdateOneWithoutReportsNestedInput
   timeline?: Prisma.ReportTimelineEventUpdateManyWithoutReportNestedInput
 }
 
@@ -519,6 +537,7 @@ export type ReportUncheckedUpdateInput = {
   description?: Prisma.StringFieldUpdateOperationsInput | string
   address?: Prisma.StringFieldUpdateOperationsInput | string
   neighborhood?: Prisma.StringFieldUpdateOperationsInput | string
+  neighborhoodId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   photoUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   latitude?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   longitude?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
@@ -542,6 +561,7 @@ export type ReportCreateManyInput = {
   description: string
   address: string
   neighborhood: string
+  neighborhoodId?: string | null
   photoUrl?: string | null
   latitude?: number | null
   longitude?: number | null
@@ -585,6 +605,7 @@ export type ReportUncheckedUpdateManyInput = {
   description?: Prisma.StringFieldUpdateOperationsInput | string
   address?: Prisma.StringFieldUpdateOperationsInput | string
   neighborhood?: Prisma.StringFieldUpdateOperationsInput | string
+  neighborhoodId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   photoUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   latitude?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   longitude?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
@@ -617,6 +638,7 @@ export type ReportCountOrderByAggregateInput = {
   description?: Prisma.SortOrder
   address?: Prisma.SortOrder
   neighborhood?: Prisma.SortOrder
+  neighborhoodId?: Prisma.SortOrder
   photoUrl?: Prisma.SortOrder
   latitude?: Prisma.SortOrder
   longitude?: Prisma.SortOrder
@@ -645,6 +667,7 @@ export type ReportMaxOrderByAggregateInput = {
   description?: Prisma.SortOrder
   address?: Prisma.SortOrder
   neighborhood?: Prisma.SortOrder
+  neighborhoodId?: Prisma.SortOrder
   photoUrl?: Prisma.SortOrder
   latitude?: Prisma.SortOrder
   longitude?: Prisma.SortOrder
@@ -667,6 +690,7 @@ export type ReportMinOrderByAggregateInput = {
   description?: Prisma.SortOrder
   address?: Prisma.SortOrder
   neighborhood?: Prisma.SortOrder
+  neighborhoodId?: Prisma.SortOrder
   photoUrl?: Prisma.SortOrder
   latitude?: Prisma.SortOrder
   longitude?: Prisma.SortOrder
@@ -735,6 +759,48 @@ export type ReportUncheckedUpdateManyWithoutUserNestedInput = {
   deleteMany?: Prisma.ReportScalarWhereInput | Prisma.ReportScalarWhereInput[]
 }
 
+export type ReportCreateNestedManyWithoutNeighborhoodRecordInput = {
+  create?: Prisma.XOR<Prisma.ReportCreateWithoutNeighborhoodRecordInput, Prisma.ReportUncheckedCreateWithoutNeighborhoodRecordInput> | Prisma.ReportCreateWithoutNeighborhoodRecordInput[] | Prisma.ReportUncheckedCreateWithoutNeighborhoodRecordInput[]
+  connectOrCreate?: Prisma.ReportCreateOrConnectWithoutNeighborhoodRecordInput | Prisma.ReportCreateOrConnectWithoutNeighborhoodRecordInput[]
+  createMany?: Prisma.ReportCreateManyNeighborhoodRecordInputEnvelope
+  connect?: Prisma.ReportWhereUniqueInput | Prisma.ReportWhereUniqueInput[]
+}
+
+export type ReportUncheckedCreateNestedManyWithoutNeighborhoodRecordInput = {
+  create?: Prisma.XOR<Prisma.ReportCreateWithoutNeighborhoodRecordInput, Prisma.ReportUncheckedCreateWithoutNeighborhoodRecordInput> | Prisma.ReportCreateWithoutNeighborhoodRecordInput[] | Prisma.ReportUncheckedCreateWithoutNeighborhoodRecordInput[]
+  connectOrCreate?: Prisma.ReportCreateOrConnectWithoutNeighborhoodRecordInput | Prisma.ReportCreateOrConnectWithoutNeighborhoodRecordInput[]
+  createMany?: Prisma.ReportCreateManyNeighborhoodRecordInputEnvelope
+  connect?: Prisma.ReportWhereUniqueInput | Prisma.ReportWhereUniqueInput[]
+}
+
+export type ReportUpdateManyWithoutNeighborhoodRecordNestedInput = {
+  create?: Prisma.XOR<Prisma.ReportCreateWithoutNeighborhoodRecordInput, Prisma.ReportUncheckedCreateWithoutNeighborhoodRecordInput> | Prisma.ReportCreateWithoutNeighborhoodRecordInput[] | Prisma.ReportUncheckedCreateWithoutNeighborhoodRecordInput[]
+  connectOrCreate?: Prisma.ReportCreateOrConnectWithoutNeighborhoodRecordInput | Prisma.ReportCreateOrConnectWithoutNeighborhoodRecordInput[]
+  upsert?: Prisma.ReportUpsertWithWhereUniqueWithoutNeighborhoodRecordInput | Prisma.ReportUpsertWithWhereUniqueWithoutNeighborhoodRecordInput[]
+  createMany?: Prisma.ReportCreateManyNeighborhoodRecordInputEnvelope
+  set?: Prisma.ReportWhereUniqueInput | Prisma.ReportWhereUniqueInput[]
+  disconnect?: Prisma.ReportWhereUniqueInput | Prisma.ReportWhereUniqueInput[]
+  delete?: Prisma.ReportWhereUniqueInput | Prisma.ReportWhereUniqueInput[]
+  connect?: Prisma.ReportWhereUniqueInput | Prisma.ReportWhereUniqueInput[]
+  update?: Prisma.ReportUpdateWithWhereUniqueWithoutNeighborhoodRecordInput | Prisma.ReportUpdateWithWhereUniqueWithoutNeighborhoodRecordInput[]
+  updateMany?: Prisma.ReportUpdateManyWithWhereWithoutNeighborhoodRecordInput | Prisma.ReportUpdateManyWithWhereWithoutNeighborhoodRecordInput[]
+  deleteMany?: Prisma.ReportScalarWhereInput | Prisma.ReportScalarWhereInput[]
+}
+
+export type ReportUncheckedUpdateManyWithoutNeighborhoodRecordNestedInput = {
+  create?: Prisma.XOR<Prisma.ReportCreateWithoutNeighborhoodRecordInput, Prisma.ReportUncheckedCreateWithoutNeighborhoodRecordInput> | Prisma.ReportCreateWithoutNeighborhoodRecordInput[] | Prisma.ReportUncheckedCreateWithoutNeighborhoodRecordInput[]
+  connectOrCreate?: Prisma.ReportCreateOrConnectWithoutNeighborhoodRecordInput | Prisma.ReportCreateOrConnectWithoutNeighborhoodRecordInput[]
+  upsert?: Prisma.ReportUpsertWithWhereUniqueWithoutNeighborhoodRecordInput | Prisma.ReportUpsertWithWhereUniqueWithoutNeighborhoodRecordInput[]
+  createMany?: Prisma.ReportCreateManyNeighborhoodRecordInputEnvelope
+  set?: Prisma.ReportWhereUniqueInput | Prisma.ReportWhereUniqueInput[]
+  disconnect?: Prisma.ReportWhereUniqueInput | Prisma.ReportWhereUniqueInput[]
+  delete?: Prisma.ReportWhereUniqueInput | Prisma.ReportWhereUniqueInput[]
+  connect?: Prisma.ReportWhereUniqueInput | Prisma.ReportWhereUniqueInput[]
+  update?: Prisma.ReportUpdateWithWhereUniqueWithoutNeighborhoodRecordInput | Prisma.ReportUpdateWithWhereUniqueWithoutNeighborhoodRecordInput[]
+  updateMany?: Prisma.ReportUpdateManyWithWhereWithoutNeighborhoodRecordInput | Prisma.ReportUpdateManyWithWhereWithoutNeighborhoodRecordInput[]
+  deleteMany?: Prisma.ReportScalarWhereInput | Prisma.ReportScalarWhereInput[]
+}
+
 export type NullableFloatFieldUpdateOperationsInput = {
   set?: number | null
   increment?: number
@@ -792,6 +858,7 @@ export type ReportCreateWithoutUserInput = {
   submittedAt?: Date | string
   createdAt?: Date | string
   updatedAt?: Date | string
+  neighborhoodRecord?: Prisma.NeighborhoodCreateNestedOneWithoutReportsInput
   timeline?: Prisma.ReportTimelineEventCreateNestedManyWithoutReportInput
 }
 
@@ -801,6 +868,7 @@ export type ReportUncheckedCreateWithoutUserInput = {
   description: string
   address: string
   neighborhood: string
+  neighborhoodId?: string | null
   photoUrl?: string | null
   latitude?: number | null
   longitude?: number | null
@@ -853,6 +921,7 @@ export type ReportScalarWhereInput = {
   description?: Prisma.StringFilter<"Report"> | string
   address?: Prisma.StringFilter<"Report"> | string
   neighborhood?: Prisma.StringFilter<"Report"> | string
+  neighborhoodId?: Prisma.StringNullableFilter<"Report"> | string | null
   photoUrl?: Prisma.StringNullableFilter<"Report"> | string | null
   latitude?: Prisma.FloatNullableFilter<"Report"> | number | null
   longitude?: Prisma.FloatNullableFilter<"Report"> | number | null
@@ -866,6 +935,78 @@ export type ReportScalarWhereInput = {
   submittedAt?: Prisma.DateTimeFilter<"Report"> | Date | string
   createdAt?: Prisma.DateTimeFilter<"Report"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"Report"> | Date | string
+}
+
+export type ReportCreateWithoutNeighborhoodRecordInput = {
+  id?: string
+  title: string
+  description: string
+  address: string
+  neighborhood: string
+  photoUrl?: string | null
+  latitude?: number | null
+  longitude?: number | null
+  status?: $Enums.ReportStatus
+  urgency?: $Enums.ReportUrgency
+  pointsAwarded?: number
+  confirmedRisk?: $Enums.ReportUrgency | null
+  requiresEmergencyTeam?: boolean | null
+  validatedAt?: Date | string | null
+  impactSeenAt?: Date | string | null
+  submittedAt?: Date | string
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  user: Prisma.UserCreateNestedOneWithoutReportsInput
+  timeline?: Prisma.ReportTimelineEventCreateNestedManyWithoutReportInput
+}
+
+export type ReportUncheckedCreateWithoutNeighborhoodRecordInput = {
+  id?: string
+  userId: string
+  title: string
+  description: string
+  address: string
+  neighborhood: string
+  photoUrl?: string | null
+  latitude?: number | null
+  longitude?: number | null
+  status?: $Enums.ReportStatus
+  urgency?: $Enums.ReportUrgency
+  pointsAwarded?: number
+  confirmedRisk?: $Enums.ReportUrgency | null
+  requiresEmergencyTeam?: boolean | null
+  validatedAt?: Date | string | null
+  impactSeenAt?: Date | string | null
+  submittedAt?: Date | string
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  timeline?: Prisma.ReportTimelineEventUncheckedCreateNestedManyWithoutReportInput
+}
+
+export type ReportCreateOrConnectWithoutNeighborhoodRecordInput = {
+  where: Prisma.ReportWhereUniqueInput
+  create: Prisma.XOR<Prisma.ReportCreateWithoutNeighborhoodRecordInput, Prisma.ReportUncheckedCreateWithoutNeighborhoodRecordInput>
+}
+
+export type ReportCreateManyNeighborhoodRecordInputEnvelope = {
+  data: Prisma.ReportCreateManyNeighborhoodRecordInput | Prisma.ReportCreateManyNeighborhoodRecordInput[]
+  skipDuplicates?: boolean
+}
+
+export type ReportUpsertWithWhereUniqueWithoutNeighborhoodRecordInput = {
+  where: Prisma.ReportWhereUniqueInput
+  update: Prisma.XOR<Prisma.ReportUpdateWithoutNeighborhoodRecordInput, Prisma.ReportUncheckedUpdateWithoutNeighborhoodRecordInput>
+  create: Prisma.XOR<Prisma.ReportCreateWithoutNeighborhoodRecordInput, Prisma.ReportUncheckedCreateWithoutNeighborhoodRecordInput>
+}
+
+export type ReportUpdateWithWhereUniqueWithoutNeighborhoodRecordInput = {
+  where: Prisma.ReportWhereUniqueInput
+  data: Prisma.XOR<Prisma.ReportUpdateWithoutNeighborhoodRecordInput, Prisma.ReportUncheckedUpdateWithoutNeighborhoodRecordInput>
+}
+
+export type ReportUpdateManyWithWhereWithoutNeighborhoodRecordInput = {
+  where: Prisma.ReportScalarWhereInput
+  data: Prisma.XOR<Prisma.ReportUpdateManyMutationInput, Prisma.ReportUncheckedUpdateManyWithoutNeighborhoodRecordInput>
 }
 
 export type ReportCreateWithoutTimelineInput = {
@@ -888,6 +1029,7 @@ export type ReportCreateWithoutTimelineInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   user: Prisma.UserCreateNestedOneWithoutReportsInput
+  neighborhoodRecord?: Prisma.NeighborhoodCreateNestedOneWithoutReportsInput
 }
 
 export type ReportUncheckedCreateWithoutTimelineInput = {
@@ -897,6 +1039,7 @@ export type ReportUncheckedCreateWithoutTimelineInput = {
   description: string
   address: string
   neighborhood: string
+  neighborhoodId?: string | null
   photoUrl?: string | null
   latitude?: number | null
   longitude?: number | null
@@ -948,6 +1091,7 @@ export type ReportUpdateWithoutTimelineInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   user?: Prisma.UserUpdateOneRequiredWithoutReportsNestedInput
+  neighborhoodRecord?: Prisma.NeighborhoodUpdateOneWithoutReportsNestedInput
 }
 
 export type ReportUncheckedUpdateWithoutTimelineInput = {
@@ -957,6 +1101,7 @@ export type ReportUncheckedUpdateWithoutTimelineInput = {
   description?: Prisma.StringFieldUpdateOperationsInput | string
   address?: Prisma.StringFieldUpdateOperationsInput | string
   neighborhood?: Prisma.StringFieldUpdateOperationsInput | string
+  neighborhoodId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   photoUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   latitude?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   longitude?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
@@ -978,6 +1123,7 @@ export type ReportCreateManyUserInput = {
   description: string
   address: string
   neighborhood: string
+  neighborhoodId?: string | null
   photoUrl?: string | null
   latitude?: number | null
   longitude?: number | null
@@ -1012,11 +1158,103 @@ export type ReportUpdateWithoutUserInput = {
   submittedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  neighborhoodRecord?: Prisma.NeighborhoodUpdateOneWithoutReportsNestedInput
   timeline?: Prisma.ReportTimelineEventUpdateManyWithoutReportNestedInput
 }
 
 export type ReportUncheckedUpdateWithoutUserInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
+  title?: Prisma.StringFieldUpdateOperationsInput | string
+  description?: Prisma.StringFieldUpdateOperationsInput | string
+  address?: Prisma.StringFieldUpdateOperationsInput | string
+  neighborhood?: Prisma.StringFieldUpdateOperationsInput | string
+  neighborhoodId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  photoUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  latitude?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  longitude?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  status?: Prisma.EnumReportStatusFieldUpdateOperationsInput | $Enums.ReportStatus
+  urgency?: Prisma.EnumReportUrgencyFieldUpdateOperationsInput | $Enums.ReportUrgency
+  pointsAwarded?: Prisma.IntFieldUpdateOperationsInput | number
+  confirmedRisk?: Prisma.NullableEnumReportUrgencyFieldUpdateOperationsInput | $Enums.ReportUrgency | null
+  requiresEmergencyTeam?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
+  validatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  impactSeenAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  submittedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  timeline?: Prisma.ReportTimelineEventUncheckedUpdateManyWithoutReportNestedInput
+}
+
+export type ReportUncheckedUpdateManyWithoutUserInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  title?: Prisma.StringFieldUpdateOperationsInput | string
+  description?: Prisma.StringFieldUpdateOperationsInput | string
+  address?: Prisma.StringFieldUpdateOperationsInput | string
+  neighborhood?: Prisma.StringFieldUpdateOperationsInput | string
+  neighborhoodId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  photoUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  latitude?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  longitude?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  status?: Prisma.EnumReportStatusFieldUpdateOperationsInput | $Enums.ReportStatus
+  urgency?: Prisma.EnumReportUrgencyFieldUpdateOperationsInput | $Enums.ReportUrgency
+  pointsAwarded?: Prisma.IntFieldUpdateOperationsInput | number
+  confirmedRisk?: Prisma.NullableEnumReportUrgencyFieldUpdateOperationsInput | $Enums.ReportUrgency | null
+  requiresEmergencyTeam?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
+  validatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  impactSeenAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  submittedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+}
+
+export type ReportCreateManyNeighborhoodRecordInput = {
+  id?: string
+  userId: string
+  title: string
+  description: string
+  address: string
+  neighborhood: string
+  photoUrl?: string | null
+  latitude?: number | null
+  longitude?: number | null
+  status?: $Enums.ReportStatus
+  urgency?: $Enums.ReportUrgency
+  pointsAwarded?: number
+  confirmedRisk?: $Enums.ReportUrgency | null
+  requiresEmergencyTeam?: boolean | null
+  validatedAt?: Date | string | null
+  impactSeenAt?: Date | string | null
+  submittedAt?: Date | string
+  createdAt?: Date | string
+  updatedAt?: Date | string
+}
+
+export type ReportUpdateWithoutNeighborhoodRecordInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  title?: Prisma.StringFieldUpdateOperationsInput | string
+  description?: Prisma.StringFieldUpdateOperationsInput | string
+  address?: Prisma.StringFieldUpdateOperationsInput | string
+  neighborhood?: Prisma.StringFieldUpdateOperationsInput | string
+  photoUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  latitude?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  longitude?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  status?: Prisma.EnumReportStatusFieldUpdateOperationsInput | $Enums.ReportStatus
+  urgency?: Prisma.EnumReportUrgencyFieldUpdateOperationsInput | $Enums.ReportUrgency
+  pointsAwarded?: Prisma.IntFieldUpdateOperationsInput | number
+  confirmedRisk?: Prisma.NullableEnumReportUrgencyFieldUpdateOperationsInput | $Enums.ReportUrgency | null
+  requiresEmergencyTeam?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
+  validatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  impactSeenAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  submittedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  user?: Prisma.UserUpdateOneRequiredWithoutReportsNestedInput
+  timeline?: Prisma.ReportTimelineEventUpdateManyWithoutReportNestedInput
+}
+
+export type ReportUncheckedUpdateWithoutNeighborhoodRecordInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  userId?: Prisma.StringFieldUpdateOperationsInput | string
   title?: Prisma.StringFieldUpdateOperationsInput | string
   description?: Prisma.StringFieldUpdateOperationsInput | string
   address?: Prisma.StringFieldUpdateOperationsInput | string
@@ -1037,8 +1275,9 @@ export type ReportUncheckedUpdateWithoutUserInput = {
   timeline?: Prisma.ReportTimelineEventUncheckedUpdateManyWithoutReportNestedInput
 }
 
-export type ReportUncheckedUpdateManyWithoutUserInput = {
+export type ReportUncheckedUpdateManyWithoutNeighborhoodRecordInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
+  userId?: Prisma.StringFieldUpdateOperationsInput | string
   title?: Prisma.StringFieldUpdateOperationsInput | string
   description?: Prisma.StringFieldUpdateOperationsInput | string
   address?: Prisma.StringFieldUpdateOperationsInput | string
@@ -1096,6 +1335,7 @@ export type ReportSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs =
   description?: boolean
   address?: boolean
   neighborhood?: boolean
+  neighborhoodId?: boolean
   photoUrl?: boolean
   latitude?: boolean
   longitude?: boolean
@@ -1110,6 +1350,7 @@ export type ReportSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs =
   createdAt?: boolean
   updatedAt?: boolean
   user?: boolean | Prisma.UserDefaultArgs<ExtArgs>
+  neighborhoodRecord?: boolean | Prisma.Report$neighborhoodRecordArgs<ExtArgs>
   timeline?: boolean | Prisma.Report$timelineArgs<ExtArgs>
   _count?: boolean | Prisma.ReportCountOutputTypeDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["report"]>
@@ -1121,6 +1362,7 @@ export type ReportSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Extens
   description?: boolean
   address?: boolean
   neighborhood?: boolean
+  neighborhoodId?: boolean
   photoUrl?: boolean
   latitude?: boolean
   longitude?: boolean
@@ -1135,6 +1377,7 @@ export type ReportSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Extens
   createdAt?: boolean
   updatedAt?: boolean
   user?: boolean | Prisma.UserDefaultArgs<ExtArgs>
+  neighborhoodRecord?: boolean | Prisma.Report$neighborhoodRecordArgs<ExtArgs>
 }, ExtArgs["result"]["report"]>
 
 export type ReportSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
@@ -1144,6 +1387,7 @@ export type ReportSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extens
   description?: boolean
   address?: boolean
   neighborhood?: boolean
+  neighborhoodId?: boolean
   photoUrl?: boolean
   latitude?: boolean
   longitude?: boolean
@@ -1158,6 +1402,7 @@ export type ReportSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extens
   createdAt?: boolean
   updatedAt?: boolean
   user?: boolean | Prisma.UserDefaultArgs<ExtArgs>
+  neighborhoodRecord?: boolean | Prisma.Report$neighborhoodRecordArgs<ExtArgs>
 }, ExtArgs["result"]["report"]>
 
 export type ReportSelectScalar = {
@@ -1167,6 +1412,7 @@ export type ReportSelectScalar = {
   description?: boolean
   address?: boolean
   neighborhood?: boolean
+  neighborhoodId?: boolean
   photoUrl?: boolean
   latitude?: boolean
   longitude?: boolean
@@ -1182,23 +1428,27 @@ export type ReportSelectScalar = {
   updatedAt?: boolean
 }
 
-export type ReportOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "userId" | "title" | "description" | "address" | "neighborhood" | "photoUrl" | "latitude" | "longitude" | "status" | "urgency" | "pointsAwarded" | "confirmedRisk" | "requiresEmergencyTeam" | "validatedAt" | "impactSeenAt" | "submittedAt" | "createdAt" | "updatedAt", ExtArgs["result"]["report"]>
+export type ReportOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "userId" | "title" | "description" | "address" | "neighborhood" | "neighborhoodId" | "photoUrl" | "latitude" | "longitude" | "status" | "urgency" | "pointsAwarded" | "confirmedRisk" | "requiresEmergencyTeam" | "validatedAt" | "impactSeenAt" | "submittedAt" | "createdAt" | "updatedAt", ExtArgs["result"]["report"]>
 export type ReportInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   user?: boolean | Prisma.UserDefaultArgs<ExtArgs>
+  neighborhoodRecord?: boolean | Prisma.Report$neighborhoodRecordArgs<ExtArgs>
   timeline?: boolean | Prisma.Report$timelineArgs<ExtArgs>
   _count?: boolean | Prisma.ReportCountOutputTypeDefaultArgs<ExtArgs>
 }
 export type ReportIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   user?: boolean | Prisma.UserDefaultArgs<ExtArgs>
+  neighborhoodRecord?: boolean | Prisma.Report$neighborhoodRecordArgs<ExtArgs>
 }
 export type ReportIncludeUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   user?: boolean | Prisma.UserDefaultArgs<ExtArgs>
+  neighborhoodRecord?: boolean | Prisma.Report$neighborhoodRecordArgs<ExtArgs>
 }
 
 export type $ReportPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   name: "Report"
   objects: {
     user: Prisma.$UserPayload<ExtArgs>
+    neighborhoodRecord: Prisma.$NeighborhoodPayload<ExtArgs> | null
     timeline: Prisma.$ReportTimelineEventPayload<ExtArgs>[]
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
@@ -1208,6 +1458,7 @@ export type $ReportPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs
     description: string
     address: string
     neighborhood: string
+    neighborhoodId: string | null
     photoUrl: string | null
     latitude: number | null
     longitude: number | null
@@ -1616,6 +1867,7 @@ readonly fields: ReportFieldRefs;
 export interface Prisma__ReportClient<T, Null = never, ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
   readonly [Symbol.toStringTag]: "PrismaPromise"
   user<T extends Prisma.UserDefaultArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.UserDefaultArgs<ExtArgs>>): Prisma.Prisma__UserClient<runtime.Types.Result.GetResult<Prisma.$UserPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
+  neighborhoodRecord<T extends Prisma.Report$neighborhoodRecordArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Report$neighborhoodRecordArgs<ExtArgs>>): Prisma.Prisma__NeighborhoodClient<runtime.Types.Result.GetResult<Prisma.$NeighborhoodPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
   timeline<T extends Prisma.Report$timelineArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Report$timelineArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$ReportTimelineEventPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
@@ -1652,6 +1904,7 @@ export interface ReportFieldRefs {
   readonly description: Prisma.FieldRef<"Report", 'String'>
   readonly address: Prisma.FieldRef<"Report", 'String'>
   readonly neighborhood: Prisma.FieldRef<"Report", 'String'>
+  readonly neighborhoodId: Prisma.FieldRef<"Report", 'String'>
   readonly photoUrl: Prisma.FieldRef<"Report", 'String'>
   readonly latitude: Prisma.FieldRef<"Report", 'Float'>
   readonly longitude: Prisma.FieldRef<"Report", 'Float'>
@@ -2063,6 +2316,25 @@ export type ReportDeleteManyArgs<ExtArgs extends runtime.Types.Extensions.Intern
    * Limit how many Reports to delete.
    */
   limit?: number
+}
+
+/**
+ * Report.neighborhoodRecord
+ */
+export type Report$neighborhoodRecordArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the Neighborhood
+   */
+  select?: Prisma.NeighborhoodSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the Neighborhood
+   */
+  omit?: Prisma.NeighborhoodOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.NeighborhoodInclude<ExtArgs> | null
+  where?: Prisma.NeighborhoodWhereInput
 }
 
 /**

@@ -316,6 +316,7 @@ export const ReportScalarFieldEnum = {
   description: 'description',
   address: 'address',
   neighborhood: 'neighborhood',
+  neighborhoodId: 'neighborhoodId',
   photoUrl: 'photoUrl',
   latitude: 'latitude',
   longitude: 'longitude',

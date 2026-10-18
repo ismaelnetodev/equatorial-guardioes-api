@@ -55,15 +55,30 @@ export function normalizeNeighborhoodLabel(value: string): string {
     .toLowerCase()
 }
 
-function rankingGroupKey(neighborhoodId: string | null, neighborhood: string): string {
-  if (neighborhoodId) return `id:${neighborhoodId}`
-  const normalized = normalizeNeighborhoodLabel(neighborhood)
-  return normalized ? `other:${normalized}` : 'other:sem-bairro'
-}
+const UNMATCHED_RANKING_KEY = 'other:sem-catalogo'
 
 function rankingDisplayName(neighborhood: string): string {
   const trimmed = neighborhood.trim()
   return trimmed || 'Sem bairro'
+}
+
+function resolveRankingGroup(
+  neighborhoodId: string | null,
+  neighborhood: string,
+  catalogById: Map<string, string>,
+  catalogByNormalized: Map<string, { id: string; name: string }>,
+): { key: string; label: string } {
+  if (neighborhoodId) {
+    const name = catalogById.get(neighborhoodId)
+    return {
+      key: `id:${neighborhoodId}`,
+      label: name ?? rankingDisplayName(neighborhood),
+    }
+  }
+  const normalized = normalizeNeighborhoodLabel(neighborhood)
+  const match = normalized ? catalogByNormalized.get(normalized) : undefined
+  if (match) return { key: `id:${match.id}`, label: match.name }
+  return { key: UNMATCHED_RANKING_KEY, label: 'Sem bairro' }
 }
 
 export async function getRanking(userId: string) {
@@ -74,19 +89,39 @@ export async function getRanking(userId: string) {
   if (!user) throw new Error('Usuário não encontrado.')
 
   const account = await getOrCreatePointAccount(userId)
-  const rows = await getPrisma().user.findMany({
-    select: {
-      neighborhood: true,
-      neighborhoodId: true,
-      pointAccount: { select: { accumulated: true } },
-    },
-  })
+  const [catalog, rows] = await Promise.all([
+    getPrisma().neighborhood.findMany({
+      where: { municipalityCode: '2111300' },
+      select: { id: true, name: true },
+    }),
+    getPrisma().user.findMany({
+      select: {
+        neighborhood: true,
+        neighborhoodId: true,
+        pointAccount: { select: { accumulated: true } },
+      },
+    }),
+  ])
 
-  const userKey = rankingGroupKey(user.neighborhoodId, user.neighborhood)
+  const catalogById = new Map(catalog.map((item) => [item.id, item.name]))
+  const catalogByNormalized = new Map(
+    catalog.map((item) => [normalizeNeighborhoodLabel(item.name), item]),
+  )
+
+  const userGroup = resolveRankingGroup(
+    user.neighborhoodId,
+    user.neighborhood,
+    catalogById,
+    catalogByNormalized,
+  )
   const byNeighborhood = new Map<string, { neighborhood: string; accumulatedPoints: number; guardiansCount: number }>()
   for (const row of rows) {
-    const key = rankingGroupKey(row.neighborhoodId, row.neighborhood)
-    const label = rankingDisplayName(row.neighborhood)
+    const { key, label } = resolveRankingGroup(
+      row.neighborhoodId,
+      row.neighborhood,
+      catalogById,
+      catalogByNormalized,
+    )
     const current = byNeighborhood.get(key) ?? { neighborhood: label, accumulatedPoints: 0, guardiansCount: 0 }
     current.accumulatedPoints += row.pointAccount?.accumulated ?? 0
     current.guardiansCount += 1
@@ -105,7 +140,7 @@ export async function getRanking(userId: string) {
       neighborhood: item.neighborhood,
       accumulatedPoints: item.accumulatedPoints,
       guardiansCount: item.guardiansCount,
-      isCurrentUserNeighborhood: item.key === userKey,
+      isCurrentUserNeighborhood: item.key === userGroup.key,
     }))
 
   const neighborhoodTotal =

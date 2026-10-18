@@ -74,9 +74,13 @@ beforeEach(async () => {
   db.neighborhood.findFirst.mockImplementation(async ({ where }: { where?: { name?: { equals?: string } } }) => {
     const name = where?.name?.equals
     if (!name) return null
-    const catalog = ['Cohama', 'Turú', 'Centro']
-    const matched = catalog.find((item) => item.toLowerCase() === name.toLowerCase())
-    return matched ? { name: matched } : null
+    const catalog = [
+      { id: 'nb-cohama', name: 'Cohama' },
+      { id: 'nb-turu', name: 'Turú' },
+      { id: 'nb-centro', name: 'Centro' },
+    ]
+    const matched = catalog.find((item) => item.name.toLowerCase() === name.toLowerCase())
+    return matched ? { id: matched.id, name: matched.name } : null
   })
   db.neighborhood.findUnique.mockResolvedValue(null)
   db.$transaction.mockImplementation(async (operation: (tx: typeof db) => Promise<unknown>) => operation(db))
@@ -150,7 +154,9 @@ describe('criação de relatos', () => {
       status: { code: 'SENT', label: 'Enviado', iconHint: 'check' },
       urgency: { code: 'MEDIUM', label: 'Urgência média' },
     })
-    expect(db.report.create).toHaveBeenCalledWith(expect.objectContaining({ data: expect.objectContaining({ userId, neighborhood: 'Cohama', pointsAwarded: 0 }) }))
+    expect(db.report.create).toHaveBeenCalledWith(expect.objectContaining({
+      data: expect.objectContaining({ userId, neighborhood: 'Cohama', neighborhoodId: 'nb-cohama', pointsAwarded: 0 }),
+    }))
     expect(r.json().timeline[0]).toMatchObject({ pending: false, status: { code: 'SENT' } })
   })
 
@@ -188,7 +194,7 @@ describe('criação de relatos', () => {
     expect(r.statusCode).toBe(201)
     expect(r.json()).toMatchObject({ neighborhood: 'Turú' })
     expect(db.report.create).toHaveBeenCalledWith(expect.objectContaining({
-      data: expect.objectContaining({ neighborhood: 'Turú' }),
+      data: expect.objectContaining({ neighborhood: 'Turú', neighborhoodId: 'nb-turu' }),
     }))
   })
 
@@ -231,6 +237,9 @@ describe('criação de relatos', () => {
     })
     expect(r.statusCode).toBe(201)
     expect(r.json()).toMatchObject({ neighborhood: 'Cohama' })
+    expect(db.report.create).toHaveBeenCalledWith(expect.objectContaining({
+      data: expect.objectContaining({ neighborhood: 'Cohama', neighborhoodId: 'nb-cohama' }),
+    }))
   })
 
   it('rejeita texto livre fora do catálogo', async () => {
