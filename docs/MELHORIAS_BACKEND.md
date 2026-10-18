@@ -199,3 +199,13 @@ Motivo de não executar agora: o mobile e os fluxos de progresso/treino dependem
 3. Consumir `canReport` no perfil/progresso para a aba Reportar
 4. Ligar o ícone de editar perfil a `PATCH /api/v1/perfil` (somente `name`)
 5. Aceitar bairro opcional no envio de relato; texto livre deve ser do catálogo (fallback no back)
+6. Exibir mensagem quando `pointsCapped` / `capReason: "DAILY_LIMIT"` / `pendingPoints` após concluir treinamento ou módulo
+
+## Catálogo de bairros (cadastro e relato)
+
+Cadastro (`auth.service`) e relato (`reports.service`) usam a **mesma** tabela `Neighborhood`.
+
+- Município coberto: IBGE **2111300 — São Luís/MA** (seed Prefeitura de São Luís / SEMGOP 2022).
+- Cadastro: `neighborhoodId` opcional; se informado, exige `municipalityCode = 2111300`; “Outro bairro” = texto sem id.
+- Relato: texto livre ou id validados no mesmo catálogo; grava `neighborhood` + `neighborhoodId`.
+- Ranking: agrega por id de catálogo (texto sem id é mapeado pelo nome normalizado; sem match → bucket único “Sem bairro”).
