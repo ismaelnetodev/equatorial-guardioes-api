@@ -137,21 +137,16 @@ async function findCatalogNeighborhoodByName(name: string) {
   return catalog
 }
 
-async function resolveReportNeighborhood(
-  userId: string,
-  input: Pick<CreateReport, 'neighborhood' | 'neighborhoodId'>,
-): Promise<{ id: string | null; name: string }> {
-  // Validação de catálogo só para valores enviados no body.
-  if (input.neighborhoodId) {
-    return findCatalogNeighborhoodById(input.neighborhoodId)
-  }
+function normalizeNeighborhoodText(value: string): string {
+  return value
+    .trim()
+    .replace(/\s+/g, ' ')
+    .normalize('NFD')
+    .replace(/\p{M}/gu, '')
+    .toLowerCase()
+}
 
-  const provided = input.neighborhood?.trim() ?? ''
-  if (provided.length >= 2) {
-    return findCatalogNeighborhoodByName(provided)
-  }
-
-  // Fallback do cadastro: grava o texto como está; id nulo se não houver match (ex.: Outro bairro).
+async function resolveFromUserProfile(userId: string): Promise<{ id: string | null; name: string }> {
   const user = await getPrisma().user.findUnique({
     where: { id: userId },
     select: { neighborhood: true, neighborhoodId: true },
@@ -163,6 +158,7 @@ async function resolveReportNeighborhood(
   if (fallback.length < 2) {
     throw new ReportError('INVALID_NEIGHBORHOOD', 'Informe o bairro do relato ou atualize o bairro do seu cadastro.')
   }
+  // Sem id no cadastro (ex.: Outro bairro): grava o texto; tenta match opcional no catálogo.
   const catalog = await getPrisma().neighborhood.findFirst({
     where: {
       municipalityCode: '2111300',
@@ -172,6 +168,38 @@ async function resolveReportNeighborhood(
   })
   if (catalog) return catalog
   return { id: null, name: fallback }
+}
+
+async function resolveReportNeighborhood(
+  userId: string,
+  input: Pick<CreateReport, 'neighborhood' | 'neighborhoodId'>,
+): Promise<{ id: string | null; name: string }> {
+  if (input.neighborhoodId) {
+    return findCatalogNeighborhoodById(input.neighborhoodId)
+  }
+
+  const provided = input.neighborhood?.trim() ?? ''
+  if (provided.length < 2) {
+    return resolveFromUserProfile(userId)
+  }
+
+  // Mesmo bairro do cadastro (normalizado): mesma regra do fallback, sem exigir catálogo.
+  const user = await getPrisma().user.findUnique({
+    where: { id: userId },
+    select: { neighborhood: true, neighborhoodId: true },
+  })
+  if (
+    user?.neighborhood &&
+    normalizeNeighborhoodText(provided) === normalizeNeighborhoodText(user.neighborhood)
+  ) {
+    if (user.neighborhoodId) {
+      return findCatalogNeighborhoodById(user.neighborhoodId)
+    }
+    return { id: null, name: provided }
+  }
+
+  // Bairro diferente do cadastro: deve existir no catálogo.
+  return findCatalogNeighborhoodByName(provided)
 }
 
 export async function createReport(userId: string, input: CreateReport) {

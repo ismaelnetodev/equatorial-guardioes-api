@@ -299,6 +299,48 @@ describe('criação de relatos', () => {
     }))
   })
 
+  it('aceita no body o mesmo Outro bairro do cadastro sem validar catálogo (201)', async () => {
+    const submittedAt = new Date('2026-10-16T12:00:00.000Z')
+    const bodyNeighborhood = 'Outro bairro'
+    db.user.findUnique
+      .mockResolvedValueOnce({ id: userId, role: 'USER' })
+      .mockResolvedValueOnce({ neighborhood: 'Outro bairro', neighborhoodId: null })
+    db.report.create.mockResolvedValue({
+      id: reportId,
+      title: 'Fio solto',
+      description: 'Risco',
+      address: 'Rua Y',
+      neighborhood: bodyNeighborhood,
+      neighborhoodId: null,
+      photoUrl: null,
+      latitude: null,
+      longitude: null,
+      status: 'SENT',
+      urgency: 'MEDIUM',
+      pointsAwarded: 0,
+      submittedAt,
+      timeline: [{ status: 'SENT', occurredAt: submittedAt }],
+    })
+
+    const r = await app.inject({
+      method: 'POST',
+      url: '/api/v1/relatos',
+      headers: headers(),
+      payload: {
+        title: 'Fio solto',
+        description: 'Risco',
+        address: 'Rua Y',
+        neighborhood: bodyNeighborhood,
+      },
+    })
+    expect(r.statusCode).toBe(201)
+    expect(r.json()).toMatchObject({ neighborhood: bodyNeighborhood })
+    expect(db.report.create).toHaveBeenCalledWith(expect.objectContaining({
+      data: expect.objectContaining({ neighborhood: bodyNeighborhood, neighborhoodId: null }),
+    }))
+    expect(db.neighborhood.findFirst).not.toHaveBeenCalled()
+  })
+
   it('rejeita neighborhoodId inexistente', async () => {
     db.neighborhood.findUnique.mockResolvedValue(null)
     const r = await app.inject({
