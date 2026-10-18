@@ -35,11 +35,16 @@ DB_HOST="$(extract_db_host)" || {
   exit 1
 }
 
+cd "${API_DIR}"
+ORPHAN_JSON="$(npm run --silent db:check:orphans)"
+
 echo "=============================================="
 echo " Runbook pos-merge (melhorias)"
 echo " Host do banco: ${DB_HOST}"
 echo " Backup: ${BACKUP_FILE}"
 echo " Log: ${LOG_FILE}"
+echo " Orfaos (somente leitura, nada sera apagado):"
+printf '%s\n' "${ORPHAN_JSON}"
 echo "=============================================="
 echo "Digite exatamente \"sim\" para continuar (qualquer outra coisa aborta):"
 read -r CONFIRM || true
@@ -49,13 +54,18 @@ if [[ "${CONFIRM}" != "sim" ]]; then
   exit 1
 fi
 
-mkdir -p "${BACKUPS_DIR}"
-: > "${LOG_FILE}"
-
 log() {
   local msg="$1"
   printf '%s %s\n' "$(date -Iseconds)" "${msg}" | tee -a "${LOG_FILE}"
 }
+
+mkdir -p "${BACKUPS_DIR}"
+: > "${LOG_FILE}"
+{
+  echo "----- db:check:orphans -----"
+  printf '%s\n' "${ORPHAN_JSON}"
+} >> "${LOG_FILE}"
+log "db:check:orphans registrado antes do backup"
 
 run_step() {
   local step_name="$1"
