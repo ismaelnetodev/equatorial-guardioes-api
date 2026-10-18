@@ -186,10 +186,22 @@ Sobre crédito em dobro: `creditPoints` é idempotente por `(reason, sourceType,
 ## 8. Qualidade (pré-merge)
 
 - `npm run typecheck`: ok (API + mobile)
-- `npm test`: 36 arquivos, 334 testes passando, 2 E2E skipped localmente (sem `DATABASE_URL`); no CI os E2E rodam com Postgres
+- `npm test` / E2E: ver abaixo
 - `npm run build`: ok (API + export Expo)
 - Linter ESLint: não configurado no monorepo; typecheck usado como checagem estática
-- E2E real: `ranking-trail.e2e.test.ts` (trilha→ranking + limite diário→claim)
+- CI: `.github/workflows/delivery.yml` (já existia) sobe Postgres 17, roda `db:deploy`, `typecheck`, `npm test` (inclui E2E quando `DATABASE_URL` está definida) e `build`. Triggers: PR, push em `main`/`melhorias`, `workflow_dispatch`.
+
+### E2E local (2026-10-18)
+
+```
+docker run -d --name pg-e2e -e POSTGRES_PASSWORD=postgres -p 5433:5432 postgres:16
+DATABASE_URL=postgresql://postgres:postgres@localhost:5433/postgres
+npm run db:deploy -w guardioes-api
+npm test -w guardioes-api -- src/modules/community/ranking-trail.e2e.test.ts
+```
+
+Resultado: `Test Files 1 passed (1)` · `Tests 2 passed (2)` · duração ~2.8s.
+Casos: trilha→ranking (delta 3+4+2) e limite diário→`pointsCapped`→claim.
 
 ## Proposta documentada (item D): questionário único
 

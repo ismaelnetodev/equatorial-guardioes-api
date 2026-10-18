@@ -54,7 +54,7 @@ suite('E2E ranking trail + daily cap queue', () => {
     await upsertConfig('module_completion', 'RULE', 2, true)
     await upsertConfig('post_test_improvement', 'RULE', 6, false)
     await upsertConfig('training_modules_daily', 'LIMIT', 2, true)
-    await upsertConfig('training_points_daily', 'LIMIT', 4, true)
+    await upsertConfig('training_points_daily', 'LIMIT', 10, true)
     await upsertConfig('module_minimum_time', 'LIMIT', 70, false)
     await upsertConfig('quiz_pass_score', 'LIMIT', 80, true)
     await upsertConfig('quiz_retry_interval', 'LIMIT', 0, false)
@@ -318,7 +318,7 @@ suite('E2E ranking trail + daily cap queue', () => {
     const accountBefore = await db.pointAccount.findUniqueOrThrow({ where: { userId: capUser.id } })
     expect(accountBefore.accumulated).toBe(0)
 
-    await upsertConfig('training_points_daily', 'LIMIT', 4, true)
+    await upsertConfig('training_points_daily', 'LIMIT', 10, true)
     // Move award creation to previous learning-day so release can grant on a fresh day bucket.
     const award = await db.learningAward.findUniqueOrThrow({
       where: {
@@ -348,6 +348,6 @@ suite('E2E ranking trail + daily cap queue', () => {
 
     await db.user.delete({ where: { id: capUser.id } })
     await db.trail.delete({ where: { id: capTrail.id } })
-    await upsertConfig('training_points_daily', 'LIMIT', 4, true)
+    await upsertConfig('training_points_daily', 'LIMIT', 10, true)
   }, 60_000)
 })
