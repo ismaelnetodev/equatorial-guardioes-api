@@ -25,13 +25,7 @@ async function backfill() {
     select: {
       id: true,
       pointsAwarded: true,
-      progress: {
-        select: {
-          userId: true,
-          moduleId: true,
-          module: { select: { trailId: true } },
-        },
-      },
+      progressId: true,
     },
     orderBy: { id: 'asc' },
   })
@@ -40,15 +34,26 @@ async function backfill() {
   let alreadyHad = 0
   let skippedOrphans = 0
   for (const attempt of attempts) {
-    const { userId, moduleId, module } = attempt.progress
-    const [user, trailModule, trail] = await Promise.all([
+    const progress = await db.moduleProgress.findUnique({
+      where: { id: attempt.progressId },
+      select: { userId: true, moduleId: true },
+    })
+    if (!progress) {
+      skippedOrphans += 1
+      console.warn(`orphan quiz attempt skipped id=${attempt.id} missingProgress=${attempt.progressId}`)
+      continue
+    }
+    const { userId, moduleId } = progress
+    const [user, trailModule] = await Promise.all([
       db.user.findUnique({ where: { id: userId }, select: { id: true } }),
-      db.trailModule.findUnique({ where: { id: moduleId }, select: { id: true } }),
-      db.trail.findUnique({ where: { id: module.trailId }, select: { id: true } }),
+      db.trailModule.findUnique({ where: { id: moduleId }, select: { id: true, trailId: true } }),
     ])
+    const trail = trailModule
+      ? await db.trail.findUnique({ where: { id: trailModule.trailId }, select: { id: true } })
+      : null
     if (!user || !trailModule || !trail) {
       skippedOrphans += 1
-      console.warn(`orphan quiz attempt skipped id=${attempt.id} missingUser=${user ? '' : userId} missingModule=${trailModule ? '' : moduleId} missingTrail=${trail ? '' : module.trailId}`)
+      console.warn(`orphan quiz attempt skipped id=${attempt.id} missingUser=${user ? '' : userId} missingModule=${trailModule ? '' : moduleId} missingTrail=${trail ? '' : trailModule?.trailId ?? 'unknown'}`)
       continue
     }
     const existing = await db.learningAward.findUnique({
@@ -74,7 +79,7 @@ async function backfill() {
           ruleKey: 'module_quiz',
           sourceId: moduleId,
           moduleId,
-          trailId: module.trailId,
+          trailId: trailModule.trailId,
         },
         new Date(),
       )
