@@ -46,10 +46,30 @@ function levelPayload(level: Awaited<ReturnType<typeof resolveGuardianLevel>>) {
   }
 }
 
+/** Normaliza rótulo de bairro sem catálogo (trim, sem acento, minúsculas). */
+export function normalizeNeighborhoodLabel(value: string): string {
+  return value
+    .trim()
+    .normalize('NFD')
+    .replace(/\p{M}/gu, '')
+    .toLowerCase()
+}
+
+function rankingGroupKey(neighborhoodId: string | null, neighborhood: string): string {
+  if (neighborhoodId) return `id:${neighborhoodId}`
+  const normalized = normalizeNeighborhoodLabel(neighborhood)
+  return normalized ? `other:${normalized}` : 'other:sem-bairro'
+}
+
+function rankingDisplayName(neighborhood: string): string {
+  const trimmed = neighborhood.trim()
+  return trimmed || 'Sem bairro'
+}
+
 export async function getRanking(userId: string) {
   const user = await getPrisma().user.findUnique({
     where: { id: userId },
-    select: { neighborhood: true },
+    select: { neighborhood: true, neighborhoodId: true },
   })
   if (!user) throw new Error('Usuário não encontrado.')
 
@@ -57,21 +77,24 @@ export async function getRanking(userId: string) {
   const rows = await getPrisma().user.findMany({
     select: {
       neighborhood: true,
+      neighborhoodId: true,
       pointAccount: { select: { accumulated: true } },
     },
   })
 
-  const byNeighborhood = new Map<string, { accumulatedPoints: number; guardiansCount: number }>()
+  const userKey = rankingGroupKey(user.neighborhoodId, user.neighborhood)
+  const byNeighborhood = new Map<string, { neighborhood: string; accumulatedPoints: number; guardiansCount: number }>()
   for (const row of rows) {
-    const key = row.neighborhood.trim() || 'Sem bairro'
-    const current = byNeighborhood.get(key) ?? { accumulatedPoints: 0, guardiansCount: 0 }
+    const key = rankingGroupKey(row.neighborhoodId, row.neighborhood)
+    const label = rankingDisplayName(row.neighborhood)
+    const current = byNeighborhood.get(key) ?? { neighborhood: label, accumulatedPoints: 0, guardiansCount: 0 }
     current.accumulatedPoints += row.pointAccount?.accumulated ?? 0
     current.guardiansCount += 1
     byNeighborhood.set(key, current)
   }
 
   const ranked = [...byNeighborhood.entries()]
-    .map(([neighborhood, stats]) => ({ neighborhood, ...stats }))
+    .map(([key, stats]) => ({ key, ...stats }))
     .sort((a, b) => {
       if (b.accumulatedPoints !== a.accumulatedPoints) return b.accumulatedPoints - a.accumulatedPoints
       if (b.guardiansCount !== a.guardiansCount) return b.guardiansCount - a.guardiansCount
@@ -82,7 +105,7 @@ export async function getRanking(userId: string) {
       neighborhood: item.neighborhood,
       accumulatedPoints: item.accumulatedPoints,
       guardiansCount: item.guardiansCount,
-      isCurrentUserNeighborhood: item.neighborhood === user.neighborhood,
+      isCurrentUserNeighborhood: item.key === userKey,
     }))
 
   const neighborhoodTotal =

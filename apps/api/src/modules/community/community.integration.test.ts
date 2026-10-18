@@ -44,6 +44,7 @@ beforeEach(async () => {
         role: 'USER',
         name: 'Ana Guardiã',
         neighborhood: 'Cohama',
+        neighborhoodId: 'nb-cohama',
         inviteCode: 'ABCD1234',
       }
     }
@@ -51,9 +52,9 @@ beforeEach(async () => {
   })
   db.user.findFirst.mockResolvedValue(null)
   db.user.findMany.mockResolvedValue([
-    { neighborhood: 'Cohama', pointAccount: { accumulated: 100 } },
-    { neighborhood: 'Cohama', pointAccount: { accumulated: 65 } },
-    { neighborhood: 'Centro', pointAccount: { accumulated: 200 } },
+    { neighborhood: 'Cohama', neighborhoodId: 'nb-cohama', pointAccount: { accumulated: 100 } },
+    { neighborhood: 'Cohama', neighborhoodId: 'nb-cohama', pointAccount: { accumulated: 65 } },
+    { neighborhood: 'Centro', neighborhoodId: 'nb-centro', pointAccount: { accumulated: 200 } },
   ])
   db.user.update.mockImplementation(async ({ data }: { data: { inviteCode?: string } }) => ({
     inviteCode: data.inviteCode ?? 'ABCD1234',
@@ -148,6 +149,80 @@ describe('GET /api/v1/ranking', () => {
       neighborhood: 'Cohama',
       neighborhoodSharePercent: 100,
     })
+  })
+
+  it('agrupa pelo neighborhoodId mesmo com grafia diferente no texto', async () => {
+    db.user.findMany.mockResolvedValue([
+      { neighborhood: 'COHAMA', neighborhoodId: 'nb-cohama', pointAccount: { accumulated: 40 } },
+      { neighborhood: 'Cohama', neighborhoodId: 'nb-cohama', pointAccount: { accumulated: 60 } },
+      { neighborhood: 'Centro', neighborhoodId: 'nb-centro', pointAccount: { accumulated: 10 } },
+    ])
+    db.pointAccount.upsert.mockResolvedValue({ userId, accumulated: 100, balance: 100 })
+
+    const r = await app.inject({ method: 'GET', url: '/api/v1/ranking', headers: headers() })
+    expect(r.statusCode).toBe(200)
+    const cohama = r.json().neighborhoods.find((item: { neighborhood: string }) => item.isCurrentUserNeighborhood)
+    expect(cohama).toMatchObject({ accumulatedPoints: 100, guardiansCount: 2 })
+  })
+
+  it('após crédito da trilha o total do bairro sobe exatamente pela soma esperada', async () => {
+    const expectedTrailPoints = 6 // module_completion 2 + module_quiz 4
+    db.user.findMany.mockResolvedValue([
+      { neighborhood: 'Cohama', neighborhoodId: 'nb-cohama', pointAccount: { accumulated: 100 } },
+      { neighborhood: 'Centro', neighborhoodId: 'nb-centro', pointAccount: { accumulated: 200 } },
+    ])
+    db.pointAccount.upsert.mockResolvedValue({ userId, accumulated: 100, balance: 100 })
+
+    const before = await app.inject({ method: 'GET', url: '/api/v1/ranking', headers: headers() })
+    expect(before.statusCode).toBe(200)
+    const beforeCohama = before.json().neighborhoods.find(
+      (item: { isCurrentUserNeighborhood: boolean }) => item.isCurrentUserNeighborhood,
+    )
+    expect(beforeCohama.accumulatedPoints).toBe(100)
+
+    const { creditPoints } = await import('../../lib/points-ledger.js')
+    db.pointAccount.upsert.mockResolvedValue({ userId, accumulated: 100, balance: 100 })
+    db.pointAccount.update.mockResolvedValue({
+      userId,
+      accumulated: 100 + expectedTrailPoints,
+      balance: 100 + expectedTrailPoints,
+    })
+    await creditPoints({
+      userId,
+      amount: 2,
+      reason: 'QUIZ_TRAINING',
+      sourceType: 'LearningAward',
+      sourceId: JSON.stringify([userId, 'module_completion', 'module-1']),
+    }, db as never)
+    await creditPoints({
+      userId,
+      amount: 4,
+      reason: 'QUIZ_POST',
+      sourceType: 'LearningAward',
+      sourceId: JSON.stringify([userId, 'module_quiz', 'module-1']),
+    }, db as never)
+
+    db.user.findMany.mockResolvedValue([
+      { neighborhood: 'Cohama', neighborhoodId: 'nb-cohama', pointAccount: { accumulated: 100 + expectedTrailPoints } },
+      { neighborhood: 'Centro', neighborhoodId: 'nb-centro', pointAccount: { accumulated: 200 } },
+    ])
+    db.pointAccount.upsert.mockResolvedValue({
+      userId,
+      accumulated: 100 + expectedTrailPoints,
+      balance: 100 + expectedTrailPoints,
+    })
+
+    const after = await app.inject({ method: 'GET', url: '/api/v1/ranking', headers: headers() })
+    expect(after.statusCode).toBe(200)
+    const afterCohama = after.json().neighborhoods.find(
+      (item: { isCurrentUserNeighborhood: boolean }) => item.isCurrentUserNeighborhood,
+    )
+    const afterCentro = after.json().neighborhoods.find(
+      (item: { neighborhood: string }) => item.neighborhood === 'Centro',
+    )
+    expect(afterCohama.accumulatedPoints - beforeCohama.accumulatedPoints).toBe(expectedTrailPoints)
+    expect(afterCentro.accumulatedPoints).toBe(200)
+    expect(db.pointLedgerEntry.create).toHaveBeenCalledTimes(2)
   })
 })
 
