@@ -121,20 +121,36 @@ Nenhum item A a H estava resolvido de forma completa em branch remota pendente d
 
 ### Relatos (H)
 
-- `POST /api/v1/relatos`
-- Antes: `neighborhood` obrigatório
-- Depois: `neighborhood` e `neighborhoodId` opcionais; body fora do catálogo -> 400 `INVALID_NEIGHBORHOOD`; fallback do cadastro (ex.: Outro bairro) grava texto com `neighborhoodId` nulo sem 400
-- Resposta/listagens: continuam com `neighborhood`
+- Rota: `POST /api/v1/relatos`
+- Antes: `neighborhood` obrigatorio no body
+- Depois: `neighborhood` e `neighborhoodId` opcionais. Regras:
+  1. `neighborhoodId` no body: sempre valida no catalogo de Sao Luis (IBGE 2111300). Id inexistente -> 400 `INVALID_NEIGHBORHOOD`.
+  2. Texto no body igual ao bairro do cadastro (normalizado: espacos colapsados, comparacao case-insensitive / sem diferenca de acentuacao tratada pela normalizacao do texto): aceito sem validar catalogo. Grava o texto enviado e o `neighborhoodId` do usuario (ou `null`), mesma regra do fallback.
+  3. Texto no body diferente do cadastro: exige match no catalogo; sem match -> 400 `INVALID_NEIGHBORHOOD`.
+  4. Sem `neighborhood` / `neighborhoodId` no body (ou string vazia / so espacos): fallback do cadastro (texto do perfil + id do usuario ou `null` se nao houver match opcional).
+- Resposta e listagens: continuam com `neighborhood` (e `neighborhoodId` quando houver).
+- Teste de regressao: `apps/api/src/modules/reports/reports.integration.test.ts` (body igual a "Outro bairro" do cadastro -> 201). Introduzido em `dff1f39` (o commit ja alterou o `.test.ts`; nao foi necessario recriar o caso).
+
+### Claim
+
+- Rota: `POST /api/v1/progress/learning-awards/claim`
+- Resposta: `{ "pointsReleased": number, "pendingPoints": number }`
+- Comportamento: libera apenas o que cabe no teto do dia (`training_points_daily` / `training_modules_daily`, fuso `America/Sao_Paulo`). O excedente permanece na fila (`pendingPoints`); ranking nao sobe alem do liberado.
+- Conferencia mobile (`git grep -n "learning-awards/claim" -- apps/mobile`):
+  - `apps/mobile/README.md` (documentacao das telas trilha e pontos)
+  - `apps/mobile/src/features/trails/progress.api.ts:10` (`refreshLearningSummary` chama o claim e descarta o body; em seguida le `GET /progress/learning`)
+  - `apps/mobile/src/services/api.types.ts:4309` (OpenAPI gerado tipa so `pointsReleased`)
+- Conclusao: o mobile nao le campos do body do claim. O formato antigo era `{ pointsReleased }`; o atual adiciona `pendingPoints` sem remover `pointsReleased` (mudanca so aditiva). Nenhum commit de compatibilidade foi necessario.
 
 ### Quiz e progresso (G): novos campos de resposta
 
-- `POST /api/v1/modules/:moduleId/training/complete`: além de `pointsAwarded`, retorna `pointsCapped`, `capReason` (`"DAILY_LIMIT"` ou `null`), `pendingPoints`
-- `POST /api/v1/progress/modules/:moduleId/complete`: mesmos campos opcionais quando há crédito de treino enfileirado
-- Pós-teste aprovado: 4 pontos (`module_quiz`) + melhoria quando aplicável
+- `POST /api/v1/modules/:moduleId/training/complete`: alem de `pointsAwarded`, retorna `pointsCapped`, `capReason` (`"DAILY_LIMIT"` ou `null`), `pendingPoints`
+- `POST /api/v1/progress/modules/:moduleId/complete`: mesmos campos opcionais quando ha credito de treino enfileirado
+- Pos-teste aprovado: 4 pontos (`module_quiz`) + melhoria quando aplicavel
 - Treinamento: 3 pontos (`training_completion`, validar com a equipe)
-- Front: se `pointsCapped`, exibir que pontos entram na fila e saem no dia seguinte (ou após `POST /api/v1/progress/learning-awards/claim`)
+- Front: se `pointsCapped`, exibir que pontos entram na fila e saem no dia seguinte (ou apos claim / tela de pontos)
 
-### Limites diários de treino e fila
+### Limites diarios de treino e fila
 
 | key | Seed | O que conta | Ao atingir |
 |-----|------|-------------|-----------|
@@ -171,7 +187,31 @@ Arquivos quentes nesta branch:
 
 Como as outras branches remotas estavam alinhadas com `main`, o risco atual é baixo. Se novas branches reabrirem os mesmos arquivos, preferir merges pequenos e preservar nomes de rota/campos já expostos (`canReport`, `PATCH /perfil`, `module_quiz`).
 
-### Commits na branch `melhorias` (após baseline `43163c2`)
+### Baseline e commits
+
+Base da branch em relacao a `main`: `9840b7b` (`origin/main` no sync inicial).
+
+Baseline interno `43163c2` (`chore(back): update melhorias report for pre-merge fixes`) e o ultimo commit da rodada A-H / pre-merge fixes. Os commits exclusivos entre a base e esse baseline (`git log --oneline 9840b7b..43163c2`):
+
+```
+43163c2 chore(back): update melhorias report for pre-merge fixes
+48443a8 fix(back): validate report neighborhood against catalog
+cfc535b fix(back): conditional module_quiz points migration
+4d27b8c fix(back): rank neighborhoods by catalog id
+a0d71b6 fix(back): restrict profile patch to name only
+de0eb96 chore(back): document melhorias backend report
+5aa24d5 fix(back): mock trail findFirst in admin progress tests
+f01f87b fix(back): persist report neighborhood with user fallback
+a9577b2 fix(back): ensure quiz and module stages award points
+9dce907 feat(back): add profile update endpoint
+8673d3e feat(back): expose canReport unlock status
+fd0b558 fix(back): credit neighborhood ranking sources
+022dde7 fix(back): ensure register does not issue tokens
+```
+
+A lista abaixo cobre apenas o que veio depois de `43163c2`.
+
+### Commits na branch `melhorias` (apos baseline `43163c2`)
 
 Rodada pontos/fila/ranking/E2E:
 
@@ -220,7 +260,7 @@ Ordem recomendada (na raiz ou `apps/api`, com `DATABASE_URL` configurada):
 
 Sob demanda: `npm run db:release:pending-points -w guardioes-api`.
 
-Sobre crédito em dobro: `creditPoints` é idempotente por `(reason, sourceType, sourceId)`. `db:reconcile:neighborhood` já chama `reconcileLearningPoints`. No pós-deploy, preferir a ordem acima sem repetir reconcile desnecessário.
+Sobre credito em dobro: `creditPoints` e idempotente por `(reason, sourceType, sourceId)`. `db:reconcile:neighborhood` ja chama `reconcileLearningPoints`. No pos-deploy, preferir a ordem acima sem repetir reconcile desnecessario.
 
 ## 8. Qualidade (pré-merge)
 
@@ -257,12 +297,14 @@ Motivo de não executar agora: o mobile e os fluxos de progresso/treino dependem
 
 ## Front/mobile (somente registro; sem alteração nesta branch)
 
-1. Após cadastro, não chamar `login()`; navegar para a tela de login
-2. Remover ou ocultar o botão Google até existir API
+Handoff detalhado: `docs/PENDENCIAS_FRONT.md`.
+
+1. Apos cadastro, nao chamar `login()`; navegar para a tela de login
+2. Remover ou ocultar o botao Google ate existir API
 3. Consumir `canReport` no perfil/progresso para a aba Reportar
-4. Ligar o ícone de editar perfil a `PATCH /api/v1/perfil` (somente `name`)
-5. Aceitar bairro opcional no envio de relato; texto livre deve ser do catálogo (fallback no back)
-6. Exibir mensagem quando `pointsCapped` / `capReason: "DAILY_LIMIT"` / `pendingPoints` após concluir treinamento ou módulo
+4. Ligar o icone de editar perfil a `PATCH /api/v1/perfil` (somente `name`)
+5. Bairro opcional no envio de relato: pode omitir o campo (fallback do cadastro). Se enviar texto igual ao cadastro (ex.: "Outro bairro"), o back aceita sem catalogo. Texto diferente do cadastro precisa ser do catalogo ou id valido; `neighborhoodId` no body sempre valida catalogo
+6. Exibir mensagem quando `pointsCapped` / `capReason: "DAILY_LIMIT"` / `pendingPoints` apos concluir treinamento ou modulo
 
 ## Catálogo de bairros (cadastro e relato)
 
