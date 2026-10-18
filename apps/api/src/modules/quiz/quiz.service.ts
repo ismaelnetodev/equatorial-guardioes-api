@@ -1,5 +1,5 @@
 import type { Prisma } from '../../generated/prisma/client.js'
-import { assertRetry, awardOnce, configuration, learningTransaction, minimumCorrect, moduleAwards, queueTrainingAward, releasePendingModules } from './learning-rules.service.js'
+import { assertRetry, awardOnce, configuration, learningTransaction, minimumCorrect, moduleAwards, queueTrainingAward, releasePendingModules, trainingPendingPoints } from './learning-rules.service.js'
 import { publishedModuleWhere, publishedTrailWhere } from '../../lib/content-visibility.js'
 import { getPrisma } from '../../lib/prisma.js'
 import type {
@@ -372,10 +372,15 @@ export async function completeTraining(userId: string, moduleId: string) {
       where: { userId_ruleKey_sourceId: { userId, ruleKey: 'training_completion', sourceId: moduleId } },
       select: { points: true, grantedAt: true },
     })
+    const pendingPoints = await trainingPendingPoints(tx, userId)
+    const capped = Boolean(award && !award.grantedAt && award.points > 0)
     return {
       moduleId,
       completed: true as const,
       pointsAwarded: award?.grantedAt ? award.points : 0,
+      pointsCapped: capped,
+      capReason: capped ? ('DAILY_LIMIT' as const) : null,
+      pendingPoints,
     }
   })
 }

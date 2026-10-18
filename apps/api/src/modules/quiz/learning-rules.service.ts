@@ -1,4 +1,5 @@
 import { Prisma } from '../../generated/prisma/client.js'
+import { arePointsDailyLimitsEnabled } from '../../lib/points-limits.js'
 import { getPrisma } from '../../lib/prisma.js'
 import { creditPoints } from '../../lib/points-ledger.js'
 
@@ -119,11 +120,22 @@ export async function queueTrainingAward(tx: Prisma.TransactionClient, userId: s
   return points
 }
 
+export async function trainingPendingPoints(tx: Prisma.TransactionClient, userId: string) {
+  const pending = await tx.learningAward.findMany({
+    where: { userId, ruleKey: { in: [...TRAINING_QUEUE_RULE_KEYS] }, grantedAt: null, points: { gt: 0 } },
+    select: { points: true },
+  })
+  return pending.reduce((sum, row) => sum + row.points, 0)
+}
+
 export async function releasePendingModules(tx: Prisma.TransactionClient, userId: string, now: Date) {
   const moduleRule = await configuration(tx, 'module_completion', 'RULE')
   const trainingRule = await configuration(tx, 'training_completion', 'RULE')
   const modulesLimit = await configuration(tx, 'training_modules_daily', 'LIMIT')
   const pointsLimit = await configuration(tx, 'training_points_daily', 'LIMIT')
+  const limitsEnabled = arePointsDailyLimitsEnabled()
+  const modulesLimitActive = limitsEnabled && modulesLimit.isActive
+  const pointsLimitActive = limitsEnabled && pointsLimit.isActive
   const pending = await tx.learningAward.findMany({
     where: { userId, ruleKey: { in: [...TRAINING_QUEUE_RULE_KEYS] }, grantedAt: null },
     orderBy: [{ createdAt: 'asc' }, { id: 'asc' }],
@@ -156,7 +168,7 @@ export async function releasePendingModules(tx: Prisma.TransactionClient, userId
     if (
       award.ruleKey === 'module_completion' &&
       award.points > 0 &&
-      modulesLimit.isActive &&
+      modulesLimitActive &&
       modulesLimit.value! < 1
     ) {
       continue
@@ -168,10 +180,10 @@ export async function releasePendingModules(tx: Prisma.TransactionClient, userId
       const modulesBlocked =
         award.ruleKey === 'module_completion' &&
         award.points > 0 &&
-        modulesLimit.isActive &&
+        modulesLimitActive &&
         bucket.count >= modulesLimit.value!
       const pointsBlocked =
-        award.points > 0 && pointsLimit.isActive && bucket.points + award.points > pointsLimit.value!
+        award.points > 0 && pointsLimitActive && bucket.points + award.points > pointsLimit.value!
       if (modulesBlocked || pointsBlocked) continue
       const grantedAt = day === today ? now : new Date(Math.max(day, award.createdAt.getTime()))
       await tx.learningAward.update({ where: { id: award.id }, data: { grantedAt } })

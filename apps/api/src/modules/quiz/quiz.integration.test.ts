@@ -471,7 +471,13 @@ describe('configuração v2 do aprendizado', () => {
     })
     const response = await app.inject({ method: 'POST', url: '/api/v1/modules/' + moduleId + '/training/complete', headers: headers() })
     expect(response.statusCode).toBe(200)
-    expect(response.json()).toMatchObject({ completed: true, pointsAwarded: 3 })
+    expect(response.json()).toMatchObject({
+      completed: true,
+      pointsAwarded: 3,
+      pointsCapped: false,
+      capReason: null,
+      pendingPoints: 0,
+    })
     expect(db.learningAward.create).toHaveBeenCalledWith(expect.objectContaining({
       data: expect.objectContaining({ ruleKey: 'training_completion', sourceId: moduleId, points: 3 }),
     }))
@@ -486,6 +492,40 @@ describe('configuração v2 do aprendizado', () => {
       data: expect.objectContaining({ trainingPointsAwarded: 3 }),
     }))
   })
+  it('informa pointsCapped quando o crédito de treinamento fica na fila', async () => {
+    settings.training_points_daily = { value: 0, isActive: true }
+    const queued = {
+      id: 'award-train',
+      userId,
+      ruleKey: 'training_completion',
+      sourceId: moduleId,
+      points: 3,
+      grantedAt: null as Date | null,
+      createdAt: new Date(),
+      created: false,
+    }
+    db.learningAward.findMany.mockImplementation(async ({ where }: { where: { grantedAt: null | object; points?: { gt: number } } }) => {
+      if (!queued.created) return []
+      if (where.grantedAt === null) return [queued]
+      return []
+    })
+    db.learningAward.create.mockImplementation(async ({ data }: { data: Record<string, unknown> }) => {
+      Object.assign(queued, data, { id: 'award-train', createdAt: new Date(), grantedAt: null, created: true })
+      return queued
+    })
+    db.learningAward.findUnique.mockImplementation(async () =>
+      queued.created ? { id: queued.id, points: queued.points, grantedAt: queued.grantedAt } : null,
+    )
+    const response = await app.inject({ method: 'POST', url: '/api/v1/modules/' + moduleId + '/training/complete', headers: headers() })
+    expect(response.statusCode).toBe(200)
+    expect(response.json()).toMatchObject({
+      completed: true,
+      pointsAwarded: 0,
+      pointsCapped: true,
+      capReason: 'DAILY_LIMIT',
+      pendingPoints: 3,
+    })
+  })
   it('não cria segundo award ao concluir treinamento de novo', async () => {
     db.moduleProgress.findUniqueOrThrow.mockResolvedValue({
       id: progressRecordId,
@@ -495,8 +535,14 @@ describe('configuração v2 do aprendizado', () => {
       trainingCompletedAt: new Date(),
     })
     db.learningAward.findUnique.mockResolvedValue({ id: 'award-train', points: 3, grantedAt: new Date() })
+    db.learningAward.findMany.mockResolvedValue([])
     const response = await app.inject({ method: 'POST', url: '/api/v1/modules/' + moduleId + '/training/complete', headers: headers() })
-    expect(response.json()).toMatchObject({ completed: true, pointsAwarded: 3 })
+    expect(response.json()).toMatchObject({
+      completed: true,
+      pointsAwarded: 3,
+      pointsCapped: false,
+      pendingPoints: 0,
+    })
     expect(db.learningAward.create).not.toHaveBeenCalled()
   })
   it('não permite substituir o pré-teste inicial', async () => {

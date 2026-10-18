@@ -38,12 +38,14 @@ beforeEach(async () => {
   db.moduleProgress.findUnique.mockResolvedValue({ id: moduleId })
   db.moduleProgress.update.mockResolvedValue({ completedAt: new Date() })
   db.programConfiguration.findUnique.mockImplementation(async ({ where }: { where: { key: string } }) => ({
-    key: where.key, kind: ['module_completion', 'module_quiz', 'post_test_improvement', 'final_exam'].includes(where.key) ? 'RULE' : 'LIMIT',
-    value: ({ module_completion: 2, module_quiz: 0, post_test_improvement: 6, quiz_pass_score: 80, training_modules_daily: 2, training_points_daily: 4, module_minimum_time: 70, post_test_improvement_awards: 1, final_exam: 10, final_exam_delay: 24, final_exam_awards: 1 } as Record<string, number>)[where.key] ?? null,
+    key: where.key, kind: ['module_completion', 'module_quiz', 'post_test_improvement', 'final_exam', 'training_completion'].includes(where.key) ? 'RULE' : 'LIMIT',
+    value: ({ module_completion: 2, module_quiz: 0, post_test_improvement: 6, training_completion: 3, quiz_pass_score: 80, training_modules_daily: 2, training_points_daily: 4, module_minimum_time: 70, post_test_improvement_awards: 1, final_exam: 10, final_exam_delay: 24, final_exam_awards: 1 } as Record<string, number>)[where.key] ?? null,
     isActive: true,
   }))
   db.learningAward.findMany.mockResolvedValue([])
   db.learningAward.findUnique.mockResolvedValue(null)
+  db.learningAward.create.mockImplementation(async ({ data }: { data: Record<string, unknown> }) => ({ id: 'award-1', grantedAt: null, ...data }))
+  db.learningAward.update.mockImplementation(async ({ data }: { data: Record<string, unknown> }) => ({ id: 'award-1', ...data }))
   db.learningAward.count.mockResolvedValue(0)
   db.moduleProgress.findUniqueOrThrow.mockImplementation(async () => ({ id: '33333333-3333-4333-8333-333333333333', startedAt: new Date(Date.now() - 3600000), completedAt: null, preTestCompletedAt: new Date(), trainingCompletedAt: null }))
   db.trail.findFirst.mockResolvedValue({ modules: [{ id: moduleId }] })
@@ -169,6 +171,7 @@ describe('integração do quiz', () => {
         module_completion: 2,
         module_quiz: 0,
         post_test_improvement: 6,
+        training_completion: 3,
         quiz_pass_score: 80,
         training_modules_daily: 2,
         training_points_daily: 4,
@@ -182,7 +185,7 @@ describe('integração do quiz', () => {
       }
       return {
         key: where.key,
-        kind: ['module_completion', 'module_quiz', 'post_test_improvement', 'final_exam'].includes(where.key) ? 'RULE' : 'LIMIT',
+        kind: ['module_completion', 'module_quiz', 'post_test_improvement', 'final_exam', 'training_completion'].includes(where.key) ? 'RULE' : 'LIMIT',
         value: values[where.key] ?? null,
         isActive: true,
       }

@@ -107,6 +107,19 @@ describe('conclusão de módulos v2', () => {
     for (const module of ['a', 'b', 'c']) await queueModuleAward(tx, 'user', module, 'trail')
     expect(await releasePendingModules(tx, 'user', now)).toEqual({ pointsReleased: 6 })
   })
+  it('ignora limites diários quando POINTS_DAILY_LIMITS_ENABLED=false', async () => {
+    const previous = process.env['POINTS_DAILY_LIMITS_ENABLED']
+    process.env['POINTS_DAILY_LIMITS_ENABLED'] = 'false'
+    try {
+      settings.training_modules_daily!.value = 1
+      settings.training_points_daily!.value = 2
+      for (const module of ['a', 'b', 'c']) await queueModuleAward(tx, 'user', module, 'trail')
+      expect(await releasePendingModules(tx, 'user', now)).toEqual({ pointsReleased: 6 })
+    } finally {
+      if (previous === undefined) delete process.env['POINTS_DAILY_LIMITS_ENABLED']
+      else process.env['POINTS_DAILY_LIMITS_ENABLED'] = previous
+    }
+  })
   it('libera training_completion na mesma fila de pontos diários', async () => {
     await queueTrainingAward(tx, 'user', 'm1', 'trail')
     expect(await releasePendingModules(tx, 'user', now)).toEqual({ pointsReleased: 3 })

@@ -11,6 +11,9 @@ export const moduleProgressSchema = Type.Object({
   moduleId: Type.String({ format: 'uuid' }), title: Type.String(), order: Type.Integer({ minimum: 1 }), status: moduleStatusSchema,
   readingSeconds: Type.Integer({ minimum: 0 }),
   requiresQuiz: Type.Boolean(), startedAt: Type.Union([Type.String({ format: 'date-time' }), Type.Null()]), completedAt: Type.Union([Type.String({ format: 'date-time' }), Type.Null()]),
+  pointsCapped: Type.Optional(Type.Boolean({ description: 'Presente após complete; true quando crédito ficou na fila' })),
+  capReason: Type.Optional(Type.Union([Type.Literal('DAILY_LIMIT'), Type.Null()])),
+  pendingPoints: Type.Optional(Type.Integer({ minimum: 0 })),
 }, { additionalProperties: false })
 export const trailProgressResponseSchema = Type.Object({
   trailId: Type.String({ format: 'uuid' }),

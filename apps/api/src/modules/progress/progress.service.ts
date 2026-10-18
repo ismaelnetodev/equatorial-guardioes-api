@@ -1,5 +1,5 @@
 import { estimateReadingSeconds } from '../../lib/reading-time.js'
-import { assertMinimumTime, learningTransaction, queueModuleAward, releasePendingModules } from '../quiz/learning-rules.service.js'
+import { assertMinimumTime, learningTransaction, queueModuleAward, releasePendingModules, trainingPendingPoints } from '../quiz/learning-rules.service.js'
 import { publishedTrailWhere, publishedModuleWhere } from '../../lib/content-visibility.js'
 import { maybeAwardInviteOnModule0 } from '../../lib/invite-attribution.js'
 import { getPrisma } from '../../lib/prisma.js'
@@ -9,7 +9,19 @@ import { getQuizCompletionStatus } from '../quiz/quiz.service.js'
 import { getModuleStatus, type ModuleStatus } from '../../lib/module-status.js'
 export type { ModuleStatus } from '../../lib/module-status.js'
 const readingSelect = { content: true, trainingSteps: { select: { title: true, introText: true, cards: { select: { title: true, description: true } } } } } as const
-export interface ModuleProgressView { readingSeconds: number; moduleId: string; title: string; order: number; status: ModuleStatus; requiresQuiz: boolean; startedAt: string | null; completedAt: string | null }
+export interface ModuleProgressView {
+  readingSeconds: number
+  moduleId: string
+  title: string
+  order: number
+  status: ModuleStatus
+  requiresQuiz: boolean
+  startedAt: string | null
+  completedAt: string | null
+  pointsCapped?: boolean
+  capReason?: 'DAILY_LIMIT' | null
+  pendingPoints?: number
+}
 
 export class ProgressError extends Error {
   constructor(public readonly code: 'MODULE_NOT_FOUND' | 'MODULE_LOCKED' | 'MODULE_NOT_STARTED' | 'MODULE_ALREADY_COMPLETED' | 'QUIZ_REQUIRED' | 'QUIZ_NOT_IMPLEMENTED', message: string) { super(message) }
@@ -69,7 +81,25 @@ export async function completeModule(userId: string, moduleId: string): Promise<
     await queueModuleAward(tx, userId, moduleId, module.trailId)
     await releasePendingModules(tx, userId, now)
     await maybeAwardInviteOnModule0(userId, moduleId, tx)
-    return result
+    const award = await tx.learningAward.findUnique({
+      where: { userId_ruleKey_sourceId: { userId, ruleKey: 'module_completion', sourceId: moduleId } },
+      select: { points: true, grantedAt: true },
+    })
+    const pendingPoints = await trainingPendingPoints(tx, userId)
+    const capped = Boolean(award && !award.grantedAt && award.points > 0)
+    return {
+      completedAt: result.completedAt,
+      pointsCapped: capped,
+      capReason: capped ? ('DAILY_LIMIT' as const) : null,
+      pendingPoints,
+    }
   })
-  return { ...state, status: 'completed', completedAt: completed.completedAt?.toISOString() ?? new Date().toISOString() }
+  return {
+    ...state,
+    status: 'completed',
+    completedAt: completed.completedAt?.toISOString() ?? new Date().toISOString(),
+    pointsCapped: completed.pointsCapped,
+    capReason: completed.capReason,
+    pendingPoints: completed.pendingPoints,
+  }
 }

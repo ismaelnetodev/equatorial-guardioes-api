@@ -170,4 +170,7 @@ export const trainingCompleteResponseSchema = Type.Object({
   moduleId: uuid,
   completed: Type.Literal(true),
   pointsAwarded: Type.Integer({ minimum: 0 }),
+  pointsCapped: Type.Boolean({ description: 'true quando o crédito ficou na fila por limite diário' }),
+  capReason: Type.Union([Type.Literal('DAILY_LIMIT'), Type.Null()]),
+  pendingPoints: Type.Integer({ minimum: 0, description: 'Pontos de treino ainda na fila do usuário' }),
 }, { additionalProperties: false })
