@@ -137,6 +137,7 @@ dist
 
 # Expo and workspace environments
 .expo/
+.build-tmp/
 web-build/
 .env.*
 !.env.example

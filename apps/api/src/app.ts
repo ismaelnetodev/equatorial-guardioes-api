@@ -16,10 +16,19 @@ import { reportsRoutes } from './modules/reports/reports.routes.js'
 import { communityRoutes } from './modules/community/community.routes.js'
 import { buildCorsOptions } from './lib/cors.js'
 import { neighborhoodsRoutes } from './modules/neighborhoods/neighborhoods.routes.js'
+import { Type } from 'typebox'
 
 export async function buildApp(options: FastifyServerOptions = {}) {
   const corsOptions = buildCorsOptions()
-  const app = Fastify({ logger: true, ...options }).withTypeProvider<TypeBoxTypeProvider>()
+  const proxyHops = Number(process.env['TRUST_PROXY_HOPS'] ?? 0)
+  if (!Number.isSafeInteger(proxyHops) || proxyHops < 0) {
+    throw new Error('TRUST_PROXY_HOPS deve ser um número inteiro não negativo.')
+  }
+  const app = Fastify({
+    logger: true,
+    trustProxy: (_address: string, hop: number) => hop < proxyHops,
+    ...options,
+  }).withTypeProvider<TypeBoxTypeProvider>()
 
   app.setErrorHandler((error, request, reply) => {
     request.log.error({ err: error }, 'Falha ao processar requisição')
@@ -65,6 +74,11 @@ export async function buildApp(options: FastifyServerOptions = {}) {
     },
   })
   await app.register(swaggerUi, { routePrefix: '/documentation' })
+
+  app.get('/api/v1/health', { schema: {
+    tags: ['Health'], summary: 'Verifica se o processo da API está disponível',
+    response: { 200: Type.Object({ status: Type.Literal('ok') }) },
+  } }, async () => ({ status: 'ok' as const }))
 
   await app.register(adminRoutes, { prefix: '/api/v1/admin' })
   await app.register(rewardsAdminRoutes, { prefix: '/api/v1/admin/points-rewards' })

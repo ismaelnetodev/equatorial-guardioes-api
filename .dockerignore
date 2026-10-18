@@ -1,0 +1,17 @@
+**/node_modules
+**/dist
+**/.expo
+**/.venv
+**/__pycache__
+**/chroma_db
+**/.env
+**/.env.*
+.git
+.github
+.agents
+.claude
+.windsurf
+.codex
+.build-tmp
+**/*.log
+coverage
