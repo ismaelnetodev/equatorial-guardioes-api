@@ -128,7 +128,9 @@ export async function getRanking(userId: string) {
     byNeighborhood.set(key, current)
   }
 
+  // Bucket sem catálogo fica fora do ranking público (não há rota admin de ranking hoje).
   const ranked = [...byNeighborhood.entries()]
+    .filter(([key]) => key !== UNMATCHED_RANKING_KEY)
     .map(([key, stats]) => ({ key, ...stats }))
     .sort((a, b) => {
       if (b.accumulatedPoints !== a.accumulatedPoints) return b.accumulatedPoints - a.accumulatedPoints

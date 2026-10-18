@@ -182,9 +182,7 @@ describe('GET /api/v1/ranking', () => {
     const body = r.json()
     const cohama = body.neighborhoods.find((item: { neighborhood: string }) => item.neighborhood === 'Cohama')
     expect(cohama).toMatchObject({ accumulatedPoints: 100, guardiansCount: 2 })
-    const unmatched = body.neighborhoods.filter((item: { neighborhood: string }) => item.neighborhood === 'Sem bairro')
-    expect(unmatched).toHaveLength(1)
-    expect(unmatched[0]).toMatchObject({ accumulatedPoints: 5, guardiansCount: 1 })
+    expect(body.neighborhoods.every((item: { neighborhood: string }) => item.neighborhood !== 'Sem bairro')).toBe(true)
   })
 
   it('após crédito da trilha o total do bairro sobe exatamente pela soma esperada', async () => {
