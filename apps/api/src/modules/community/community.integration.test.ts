@@ -308,7 +308,7 @@ describe('GET /api/v1/perfil', () => {
 })
 
 describe('PATCH /api/v1/perfil', () => {
-  it('atualiza nome e bairro e devolve o perfil', async () => {
+  it('atualiza apenas o nome e devolve o perfil', async () => {
     db.user.update.mockResolvedValue({})
     db.user.findUnique
       .mockResolvedValueOnce({
@@ -318,32 +318,30 @@ describe('PATCH /api/v1/perfil', () => {
         neighborhood: 'Cohama',
         inviteCode: 'ABCD1234',
       })
-      .mockResolvedValueOnce({ name: 'Ana Silva', neighborhood: 'Centro' })
+      .mockResolvedValueOnce({ name: 'Ana Silva', neighborhood: 'Cohama' })
 
+    const r = await app.inject({
+      method: 'PATCH',
+      url: '/api/v1/perfil',
+      headers: headers(),
+      payload: { name: 'Ana Silva' },
+    })
+    expect(r.statusCode).toBe(200)
+    expect(r.json()).toMatchObject({ name: 'Ana Silva', neighborhood: 'Cohama', canReport: true })
+    expect(db.user.update).toHaveBeenCalledWith({
+      where: { id: userId },
+      data: { name: 'Ana Silva' },
+    })
+  })
+
+  it('rejeita tentativa de alterar bairro pelo perfil', async () => {
     const r = await app.inject({
       method: 'PATCH',
       url: '/api/v1/perfil',
       headers: headers(),
       payload: { name: 'Ana Silva', neighborhood: 'Centro' },
     })
-    expect(r.statusCode).toBe(200)
-    expect(r.json()).toMatchObject({ name: 'Ana Silva', neighborhood: 'Centro', canReport: true })
-    expect(db.user.update).toHaveBeenCalledWith({
-      where: { id: userId },
-      data: { name: 'Ana Silva', neighborhood: 'Centro', neighborhoodId: null },
-    })
-  })
-
-  it('rejeita bairro de catálogo inválido', async () => {
-    db.neighborhood.findUnique.mockResolvedValue(null)
-    const r = await app.inject({
-      method: 'PATCH',
-      url: '/api/v1/perfil',
-      headers: headers(),
-      payload: { neighborhoodId: 'bairro-inexistente' },
-    })
     expect(r.statusCode).toBe(400)
-    expect(r.json()).toMatchObject({ code: 'INVALID_NEIGHBORHOOD' })
     expect(db.user.update).not.toHaveBeenCalled()
   })
 })

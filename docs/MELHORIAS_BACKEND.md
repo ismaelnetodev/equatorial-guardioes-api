@@ -104,9 +104,10 @@ Nenhum item A–H estava resolvido de forma completa em branch remota pendente d
 ### Atualização de perfil (F)
 
 - Nova rota: `PATCH /api/v1/perfil`
-- Body (mínimo um campo): `{ name?, neighborhood?, neighborhoodId? }`
+- Body: `{ name }` (apenas o nome; `neighborhood` e `neighborhoodId` não são aceitos)
 - Resposta: mesmo formato de `GET /perfil` (incluindo `canReport`)
-- Ícone caneta deve chamar este endpoint
+- Troca de bairro fica restrita ao admin
+- Ícone caneta deve chamar este endpoint só para o nome
 
 ### Relatos (H)
 

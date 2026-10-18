@@ -76,6 +76,19 @@ export async function getProfileController(request: FastifyRequest, reply: Fasti
   return withAuth(request, reply, (userId) => getProfile(userId))
 }
 
+export async function rejectProfileNeighborhoodFields(
+  request: FastifyRequest,
+  reply: FastifyReply,
+) {
+  const raw = request.body as Record<string, unknown> | undefined
+  if (raw && ('neighborhood' in raw || 'neighborhoodId' in raw)) {
+    return reply.status(400).send({
+      code: 'VALIDATION_ERROR',
+      message: 'A troca de bairro é restrita ao administrador. Envie apenas o nome.',
+    })
+  }
+}
+
 export async function updateProfileController(
   request: FastifyRequest<{ Body: UpdateProfileBody }>,
   reply: FastifyReply,
