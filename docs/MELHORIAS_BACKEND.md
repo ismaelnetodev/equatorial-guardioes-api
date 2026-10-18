@@ -33,7 +33,7 @@ Todas as branches remotas analisadas estavam sem commits exclusivos em relação
 
 - Classificação: só back-end
 - Causa: (1) `maybeAwardInviteOnModule0` importado e não chamado em `completeModule`; (2) resolução de relato gravava `pointsAwarded` sem `creditPoints` no extrato/`PointAccount.accumulated`; (3) agregação usava texto `neighborhood` e podia fragmentar o mesmo bairro
-- O que foi feito: convite na conclusão do módulo 0; crédito `REPORT_CONFIRM`; script `db:reconcile:neighborhood`; ranking agrega por id de catálogo (texto sem id mapeado ao catálogo; sem match -> “Sem bairro”); backfill `db:backfill:user-neighborhood-id`; E2E real trilha->ranking + fila
+- O que foi feito: convite na conclusão do módulo 0; crédito `REPORT_CONFIRM`; script `db:reconcile:neighborhood`; ranking por id de catálogo (sem match fora do ranking público); backfill `db:backfill:user-neighborhood-id`; E2E real trilha->ranking + fila
 - Commits: `fd0b558`, `4d27b8c`, `6b43e86` `fix(back): backfill neighborhood ids and rank by catalog`; `9348701` `test(back): e2e ranking trail and daily cap queue`
 
 ### C. Login Google e funções sem uso
@@ -123,7 +123,7 @@ Nenhum item A a H estava resolvido de forma completa em branch remota pendente d
 
 - `POST /api/v1/relatos`
 - Antes: `neighborhood` obrigatório
-- Depois: `neighborhood` e `neighborhoodId` opcionais; vazio/espaços = fallback do cadastro; texto livre e id devem existir no catálogo; inválido -> 400 `INVALID_NEIGHBORHOOD`
+- Depois: `neighborhood` e `neighborhoodId` opcionais; body fora do catálogo -> 400 `INVALID_NEIGHBORHOOD`; fallback do cadastro (ex.: Outro bairro) grava texto com `neighborhoodId` nulo sem 400
 - Resposta/listagens: continuam com `neighborhood`
 
 ### Quiz e progresso (G): novos campos de resposta
@@ -188,7 +188,7 @@ Sobre crédito em dobro: `creditPoints` é idempotente por `(reason, sourceType,
 ## 8. Qualidade (pré-merge)
 
 - `npm run typecheck`: ok (API + mobile)
-- `npm test` / E2E: ver abaixo
+- `npm test`: 37 arquivos, 342 testes passando (inclui E2E com `DATABASE_URL` no Postgres local/`pg-e2e`)
 - `npm run build`: ok (API + export Expo)
 - Linter ESLint: não configurado no monorepo; typecheck usado como checagem estática
 - CI: `.github/workflows/delivery.yml` (já existia) sobe Postgres 17, roda `db:deploy`, `typecheck`, `npm test` (inclui E2E quando `DATABASE_URL` está definida) e `build`. Triggers: PR, push em `main`/`melhorias`, `workflow_dispatch`.
