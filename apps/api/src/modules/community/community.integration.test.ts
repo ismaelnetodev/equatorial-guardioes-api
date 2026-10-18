@@ -161,7 +161,7 @@ describe('GET /api/v1/ranking', () => {
 
     const r = await app.inject({ method: 'GET', url: '/api/v1/ranking', headers: headers() })
     expect(r.statusCode).toBe(200)
-    const cohama = r.json().neighborhoods.find((item: { neighborhood: string }) => item.isCurrentUserNeighborhood)
+    const cohama = r.json().neighborhoods.find((item: { isCurrentUserNeighborhood: boolean }) => item.isCurrentUserNeighborhood)
     expect(cohama).toMatchObject({ accumulatedPoints: 100, guardiansCount: 2 })
   })
 

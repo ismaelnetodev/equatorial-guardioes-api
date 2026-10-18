@@ -74,13 +74,8 @@ beforeEach(async () => {
   db.neighborhood.findFirst.mockImplementation(async ({ where }: { where?: { name?: { equals?: string } } }) => {
     const name = where?.name?.equals
     if (!name) return null
-    const known: Record<string, string> = {
-      Cohama: 'Cohama',
-      cohama: 'Cohama',
-      Turú: 'Turú',
-      'Turú': 'Turú',
-    }
-    const matched = known[name] ?? Object.entries(known).find(([key]) => key.toLowerCase() === name.toLowerCase())?.[1]
+    const catalog = ['Cohama', 'Turú', 'Centro']
+    const matched = catalog.find((item) => item.toLowerCase() === name.toLowerCase())
     return matched ? { name: matched } : null
   })
   db.neighborhood.findUnique.mockResolvedValue(null)

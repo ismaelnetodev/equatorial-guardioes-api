@@ -7,15 +7,15 @@ Stash: não houve alterações locais; `git stash` não foi necessário.
 
 ## 1. Estado das branches remotas
 
-| Branch | Autor (último commit à frente) | Commits à frente de main | Arquivos de back-end | Relação com A–H |
-|--------|--------------------------------|--------------------------|----------------------|-----------------|
-| origin/emelly/mobile-backend-integration | (já em main) | 0 | nenhum pendente | — |
-| origin/emelly/profile-screens | (já em main) | 0 | nenhum pendente | — |
+| Branch | Autor (último commit à frente) | Commits à frente de main | Arquivos de back-end | Relação com A a H |
+|--------|--------------------------------|--------------------------|----------------------|-------------------|
+| origin/emelly/mobile-backend-integration | (já em main) | 0 | nenhum pendente | (nenhuma) |
+| origin/emelly/profile-screens | (já em main) | 0 | nenhum pendente | (nenhuma) |
 | origin/feat/backend_elias | (já em main) | 0 | nenhum pendente | comunidade/relatos/aprender já na main |
-| origin/feat/modulo-ia | (já em main) | 0 | nenhum pendente | — |
-| origin/feat/painel-admin-maranhao | (já em main) | 0 | nenhum pendente | — |
+| origin/feat/modulo-ia | (já em main) | 0 | nenhum pendente | (nenhuma) |
+| origin/feat/painel-admin-maranhao | (já em main) | 0 | nenhum pendente | (nenhuma) |
 | origin/fix/modulos | (já em main) | 0 | nenhum pendente | pontos de aprendizagem já na main |
-| origin/melhorias | (não existia no sync) | criada nesta entrega | ver itens abaixo | A–H |
+| origin/melhorias | criada nesta entrega | ver commits | ver itens abaixo | A a H |
 
 Todas as branches remotas analisadas estavam sem commits exclusivos em relação a `main`. Não houve reimplementação de trabalho paralelo.
 
@@ -56,6 +56,7 @@ Todas as branches remotas analisadas estavam sem commits exclusivos em relação
 - Classificação: back-end + front
 - Causa: regra existia (`REPORTS_LOCKED`) mas o status não era exposto ao cliente
 - O que foi feito: constante `REPORTS_UNLOCK_AFTER_INITIAL_MODULE` e helpers em `lib/reports-unlock.ts`; campo `canReport` em `GET /api/v1/perfil` e `GET /api/v1/progress/trails/:trailId`
+- Confirmação: `assertModuleZeroCompleted` (guard de criação de relato) e o campo `canReport` usam a mesma função `canReport` de `lib/reports-unlock.ts`
 - Arquivos: `reports-unlock.ts`, `community.*`, `progress.*`, `reports.service.ts`, testes
 - Commit: `8673d3e` `feat(back): expose canReport unlock status`
 
@@ -82,21 +83,21 @@ Todas as branches remotas analisadas estavam sem commits exclusivos em relação
 | Conclusão do módulo | `module_completion` | 2 | Fila + limites `training_*_daily` |
 | Prova final | `final_exam` | 10 | 1x |
 
-- O que foi feito: migration `20261018180000_module_quiz_points` atualiza `module_quiz` para 4 **somente se value = 0** (não sobrescreve ajuste admin); script `db:backfill:module-quiz`; testes. O valor 4 precisa de validação da equipe de produto.
+- O que foi feito: migration `20261018180000_module_quiz_points` atualiza `module_quiz` para 4 somente se `value = 0` (não sobrescreve ajuste admin); script `db:backfill:module-quiz`; testes. O valor 4 precisa de validação da equipe de produto.
 - Arquivos: migration, `backfill-module-quiz-awards.ts`, `quiz.integration.test.ts`, `package.json`
-- Commits: `a9577b2` `fix(back): ensure quiz and module stages award points`; `fix(back): conditional module_quiz points migration`
+- Commits: `a9577b2` `fix(back): ensure quiz and module stages award points`; `cfc535b` `fix(back): conditional module_quiz points migration`
 
 ### H. Bairro no relato
 
 - Classificação: só back-end
-- Causa: `neighborhood` era obrigatório no body e não havia fallback para o bairro do usuário
-- O que foi feito: `neighborhood` opcional; `neighborhoodId` opcional com validação de catálogo; fallback para `User.neighborhood`; bairro permanece na resposta e listagens
+- Causa: `neighborhood` era obrigatório no body e não havia fallback para o bairro do usuário; texto livre não era validado no catálogo
+- O que foi feito: `neighborhood` opcional; string vazia ou só espaços tratada como ausente (fallback); texto livre e id validados no catálogo de São Luís (`INVALID_NEIGHBORHOOD`); bairro na resposta e listagens
 - Arquivos: `reports.schemas.ts`, `reports.service.ts`, `reports.controller.ts`, testes
-- Commit: `f01f87b` `fix(back): persist report neighborhood with user fallback`
+- Commits: `f01f87b` `fix(back): persist report neighborhood with user fallback`; `48443a8` `fix(back): validate report neighborhood against catalog`
 
 ## 3. Itens já resolvidos em outras branches
 
-Nenhum item A–H estava resolvido de forma completa em branch remota pendente de merge: todas as branches listadas já estavam contidas em `main`.
+Nenhum item A a H estava resolvido de forma completa em branch remota pendente de merge: todas as branches listadas já estavam contidas em `main`.
 
 ## 4. Mudanças de contrato da API (front/mobile)
 
@@ -124,12 +125,12 @@ Nenhum item A–H estava resolvido de forma completa em branch remota pendente d
 
 - `POST /api/v1/relatos`
 - Antes: `neighborhood` obrigatório
-- Depois: `neighborhood` e `neighborhoodId` opcionais; se omitidos, usa o bairro do cadastro; `neighborhoodId` inválido → 400 `INVALID_NEIGHBORHOOD`
+- Depois: `neighborhood` e `neighborhoodId` opcionais; vazio/espaços = fallback do cadastro; texto livre e id devem existir no catálogo; inválido → 400 `INVALID_NEIGHBORHOOD`
 - Resposta/listagens: continuam com `neighborhood`
 
 ### Quiz (G)
 
-- Comportamento: pós-teste aprovado passa a conceder 4 pontos (`module_quiz`), além da melhoria quando aplicável
+- Comportamento: pós-teste aprovado passa a conceder 4 pontos (`module_quiz`), além da melhoria quando aplicável (valor sugerido; validar com a equipe)
 - Front: continuar exibindo `pointsAwarded` / `totalPoints` do finish do pós-teste
 
 ## 5. Candidatos a remoção (não removidos)
@@ -155,31 +156,28 @@ Como as outras branches remotas estavam alinhadas com `main`, o risco atual é b
 
 ## 7. Migrations e scripts de correção
 
-Na pasta `apps/api` (com `DATABASE_URL` configurada):
+Ordem recomendada (em `apps/api`, com `DATABASE_URL` configurada):
+
+1. Backup do banco
+2. `npm run db:deploy`
+3. `npm run db:backfill:module-quiz`
+4. `npm run db:reconcile:neighborhood`
+
+Sobre crédito em dobro: `db:reconcile:neighborhood` já chama `reconcileLearningPoints` internamente. `creditPoints` é idempotente por `(reason, sourceType, sourceId)`. Rodar `db:reconcile:points` e depois `db:reconcile:neighborhood` não duplica créditos de aprendizagem. No pós-deploy, preferir apenas `db:reconcile:neighborhood`.
+
+Comandos auxiliares:
 
 ```bash
-npm run db:deploy
-# ou, em desenvolvimento:
 npm run db:migrate
-```
-
-Recálculo idempotente de pontos/ranking (aprendizagem + convites + relatos resolvidos):
-
-```bash
-npm run db:reconcile:neighborhood
-```
-
-Backfill de prêmios `module_quiz` para pós-testes já aprovados sem LearningAward:
-
-```bash
-npm run db:backfill:module-quiz
-```
-
-Reconciliação apenas de aprendizagem (já existente):
-
-```bash
 npm run db:reconcile:points
 ```
+
+## 8. Qualidade (pré-merge)
+
+- `npm run typecheck`: ok (API + mobile)
+- `npm test`: 35 arquivos, 324 testes, todos passando
+- `npm run build`: ok (API + export Expo)
+- Linter ESLint: não configurado no monorepo; typecheck usado como checagem estática
 
 ## Proposta documentada (item D): questionário único
 
@@ -199,5 +197,5 @@ Motivo de não executar agora: o mobile e os fluxos de progresso/treino dependem
 1. Após cadastro, não chamar `login()`; navegar para a tela de login
 2. Remover ou ocultar o botão Google até existir API
 3. Consumir `canReport` no perfil/progresso para a aba Reportar
-4. Ligar o ícone de editar perfil a `PATCH /api/v1/perfil`
-5. Aceitar bairro opcional no envio de relato (fallback no back)
+4. Ligar o ícone de editar perfil a `PATCH /api/v1/perfil` (somente `name`)
+5. Aceitar bairro opcional no envio de relato; texto livre deve ser do catálogo (fallback no back)
