@@ -165,7 +165,7 @@ beforeEach(async () => {
   db.$transaction.mockImplementation(async (operation: (tx: typeof db) => Promise<unknown>) => operation(db))
   db.programConfiguration.findUnique.mockImplementation(async ({ where }: { where: { key: string } }) => ({
     key: where.key, kind: ['module_completion', 'module_quiz', 'post_test_improvement', 'final_exam'].includes(where.key) ? 'RULE' : 'LIMIT',
-    value: ({ module_completion: 2, module_quiz: 0, post_test_improvement: 6, quiz_pass_score: 80, training_modules_daily: 2, training_points_daily: 4, module_minimum_time: 70, post_test_improvement_awards: 1, final_exam: 10, final_exam_delay: 24, final_exam_awards: 1 } as Record<string, number>)[where.key] ?? null,
+    value: ({ module_completion: 2, module_quiz: 4, post_test_improvement: 6, quiz_pass_score: 80, training_modules_daily: 2, training_points_daily: 4, module_minimum_time: 70, post_test_improvement_awards: 1, final_exam: 10, final_exam_delay: 24, final_exam_awards: 1 } as Record<string, number>)[where.key] ?? null,
     isActive: true,
     ...settings[where.key],
   }))
@@ -338,8 +338,11 @@ describe('pós-teste', () => {
       correctCount: 2,
       totalCount: 2,
       minimumCorrect: 2,
-      pointsAwarded: 6,
+      pointsAwarded: 10,
     })
+    expect(db.learningAward.create).toHaveBeenCalledWith(expect.objectContaining({
+      data: expect.objectContaining({ ruleKey: 'module_quiz', points: 4 }),
+    }))
   })
 
   it('reprova abaixo da nota mínima e sugere revisar o treino', async () => {
@@ -404,27 +407,35 @@ describe('configuração v2 do aprendizado', () => {
   })
   it('não pontua melhoria quando a regra está desativada', async () => {
     tenQuestions(10)
+    settings.module_quiz = { value: 4, isActive: false }
     settings.post_test_improvement = { value: 6, isActive: false }
     expect((await finish()).json()).toMatchObject({ isApproved: true, pointsAwarded: 0 })
     expect(db.learningAward.create).not.toHaveBeenCalled()
   })
-  it('não pontua novamente uma melhoria já concedida', async () => {
+  it('não pontua novamente o quiz nem a melhoria já concedidos', async () => {
     tenQuestions(10)
-    db.learningAward.findUnique.mockResolvedValue({ points: 6 })
+    db.learningAward.findUnique.mockResolvedValue({ points: 4 })
+    db.learningAward.count.mockResolvedValue(1)
     expect((await finish()).json()).toMatchObject({ pointsAwarded: 0 })
     expect(db.learningAward.create).not.toHaveBeenCalled()
   })
-  it('não pontua quando não houve melhoria mensurável', async () => {
+  it('não pontua quiz nem melhoria quando a aprovação falha e não há melhoria', async () => {
     tenQuestions(4)
-    expect((await finish()).json()).toMatchObject({ pointsAwarded: 0 })
+    expect((await finish()).json()).toMatchObject({ pointsAwarded: 0, isApproved: false })
     expect(db.learningAward.create).not.toHaveBeenCalled()
   })
-  it('aplica regra configurável do quiz sem repeti-la por módulo', async () => {
+  it('concede pontos do pós-teste aprovado pela regra module_quiz', async () => {
     tenQuestions(10)
-    settings.module_quiz = { value: 4, isActive: true }
     settings.post_test_improvement = { value: 6, isActive: false }
-    expect((await finish()).json()).toMatchObject({ pointsAwarded: 4 })
+    expect((await finish()).json()).toMatchObject({ isApproved: true, pointsAwarded: 4 })
     expect(db.learningAward.create).toHaveBeenCalledWith(expect.objectContaining({ data: expect.objectContaining({ ruleKey: 'module_quiz', sourceId: moduleId, points: 4 }) }))
+    expect(db.pointLedgerEntry.create).toHaveBeenCalledWith({
+      data: expect.objectContaining({
+        delta: 4,
+        reason: 'QUIZ_POST',
+        sourceType: 'LearningAward',
+      }),
+    })
   })
   it('conclui treinamento sem pontos', async () => {
     const response = await app.inject({ method: 'POST', url: '/api/v1/modules/' + moduleId + '/training/complete', headers: headers() })

@@ -18,7 +18,8 @@
     "db:seed:demo": "tsx src/scripts/seed-demo-trails.ts",
     "db:seed:modules": "tsx src/scripts/seed-guardioes-modules.ts",
     "db:reconcile:points": "tsx src/scripts/reconcile-learning-points.ts",
-    "db:reconcile:neighborhood": "tsx src/scripts/reconcile-neighborhood-points.ts"
+    "db:reconcile:neighborhood": "tsx src/scripts/reconcile-neighborhood-points.ts",
+    "db:backfill:module-quiz": "tsx src/scripts/backfill-module-quiz-awards.ts"
   },
   "keywords": [],
   "author": "",
