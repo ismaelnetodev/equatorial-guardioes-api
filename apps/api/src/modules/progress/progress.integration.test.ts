@@ -144,4 +144,58 @@ describe('integração do quiz', () => {
     expect(r.json()).toMatchObject({ code: 'QUIZ_REQUIRED' })
     expect(db.moduleProgress.update).not.toHaveBeenCalled()
   })
+  it('credita o convite ao concluir o módulo 0 e alimenta o ranking do bairro', async () => {
+    const inviterId = '22222222-2222-4222-8222-222222222222'
+    const attributionId = 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa'
+    db.inviteAttribution.findUnique.mockResolvedValue({
+      id: attributionId,
+      inviterId,
+      module0CompletedAt: null,
+      pointsAwarded: 0,
+    })
+    db.inviteAttribution.count.mockResolvedValue(0)
+    db.inviteAttribution.update.mockResolvedValue({})
+    db.programConfiguration.findUnique.mockImplementation(async ({ where }: { where: { key: string } }) => {
+      const values: Record<string, number> = {
+        module_completion: 2,
+        module_quiz: 0,
+        post_test_improvement: 6,
+        quiz_pass_score: 80,
+        training_modules_daily: 2,
+        training_points_daily: 4,
+        module_minimum_time: 70,
+        post_test_improvement_awards: 1,
+        final_exam: 10,
+        final_exam_delay: 24,
+        final_exam_awards: 1,
+        invite_module0_reward: 50,
+        invite_reward_limit: 10,
+      }
+      return {
+        key: where.key,
+        kind: ['module_completion', 'module_quiz', 'post_test_improvement', 'final_exam'].includes(where.key) ? 'RULE' : 'LIMIT',
+        value: values[where.key] ?? null,
+        isActive: true,
+      }
+    })
+    db.pointAccount.upsert.mockResolvedValue({ userId: inviterId, accumulated: 0, balance: 0 })
+    db.pointAccount.update.mockResolvedValue({ userId: inviterId, accumulated: 50, balance: 50 })
+    db.pointLedgerEntry.create.mockResolvedValue({ id: 'ledger-invite' })
+
+    const r = await app.inject({ method: 'POST', url: completeUrl, headers: headers() })
+    expect(r.statusCode).toBe(200)
+    expect(db.pointLedgerEntry.create).toHaveBeenCalledWith({
+      data: expect.objectContaining({
+        userId: inviterId,
+        delta: 50,
+        reason: 'INVITE_REWARD',
+        sourceType: 'InviteAttribution',
+        sourceId: attributionId,
+      }),
+    })
+    expect(db.inviteAttribution.update).toHaveBeenCalledWith({
+      where: { id: attributionId },
+      data: expect.objectContaining({ pointsAwarded: 50 }),
+    })
+  })
 })

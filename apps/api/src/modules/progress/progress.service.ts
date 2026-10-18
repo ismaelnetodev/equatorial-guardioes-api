@@ -62,6 +62,7 @@ export async function completeModule(userId: string, moduleId: string): Promise<
     const result = await tx.moduleProgress.update({ where: { id: progress.id }, data: { completedAt: now }, select: { completedAt: true } })
     await queueModuleAward(tx, userId, moduleId, module.trailId)
     await releasePendingModules(tx, userId, now)
+    await maybeAwardInviteOnModule0(userId, moduleId, tx)
     return result
   })
   return { ...state, status: 'completed', completedAt: completed.completedAt?.toISOString() ?? new Date().toISOString() }

@@ -1,6 +1,7 @@
 import { reportPhotoUrl, validateReportPhoto } from './report-photo.service.js'
 import { Prisma } from '../../generated/prisma/client.js'
 import { publishedModuleWhere, publishedTrailWhere } from '../../lib/content-visibility.js'
+import { creditPoints } from '../../lib/points-ledger.js'
 import { getPrisma } from '../../lib/prisma.js'
 import type {
   AdminReportStatusBody,
@@ -423,7 +424,7 @@ export async function updateAdminReportStatus(reportId: string, input: AdminRepo
           data: { reportId, status: input.status, occurredAt: now },
         })
       }
-      return tx.report.update({
+      const updated = await tx.report.update({
         where: { id: reportId },
         data: {
           status: input.status,
@@ -448,6 +449,19 @@ export async function updateAdminReportStatus(reportId: string, input: AdminRepo
           submittedAt: true,
         },
       })
+      if (validating && nextPoints > 0) {
+        await creditPoints(
+          {
+            userId: report.userId,
+            amount: nextPoints,
+            reason: 'REPORT_CONFIRM',
+            sourceType: 'Report',
+            sourceId: report.id,
+          },
+          tx,
+        )
+      }
+      return updated
     }, { isolationLevel: 'Serializable' })
     return {
       id: updated.id,

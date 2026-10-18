@@ -320,6 +320,28 @@ describe('regras de concessão', () => {
     expect(db.report.update).toHaveBeenCalledWith(expect.objectContaining({ data: expect.objectContaining({ pointsAwarded: points, confirmedRisk: risk, validatedAt: expect.any(Date) }) }))
     expect(db.$transaction).toHaveBeenCalledWith(expect.any(Function), { isolationLevel: 'Serializable' })
   })
+  it('credita o extrato e o ranking ao resolver com pontos', async () => {
+    await resolve('MEDIUM')
+    expect(db.pointLedgerEntry.create).toHaveBeenCalledWith({
+      data: expect.objectContaining({
+        userId,
+        delta: 25,
+        reason: 'REPORT_CONFIRM',
+        sourceType: 'Report',
+        sourceId: reportId,
+      }),
+    })
+    expect(db.pointAccount.update).toHaveBeenCalledWith(expect.objectContaining({
+      where: { userId },
+      data: expect.objectContaining({ balance: { increment: 25 }, accumulated: { increment: 25 } }),
+    }))
+  })
+  it('não credita o extrato quando a resolução não concede pontos', async () => {
+    db.report.count.mockResolvedValueOnce(2).mockResolvedValueOnce(0)
+    await resolve('HIGH')
+    expect(db.report.update).toHaveBeenCalledWith(expect.objectContaining({ data: expect.objectContaining({ pointsAwarded: 0 }) }))
+    expect(db.pointLedgerEntry.create).not.toHaveBeenCalled()
+  })
   it('exige classificação pela equipe', async () => {
     expect((await resolve()).statusCode).toBe(422)
     expect(db.report.update).not.toHaveBeenCalled()
