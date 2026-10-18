@@ -10,6 +10,7 @@ import { Button } from '../../components/ui'
 import { ApiError, errorMessage } from '../../services/api'
 import { getPendingReportImpact, listReports, markReportImpactSeen, type ReportImpact, type Reports } from './reports.api'
 import { ReportImpactModal } from './report-impact-modal'
+import { CreateReportButton } from './create-report-button'
 
 type Report = Reports['reports'][number]
 
@@ -105,7 +106,7 @@ export function MyReportsScreen({ onBack, onCreateReport, refreshKey = 0 }: { on
           <View style={[styles.metric, styles.metricMiddle]}><Text style={styles.metricValue}>{data.summary.resolvedCount}</Text><Text style={styles.metricLabel}>{data.summary.resolvedCount === 1 ? 'resolvido' : 'resolvidos'}</Text></View>
           <View style={styles.metric}><Text style={[styles.metricValue, styles.pointsValue]}>+{data.summary.totalPoints}</Text><Text style={styles.metricLabel}>pontos</Text></View>
         </View>
-        <View style={styles.recentHeader}><Text style={styles.sectionTitle}>RECENTES</Text><Pressable accessibilityRole="button" onPress={onCreateReport} style={styles.newReport}><Text style={styles.newReportText}>Novo relato +</Text></Pressable></View>
+        <View style={styles.recentHeader}><Text style={styles.sectionTitle}>RECENTES</Text></View>
         {data.reports.map(report => {
           const location = [report.address, report.neighborhood].filter(Boolean).join(' · ')
           return <Pressable key={report.id} accessibilityRole="button" accessibilityLabel={`Ver relato: ${report.title}`} onPress={() => router.push({ pathname: '/relatos/[reportId]', params: { reportId: report.id } })} style={({ pressed }) => [styles.card, { opacity: pressed ? 0.8 : 1 }]}>
@@ -123,6 +124,7 @@ export function MyReportsScreen({ onBack, onCreateReport, refreshKey = 0 }: { on
       </View> : null}
       {impactError && !impact ? <Text accessibilityRole="alert" style={styles.impactError}>{impactError}</Text> : null}
     </ScrollView>
+    <CreateReportButton onPress={onCreateReport} />
     <ReportImpactModal
       visible={!!impact}
       impact={impact}
@@ -137,7 +139,7 @@ export function MyReportsScreen({ onBack, onCreateReport, refreshKey = 0 }: { on
 const styles = StyleSheet.create({
   screen: { flex: 1, backgroundColor: '#0B1240' },
   scroll: { flex: 1 },
-  page: { flexGrow: 1, width: '100%', maxWidth: 360, alignSelf: 'center', paddingHorizontal: 20, paddingTop: 20, paddingBottom: 32, backgroundColor: '#0B1240' },
+  page: { flexGrow: 1, width: '100%', maxWidth: 360, alignSelf: 'center', paddingHorizontal: 20, paddingTop: 20, paddingBottom: 104, backgroundColor: '#0B1240' },
   header: { flexDirection: 'row', alignItems: 'center', gap: 16, minHeight: 44 },
   back: { width: 24, minHeight: 44, alignItems: 'center', justifyContent: 'center' },
   chevron: { width: 10, height: 10, borderLeftWidth: 2.2, borderBottomWidth: 2.2, borderColor: '#fff', transform: [{ rotate: '45deg' }] },
@@ -149,8 +151,6 @@ const styles = StyleSheet.create({
   create: { width: '100%', minHeight: 56, borderRadius: 16, backgroundColor: '#FFBB12', flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 10, padding: 12, marginTop: 28 },
   createText: { flexShrink: 1, color: '#0B1240', fontFamily: 'Archivo_800ExtraBold', fontSize: 17, lineHeight: 22, textAlign: 'center' },
   recentHeader: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
-  newReport: { paddingVertical: 8, paddingHorizontal: 10, borderRadius: 13, backgroundColor: '#FFBB12' },
-  newReportText: { color: '#0B1240', fontFamily: 'Archivo_700Bold', fontSize: 12 },
   impactError: { color: '#FFB81C', fontFamily: 'Archivo_400Regular', fontSize: 13, lineHeight: 19, textAlign: 'center' },
   state: { flex: 1, justifyContent: 'center', gap: 20, paddingVertical: 40 },
   list: { gap: 12, paddingTop: 20 },

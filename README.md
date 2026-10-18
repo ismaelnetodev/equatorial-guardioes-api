@@ -13,6 +13,7 @@ Monorepo da plataforma Guardiões da Energia, com uma API para autenticação, a
 
 ```text
 apps/
+  ia/                   Serviço Python do chatbot (FastAPI, Gemini e base RAG)
   api/
     src/                Rotas, controllers, schemas, serviços e testes
     prisma/             Schema e migrations do PostgreSQL
@@ -35,6 +36,8 @@ package-lock.json       Dependências dos workspaces
 ```
 
 A API e o aplicativo possuem configurações e dependências próprias. O aplicativo acessa o banco exclusivamente pela API.
+
+As telas do chatbot ficam em `apps/mobile/src/features/chatbot`, com rotas em `apps/mobile/src/app/chat-reportar.tsx` e `chat-duvidas.tsx`. O serviço de IA fica em `apps/ia` e usa dependências Python próprias. Consulte [o guia do chatbot](docs/chatbot-ia.md) para executar o serviço. Os botões de criar relato abrem o chat em uma tela própria, fora da navbar. Ao confirmar, o app salva pela API com a sessão atual e permite acompanhar o registro em Meus relatos. A foto permanece local até a implementação do upload.
 
 ## Pré-requisitos
 
@@ -68,6 +71,7 @@ Configure `apps/api/.env`:
 | `NODE_ENV` | Ambiente de execução. |
 | `HOST` | Interface de rede. `0.0.0.0` permite acesso pela rede local. |
 | `PORT` | Porta da API. Padrão: `3000`. |
+| `TRUST_PROXY_HOPS` | Quantidade de proxies confiáveis antes da API. Padrão `0`; configure conforme a topologia da hospedagem. Afeta o IP usado nos limites de tentativas. |
 | `CORS_ORIGINS` | Origens web permitidas, separadas por vírgula, sem caminhos. Obrigatória em produção, com origens HTTPS explícitas. |
 | `CORS_ALLOW_LOCAL_NETWORK` | Em `NODE_ENV=development` (ou ausente), permite localhost, loopback e IPv4 privados em qualquer porta. Padrão: habilitado. Use `false` para exigir somente a lista explícita. Não habilita rede local em produção ou outros ambientes. |
 | `DATABASE_URL` | Conexão PostgreSQL usada pelo Prisma e pela API. |
@@ -225,6 +229,33 @@ Os testes da API usam persistência simulada. A exportação do mobile valida os
 
 Os deploys da API e do aplicativo são independentes, mesmo compartilhando o repositório.
 
+### Hospedagem e CI/CD
+
+Consulte o [resumo de deployment](docs/deployment.md) para a integração entre web,
+API, IA e banco. A hospedagem da API e da IA está em definição. O workflow
+`.github/workflows/delivery.yml` executa somente CI em pull requests e na `main`.
+`npm run build:web` exporta o web em `apps/mobile/dist`.
+
+Os Dockerfiles da API e da IA ficam em `apps/api/Dockerfile` e
+`apps/ia/Dockerfile`. Ambos usam a raiz do repositório como contexto de build:
+
+```sh
+docker build -f apps/api/Dockerfile -t guardioes-api .
+docker build -f apps/ia/Dockerfile -t guardioes-ia .
+```
+
+Configure as variáveis e os secrets na hospedagem ao executar os containers.
+O build da IA inclui o PDF e não recebe a chave Gemini nem o índice local Chroma.
+
+O workflow **Build container images** compila as duas imagens em runners
+Linux do GitHub e publica no GHCR, com tags do commit e `v1`. Ele usa o
+`GITHUB_TOKEN` temporário, sem credenciais Azure. Esse fluxo não aplica migrations
+nem publica os serviços; permite compilar fora do ACR Tasks quando esse recurso
+está indisponível na assinatura. As imagens podem ser importadas no registro da
+hospedagem depois, respeitando as permissões de leitura dos pacotes. Ele pode ser
+executado manualmente ou por pushes que alterem os arquivos de build e serviços
+na `main` ou em branches `codex/deployment-*`.
+
 ### Tela de trilha
 
 A rota `/trilha` carrega `GET /api/v1/trails/` e os detalhes autenticados em `GET /api/v1/trails/{trailId}` usando os contratos OpenAPI gerados. Exibe nome e iniciais da conta, seletor quando há várias trilhas, módulos ordenados e estados de bloqueio, andamento e conclusão retornados pela API. A numeração visual começa em 0; a ordem original do backend é preservada. Há carregamento, estado vazio, erro com nova tentativa e atualização ao puxar.
@@ -370,4 +401,4 @@ A API estima a leitura a 200 palavras por minuto, em segundos, usando o conteúd
 Para reiniciar o Expo sem o cache do Metro, execute `npm run dev:mobile -- --clear --lan`. O script da raiz repassa os argumentos ao workspace mobile; confirme que a saída mostra `expo start --clear --lan`. Reabra no Expo Go o projeto servido por essa sessão.
 
 
-O seed de demonstração também acrescenta a etapa `DO_NOT` (O que NÃO fazer) quando identifica exatamente as duas etapas originais, sem edição de títulos, introduções, durações ou cartões. Novas execuções não duplicam a etapa. Quizzes, tentativas e conclusões existentes são preservados. A tela de conclusão consulta novamente o progresso confirmado pela API, os pontos efetivamente concedidos e os pendentes; o espaço de progresso mostra módulos concluídos da trilha, pois ainda não há contrato de patentes. O botão Reportar abre a entrada já existente na trilha; o formulário de envio continua pendente.
+O seed de demonstração também acrescenta a etapa `DO_NOT` (O que NÃO fazer) quando identifica exatamente as duas etapas originais, sem edição de títulos, introduções, durações ou cartões. Novas execuções não duplicam a etapa. Quizzes, tentativas e conclusões existentes são preservados. A tela de conclusão consulta novamente o progresso confirmado pela API, os pontos efetivamente concedidos e os pendentes; o espaço de progresso mostra módulos concluídos da trilha, pois ainda não há contrato de patentes. O botão Reportar abre Meus relatos na trilha. Os botões de criar relato abrem o chatbot em uma tela própria, que salva pela API com a sessão atual.

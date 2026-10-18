@@ -10,6 +10,8 @@ import { Analise, Local, Nivel, Relato, analisarFoto, obterLocal, salvarRelato }
 import { montarFicha, linkWhatsApp } from '../ficha';
 import { EMERGENCIA, URGENCIA } from '../config';
 import { cor } from '../theme';
+import { ApiError, errorMessage } from '../../../services/api';
+import { router } from 'expo-router';
 
 type Passo = 'inicio' | 'foto' | 'analisando' | 'confirmar' | 'descricao' | 'resumo' | 'enviado';
 type Item = { id: number; de: 'bot' | 'voce'; texto?: string; foto?: string; analise?: Analise };
@@ -35,6 +37,9 @@ export default function RelatoChat({ nome, onFechar, onVerRelato }: { nome: stri
   const [comentario, setComentario] = useState('');
   const [local, setLocal] = useState<Local>(VAZIO);
   const [fichaTexto, setFichaTexto] = useState('');
+  const [salvando, setSalvando] = useState(false);
+  const [erroEnvio, setErroEnvio] = useState('');
+  const envioEmCurso = useRef(false);
   const rolagem = useRef<React.ComponentRef<typeof ScrollView>>(null);
 
   const add = (item: Omit<Item, 'id'>) => setItens((l) => [...l, { ...item, id: l.length }]);
@@ -56,7 +61,9 @@ export default function RelatoChat({ nome, onFechar, onVerRelato }: { nome: stri
     if (!permissao.granted) return;
     const r = await ImagePicker.launchCameraAsync({ quality: 0.7 });
     if (r.canceled) return;
-    const uri = r.assets[0].uri;
+    const asset = r.assets[0];
+    if (!asset) return;
+    const uri = asset.uri;
     setFoto(uri);
     setComentario('');
     add({ de: 'voce', foto: uri });
@@ -96,27 +103,43 @@ export default function RelatoChat({ nome, onFechar, onVerRelato }: { nome: stri
     setPasso('foto');
   }
 
-  function despachar(relato: Relato) {
-    const texto = montarFicha(relato);
-    setFichaTexto(texto);
-    salvarRelato(relato).catch(() => {});
-    Linking.openURL(linkWhatsApp(texto));
+  async function despachar(relato: Relato) {
+    if (envioEmCurso.current) return;
+    envioEmCurso.current = true;
+    setSalvando(true);
+    setErroEnvio('');
+    try {
+      await salvarRelato(relato);
+      setFichaTexto(montarFicha(relato));
+      setEmergencia(false);
+      setPasso('enviado');
+    } catch (cause: unknown) {
+      if (cause instanceof ApiError && cause.status === 401) {
+        router.replace('/entrar');
+        return;
+      }
+      setErroEnvio(errorMessage(cause, 'Não foi possível salvar o relato. Tente novamente.'));
+    } finally {
+      envioEmCurso.current = false;
+      setSalvando(false);
+    }
   }
 
   function enviar() {
     if (!analise) return;
-    despachar({ usuario: nome, nivel, categoria: confirmado ? analise.categoria : null, descricao: analise.descricao, comentario, local, foto });
-    setPasso('enviado');
+    void despachar({ usuario: nome, nivel, categoria: confirmado ? analise.categoria : null, descricao: confirmado ? analise.descricao : undefined, comentario, local, foto });
   }
 
   async function alertaEmergencia() {
     const endereco = await obterLocal();
-    despachar({ usuario: nome, nivel: 'N1', comentario: 'EMERGÊNCIA declarada pelo usuário, sem foto e não confirmada', local: endereco });
+    await despachar({ usuario: nome, nivel: 'N1', comentario: 'EMERGÊNCIA declarada pelo usuário, sem foto e não confirmada', local: endereco });
   }
 
   if (emergencia) {
     return (
       <Emergencia
+        salvando={salvando}
+        erro={erroEnvio}
         onAlerta={alertaEmergencia}
         onContinuar={() => {
           setEmergencia(false);
@@ -126,15 +149,15 @@ export default function RelatoChat({ nome, onFechar, onVerRelato }: { nome: stri
     );
   }
 
-  if (passo === 'enviado' && analise) {
+  if (passo === 'enviado') {
     return (
       <Tela>
         <ScrollView contentContainerStyle={r.enviado}>
           <View style={r.check}>
             <Ionicons name="checkmark" size={44} color="#fff" />
           </View>
-          <Text style={r.titulo}>Ficha pronta!</Text>
-          <Text style={[s.suave, { textAlign: 'center', fontSize: 15 }]}>Toque em enviar no WhatsApp e mande também a foto, {nome}.</Text>
+          <Text style={r.titulo}>Relato enviado!</Text>
+          <Text style={[s.suave, { textAlign: 'center', fontSize: 15 }]}>Seu relato foi salvo. Acompanhe a análise em Meus relatos, {nome}.</Text>
           <View style={r.pontos}>
             <Ionicons name="star-outline" size={16} color={cor.fundo} />
             <Text style={r.pontosTexto}>Pontos após a validação da equipe</Text>
@@ -146,16 +169,17 @@ export default function RelatoChat({ nome, onFechar, onVerRelato }: { nome: stri
             ))}
           </View>
           <View style={{ width: '100%', gap: 10 }}>
-            <TouchableOpacity style={[s.principal, { flex: 0 }]} onPress={() => Sharing.shareAsync(foto)}>
+            {foto ? <TouchableOpacity style={[s.principal, { flex: 0 }]} onPress={() => { void Sharing.shareAsync(foto).catch(() => setErroEnvio('Não foi possível compartilhar a foto.')); }}>
               <Text style={s.principalTexto}>Enviar a foto no WhatsApp</Text>
-            </TouchableOpacity>
-            <TouchableOpacity style={[s.secundario, { flex: 0 }]} onPress={() => Linking.openURL(linkWhatsApp(fichaTexto))}>
-              <Text style={s.negrito}>Abrir a ficha de novo</Text>
+            </TouchableOpacity> : null}
+            <TouchableOpacity style={[s.secundario, { flex: 0 }]} onPress={() => { void Linking.openURL(linkWhatsApp(fichaTexto)).catch(() => setErroEnvio('Não foi possível abrir o WhatsApp. Seu relato continua salvo.')); }}>
+              <Text style={s.negrito}>Compartilhar ficha no WhatsApp</Text>
             </TouchableOpacity>
             <TouchableOpacity style={[s.secundario, { flex: 0 }]} onPress={onVerRelato ?? onFechar}>
               <Text style={s.negrito}>{onVerRelato ? 'Ver meus relatos' : 'Voltar'}</Text>
             </TouchableOpacity>
           </View>
+          {erroEnvio ? <Text accessibilityRole="alert" style={s.suave}>{erroEnvio}</Text> : null}
         </ScrollView>
       </Tela>
     );
@@ -198,8 +222,10 @@ export default function RelatoChat({ nome, onFechar, onVerRelato }: { nome: stri
             pontos="Os pontos são concedidos depois que a equipe validar o relato"
             onCorrigir={corrigir}
             onEnviar={enviar}
+            enviando={salvando}
           />
         ) : null}
+        {erroEnvio ? <Text accessibilityRole="alert" style={s.suave}>{erroEnvio}</Text> : null}
       </ScrollView>
       <BarraEntrada
         placeholder={passo === 'descricao' ? 'Descreva o que você vê na foto' : 'Tire a foto com o botão da câmera'}

@@ -153,7 +153,7 @@ export function CardLocal({ local }: { local: string }) {
 
 type Linha = { icone: keyof typeof Ionicons.glyphMap; rotulo: string; valor: string };
 
-export function CardResumo({ foto, linhas, pontos, onCorrigir, onEnviar }: { foto: string; linhas: Linha[]; pontos: string; onCorrigir: () => void; onEnviar: () => void }) {
+export function CardResumo({ foto, linhas, pontos, onCorrigir, onEnviar, enviando = false }: { foto: string; linhas: Linha[]; pontos: string; onCorrigir: () => void; onEnviar: () => void; enviando?: boolean }) {
   return (
     <View>
       <View style={s.card}>
@@ -167,13 +167,13 @@ export function CardResumo({ foto, linhas, pontos, onCorrigir, onEnviar }: { fot
         ))}
       </View>
       <View style={s.acoes}>
-        <TouchableOpacity style={s.secundario} onPress={onCorrigir}>
+        <TouchableOpacity style={s.secundario} onPress={onCorrigir} disabled={enviando}>
           <Ionicons name="pencil" size={18} color={cor.texto} />
           <Text style={s.negrito}>Corrigir</Text>
         </TouchableOpacity>
-        <TouchableOpacity style={s.principal} onPress={onEnviar}>
+        <TouchableOpacity style={s.principal} onPress={onEnviar} disabled={enviando}>
           <Ionicons name="paper-plane-outline" size={18} color={cor.fundo} />
-          <Text style={s.principalTexto}>Enviar relato</Text>
+          <Text style={s.principalTexto}>{enviando ? 'Salvando…' : 'Enviar relato'}</Text>
         </TouchableOpacity>
       </View>
       <Text style={[s.suave, { textAlign: 'center', marginTop: 10 }]}>{pontos}</Text>

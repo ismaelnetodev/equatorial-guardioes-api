@@ -5,7 +5,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { EMERGENCIA } from '../config';
 import { cor } from '../theme';
 
-export default function Emergencia({ onContinuar, onAlerta }: { onContinuar: () => void; onAlerta: () => void }) {
+export default function Emergencia({ onContinuar, onAlerta, salvando = false, erro = '' }: { onContinuar: () => void; onAlerta: () => void; salvando?: boolean; erro?: string }) {
   const ligar = (numero: string) => Linking.openURL(`tel:${numero}`);
   return (
     <SafeAreaView style={e.tela}>
@@ -18,9 +18,10 @@ export default function Emergencia({ onContinuar, onAlerta }: { onContinuar: () 
         <Ionicons name="call-outline" size={20} color={cor.fundo} />
         <Text style={e.ligarTexto}>Ligar {EMERGENCIA.equatorial} agora</Text>
       </TouchableOpacity>
-      <TouchableOpacity style={e.alerta} onPress={onAlerta}>
-        <Text style={e.outroTexto}>Enviar alerta pelo WhatsApp</Text>
+      <TouchableOpacity style={e.alerta} onPress={onAlerta} disabled={salvando}>
+        <Text style={e.outroTexto}>{salvando ? 'Salvando…' : 'Registrar alerta'}</Text>
       </TouchableOpacity>
+      {erro ? <Text accessibilityRole="alert" style={e.texto}>{erro}</Text> : null}
       <View style={e.linha}>
         <TouchableOpacity style={e.outro} onPress={() => ligar(EMERGENCIA.bombeiros)}>
           <Text style={e.outroTexto}>Bombeiros {EMERGENCIA.bombeiros}</Text>
@@ -29,7 +30,7 @@ export default function Emergencia({ onContinuar, onAlerta }: { onContinuar: () 
           <Text style={e.outroTexto}>SAMU {EMERGENCIA.samu}</Text>
         </TouchableOpacity>
       </View>
-      <TouchableOpacity onPress={onContinuar}>
+      <TouchableOpacity onPress={onContinuar} disabled={salvando}>
         <Text style={e.continuar}>Já estou longe, continuar relato</Text>
       </TouchableOpacity>
     </SafeAreaView>

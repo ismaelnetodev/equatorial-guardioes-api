@@ -5,5 +5,5 @@ import { useNomeUsuario } from '../features/chatbot/adaptador';
 export default function ChatReportar() {
   const router = useRouter();
   const nome = useNomeUsuario();
-  return <RelatoChat nome={nome} onFechar={() => router.back()} />;
+  return <RelatoChat nome={nome} onFechar={() => router.back()} onVerRelato={() => router.replace('/relatos')} />;
 }
