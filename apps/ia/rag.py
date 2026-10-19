@@ -15,7 +15,7 @@ from gemini import texto_da
 load_dotenv()
 
 CHAVE = os.getenv("GEMINI_API_KEY")
-MODELO = os.getenv("GEMINI_MODEL", "gemini-3.8-flash")
+MODELO = os.getenv("GEMINI_CHAT_MODEL") or os.getenv("GEMINI_MODEL", "gemini-3.8-flash")
 MODELO_EMBEDDING = os.getenv("GEMINI_EMBEDDING_MODEL", "models/gemini-embedding-001")
 BASE = Path(__file__).resolve().parent / "base_conhecimento"
 PDF = BASE / "rag_guardioes_da_energia.pdf"

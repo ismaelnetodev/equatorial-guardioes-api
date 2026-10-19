@@ -259,7 +259,7 @@ Os deploys da API e do aplicativo são independentes, mesmo compartilhando o rep
 ### Hospedagem e CI/CD
 
 Consulte o [resumo de deployment](docs/deployment.md) para a integração entre web,
-API, IA e banco. A hospedagem da API e da IA está em definição. O workflow
+API, IA e banco. O web usa Cloudflare Pages e a API/IA usam Azure Container Apps. O workflow
 `.github/workflows/delivery.yml` executa somente CI em pull requests e na `main`.
 `npm run build:web` exporta o web em `apps/mobile/dist`.
 

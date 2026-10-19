@@ -70,6 +70,12 @@ Três opções (algo perigoso, sem energia ou emergência). A foto só pela câm
 
 ## Base de ajuda e índice
 
+`GEMINI_CHAT_MODEL` seleciona o modelo de dúvidas; quando ausente, usa
+`GEMINI_MODEL`. Isso permite trocar o modelo do chat sem alterar a análise de
+fotos. Na publicação de 19/10/2026, o chat usa `gemini-3.5-flash-lite` porque o
+`gemini-3.8-flash` retornava 503 por alta demanda. A análise de fotos mantém seu
+modelo anterior. Disponibilidade e cotas devem ser verificadas na conta Gemini.
+
 O guia `apps/ia/base_conhecimento/plataforma.md` contém os fluxos atuais do app e
 é incluído integralmente no contexto de cada resposta, com prioridade sobre o PDF
 antigo. Atualize esse guia quando os fluxos mudarem. O Dockerfile copia toda a pasta.
