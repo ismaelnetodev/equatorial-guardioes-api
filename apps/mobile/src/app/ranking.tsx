@@ -121,7 +121,7 @@ export default function RankingScreen() {
               </> : null}
         </ScrollView>
       </View>
-      <AppTabBar active="ranking" reportUnlocked={Boolean(profile?.badges.modulesCompleted)} onReport={() => router.replace('/trilha')} />
+      <AppTabBar active="ranking" reportUnlocked={Boolean(profile?.canReport)} onReport={() => router.replace('/trilha')} />
     </SafeAreaView>
   )
 }

@@ -14,6 +14,12 @@ export function getProfile(signal?: AbortSignal): Promise<Profile> {
   return apiRequest<Profile>('/perfil', { signal })
 }
 
+export type ProfileUpdate = paths['/api/v1/perfil']['patch']['requestBody']['content']['application/json']
+// A API só aceita o nome; a troca de bairro é feita pela administração.
+export function updateProfile(body: ProfileUpdate): Promise<Profile> {
+  return apiRequest<Profile>('/perfil', { method: 'PATCH', body: JSON.stringify(body) })
+}
+
 export function getRewards(signal?: AbortSignal): Promise<Rewards> {
   return apiRequest<Rewards>('/recompensas', { signal })
 }

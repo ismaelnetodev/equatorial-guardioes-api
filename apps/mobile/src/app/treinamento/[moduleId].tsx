@@ -18,6 +18,8 @@ export default function TrainingScreen() {
   const { offline, recordFailure } = useLoadFailureKind()
   const [error, setError] = useState('')
   const [attempt, setAttempt] = useState(0)
+  // Preenchido ao concluir: pontos que ficaram na fila por causa do limite diário.
+  const [queued, setQueued] = useState<{ pending: number } | null>(null)
 
   useFocusEffect(useCallback(() => {
     const controller = new AbortController()
@@ -58,6 +60,7 @@ export default function TrainingScreen() {
     try {
       const result = await completeTraining(moduleId)
       setTraining(current => current ? { ...current, completed: result.completed, pointsAwarded: result.pointsAwarded } : current)
+      setQueued(result.pointsCapped ? { pending: result.pendingPoints } : null)
     } catch (cause) { recordFailure(cause);
       if (cause instanceof ApiError && cause.status === 401) {
         router.replace('/entrar')
@@ -109,7 +112,9 @@ export default function TrainingScreen() {
             {training.completed ? (
               <View style={styles.completed}>
                 <Text style={styles.completedTitle}>Treinamento concluído</Text>
-                <Text style={styles.description}>{training.pointsAwarded} pontos registrados.</Text>
+                {queued
+                  ? <Text accessibilityRole="alert" style={styles.pending}>Você atingiu o limite diário de pontos de treino. {queued.pending > 0 ? `${queued.pending} pontos ficaram na fila` : 'Seus pontos ficaram na fila'} e entram no seu saldo e no ranking do bairro no próximo dia, ou assim que você abrir a trilha.</Text>
+                  : <Text style={styles.description}>{training.pointsAwarded} pontos registrados.</Text>}
                 <Button title="Voltar ao módulo" onPress={returnToModule} />
               </View>
             ) : steps.length ? (
@@ -147,4 +152,5 @@ const styles = StyleSheet.create({
   completed: { gap: 12, marginTop: 24 },
   completedTitle: { color: colors.success, fontSize: 18, fontWeight: '800' },
   error: { color: colors.warning, fontSize: 13, lineHeight: 19, marginTop: 14 },
+  pending: { color: colors.primary, fontSize: 14, lineHeight: 21 },
 })

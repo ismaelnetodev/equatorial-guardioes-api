@@ -66,7 +66,7 @@ export function QuizResultScreen({ result, completed, busy, error, onBack, onTra
           <Text style={styles.eyebrow}>SEU PONTO DE PARTIDA</Text>
           <Text style={styles.score}>{pre.correctCount}</Text>
           <Text style={styles.scoreLabel}>de {pre.totalCount} acertos</Text>
-          <View style={styles.pointsPill}><AppIcon name="star" size={15} color={c.background} /><Text style={styles.pillText}>{points(pre.pointsAwarded)} pts · pré-teste</Text></View>
+          <View style={styles.pointsPill}><AppIcon name="star" size={15} color={c.background} /><Text style={styles.pillText}>{pre.pointsAwarded > 0 ? `${points(pre.pointsAwarded)} pts · pré-teste` : 'Pré-teste · diagnóstico, sem pontos'}</Text></View>
         </ImageBackground>
         <Text accessibilityRole="header" style={styles.preTitle}>{pre.title}</Text>
         <Text style={styles.intro}>{pre.message}</Text>

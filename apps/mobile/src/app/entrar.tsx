@@ -1,7 +1,7 @@
 import { useRef, useState } from 'react'
 import { router } from 'expo-router'
 import { StatusBar } from 'expo-status-bar'
-import { Image, KeyboardAvoidingView, Platform, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native'
+import { KeyboardAvoidingView, Platform, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { Button, colors, InputField } from '../components/ui'
 import { EnergyBrand } from '../components/energy-brand'
@@ -69,12 +69,9 @@ export default function LoginScreen() {
         <View style={styles.form}>
           <InputField label="Celular ou e-mail" icon="user" value={contact} onChangeText={updateContact} placeholder="(98) 9 8888-0000" autoCapitalize="none" autoCorrect={false} autoComplete="username" textContentType="username" editable={!loading} maxLength={254} error={submitted ? contactError : undefined} invalid={invalidCredentials} returnKeyType="next" />
           <InputField label="Senha" icon="lock" value={password} onChangeText={updatePassword} placeholder="Sua senha" secureTextEntry={!visible} autoCapitalize="none" autoCorrect={false} autoComplete="current-password" textContentType="password" maxLength={128} editable={!loading} error={submitted ? passwordError : undefined} invalid={invalidCredentials} returnKeyType="go" onSubmitEditing={() => { void submit() }} trailing={<Pressable accessibilityRole="button" accessibilityLabel={visible ? 'Ocultar senha' : 'Mostrar senha'} onPress={() => setVisible(!visible)} hitSlop={8} style={styles.eye}><Text style={styles.eyeText}>{visible ? '◉' : '◎'}</Text></Pressable>} />
-          <Pressable accessibilityRole="button" onPress={() => setNotice('A recuperação de senha ainda não está disponível.')} style={styles.forgot}><Text style={styles.link}>Esqueci minha senha</Text></Pressable>
           {error ? <Text accessibilityRole="alert" style={styles.error}>{error}</Text> : null}
           <Button title="Entrar" loading={loading} onPress={() => { void submit() }} />
           <Pressable accessibilityRole="button" onPress={() => router.push('/cadastrar')} style={styles.signup}><Text style={styles.muted}>Ainda não é Guardião? <Text style={styles.link}>Criar conta</Text></Text></Pressable>
-          <Text style={styles.or}>ou</Text>
-          <Button title="Entrar com Google" outline icon={<Image source={require('../../assets/google.png')} style={{ width: 20, height: 20 }} accessible={false} />} onPress={() => setNotice('O login com Google ainda não está disponível. Use seu celular ou e-mail e senha.')} />
           <Pressable accessibilityRole="button" onPress={() => router.push('/admin')} style={styles.signup}><Text style={styles.link}>Acesso administrativo</Text></Pressable>
           {notice ? <Text accessibilityLiveRegion="polite" style={styles.notice}>{notice}</Text> : null}
           <View style={styles.emergency}><EmergencyBanner onError={() => setNotice('Não foi possível abrir o telefone. Ligue 116 pelo seu celular.')} /></View>
@@ -88,9 +85,9 @@ export default function LoginScreen() {
 const styles = StyleSheet.create({
   screen: { flex: 1, backgroundColor: colors.background }, flex: { flex: 1 },
   content: { flexGrow: 1, width: '100%', maxWidth: 430, alignSelf: 'center', paddingBottom: 22 },
-  form: { gap: 14, paddingHorizontal: 20 }, forgot: { alignSelf: 'flex-end', paddingVertical: 2, minHeight: 30 },
+  form: { gap: 14, paddingHorizontal: 20 },
   link: { color: colors.primary, fontWeight: '700', fontSize: 13 }, muted: { color: colors.muted, fontSize: 13, textAlign: 'center' },
-  signup: { alignItems: 'center', paddingVertical: 7 }, or: { color: '#858bad', textAlign: 'center', fontSize: 12 },
+  signup: { alignItems: 'center', paddingVertical: 7 },
   eye: { minWidth: 30, minHeight: 36, justifyContent: 'center', alignItems: 'center' }, eyeText: { color: colors.muted, fontSize: 25 },
   error: { color: colors.warning, fontSize: 13, lineHeight: 19 }, notice: { color: colors.muted, fontSize: 13, lineHeight: 20, textAlign: 'center' }, emergency: { marginTop: 16 },
 })

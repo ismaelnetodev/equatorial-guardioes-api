@@ -1,15 +1,15 @@
 import { LoadFailure, useLoadFailureKind } from '../components/load-failure'
 import { ContentSkeleton } from '../components/content-skeleton'
 import { useCallback, useState } from 'react'
-import { Image, ImageBackground, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native'
+import { Image, ImageBackground, KeyboardAvoidingView, Modal, Platform, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native'
 import { Path, Svg } from 'react-native-svg'
 import { router, useFocusEffect } from 'expo-router'
 import { ProfilePage } from '../components/profile-page'
 import { ProfileSymbol, type ProfileSymbolName } from '../components/profile-symbol'
 import { AppIcon } from '../components/app-icon'
-import { colors } from '../components/ui'
-import { getProfile, type Profile } from '../features/community/community.api'
-import { ApiError } from '../services/api'
+import { Button, colors, InputField } from '../components/ui'
+import { getProfile, updateProfile, type Profile } from '../features/community/community.api'
+import { ApiError, errorMessage } from '../services/api'
 import { clearAccessToken } from '../services/session'
 
 const achievementBadges = [
@@ -43,6 +43,10 @@ export default function ProfileScreen() {
   const [attempt, setAttempt] = useState(0)
   const [logoutBusy, setLogoutBusy] = useState(false)
   const [logoutError, setLogoutError] = useState('')
+  const [editing, setEditing] = useState(false)
+  const [draftName, setDraftName] = useState('')
+  const [saving, setSaving] = useState(false)
+  const [editError, setEditError] = useState('')
 
   useFocusEffect(useCallback(() => {
     const controller = new AbortController()
@@ -73,6 +77,25 @@ export default function ProfileScreen() {
     { title: 'Termos e privacidade', icon: 'lock', route: '/termos' },
   ]
 
+  function openEdit() {
+    if (!profile) return
+    setDraftName(profile.name); setEditError(''); setEditing(true)
+  }
+
+  async function saveName() {
+    const name = draftName.trim()
+    if (saving) return
+    if (name.length < 2) { setEditError('Informe pelo menos 2 caracteres.'); return }
+    setSaving(true); setEditError('')
+    try {
+      setProfile(await updateProfile({ name }))
+      setEditing(false)
+    } catch (cause) {
+      if (cause instanceof ApiError && cause.status === 401) { router.replace('/entrar'); return }
+      setEditError(errorMessage(cause, 'Não foi possível salvar seu nome. Tente novamente.'))
+    } finally { setSaving(false) }
+  }
+
   async function logout() {
     if (logoutBusy) return
     setLogoutBusy(true)
@@ -88,7 +111,7 @@ export default function ProfileScreen() {
   }
 
   return <>
-    <ProfilePage reportUnlocked={Boolean(profile?.badges.modulesCompleted)}>
+    <ProfilePage reportUnlocked={Boolean(profile?.canReport)}>
       <ScrollView contentContainerStyle={styles.content}>
         <View style={styles.heroFrame}>
           <ImageBackground source={require('../../assets/profile-tile-dark.png')} resizeMode="cover" imageStyle={styles.heroImage} style={styles.hero}>
@@ -99,7 +122,7 @@ export default function ProfileScreen() {
                 <Text numberOfLines={1} style={styles.name}>{profile?.name ?? 'Seu perfil'}</Text>
                 <Text style={styles.neighborhood}>{profile?.neighborhood ?? 'Guardiões da Energia'}</Text>
               </View>
-              <Pressable accessibilityRole="button" accessibilityLabel="Editar perfil (indisponível)" disabled style={[styles.editButton, styles.editDisabled]}>
+              <Pressable accessibilityRole="button" accessibilityLabel="Editar nome do perfil" accessibilityState={{ disabled: !profile }} disabled={!profile} onPress={openEdit} style={[styles.editButton, !profile && styles.editDisabled]}>
                 <ProfileSymbol name="edit" color={colors.text} size={19} />
               </Pressable>
             </View>
@@ -149,6 +172,17 @@ export default function ProfileScreen() {
           </> : null}
       </ScrollView>
     </ProfilePage>
+    <Modal visible={editing} transparent animationType="fade" onRequestClose={() => { if (!saving) setEditing(false) }}>
+      <KeyboardAvoidingView style={styles.modal} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
+        <View style={styles.editCard}>
+          <Text accessibilityRole="header" style={styles.editTitle}>Editar perfil</Text>
+          <InputField label="Como quer ser chamado" value={draftName} onChangeText={value => { setDraftName(value); setEditError('') }} maxLength={100} autoComplete="name" textContentType="name" editable={!saving} error={editError || undefined} returnKeyType="done" onSubmitEditing={() => { void saveName() }} />
+          <Text style={styles.description}>Seu bairro é definido no cadastro e só pode ser alterado pela administração.</Text>
+          <Button title="Salvar" loading={saving} onPress={() => { void saveName() }} />
+          <Button title="Cancelar" outline disabled={saving} onPress={() => setEditing(false)} />
+        </View>
+      </KeyboardAvoidingView>
+    </Modal>
   </>
 }
 
@@ -201,6 +235,9 @@ const styles = StyleSheet.create({
   logoutRow: { borderBottomWidth: 0 },
   logoutTitle: { color: colors.warning, fontSize: 13, fontWeight: '700' },
   logoutError: { color: colors.warning, fontSize: 12 },
+  modal: { flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: '#00000099', padding: 24 },
+  editCard: { width: '100%', maxWidth: 390, gap: 14, padding: 22, borderRadius: 20, backgroundColor: colors.field },
+  editTitle: { color: colors.text, fontSize: 18, fontWeight: '800' },
   state: { padding: 24, gap: 12, alignItems: 'center' },
   description: { color: colors.muted, fontSize: 13, lineHeight: 20 },
   error: { color: colors.warning, fontSize: 13, textAlign: 'center' },

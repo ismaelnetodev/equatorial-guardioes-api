@@ -7,7 +7,7 @@ import { SafeAreaView } from 'react-native-safe-area-context'
 import { Button, colors, InputField } from '../components/ui'
 import { NeighborhoodPicker, type NeighborhoodSelection } from '../components/neighborhood-picker'
 import { FormIcon } from '../components/form-icon'
-import { login, register } from '../features/auth/auth.api'
+import { register } from '../features/auth/auth.api'
 
 export default function RegistrationScreen() {
   const [name, setName] = useState('')
@@ -38,13 +38,8 @@ export default function RegistrationScreen() {
     pending.current = true; setLoading(true)
     try {
       await register({ name: name.trim(), ...(email ? { email: value.toLowerCase() } : { cellphone: phone }), password, neighborhood: neighborhood!.name, ...(neighborhood!.id ? { neighborhoodId: neighborhood!.id } : {}), ...(invite.trim() ? { inviteCode: invite.trim() } : {}), acceptedTerms: true })
+      // O cadastro não cria sessão: o login é feito na tela de entrar (a introdução termina nela).
       setSubmitted(false); setPassword(''); setSuccess(true)
-      try {
-        await login({ ...(email ? { email: value.toLowerCase() } : { cellphone: phone }), password })
-      } catch {
-        // The account already exists; finishing the introduction will open login.
-      }
-      router.replace('/introducao')
     } catch (cause) {
       setError(errorMessage(cause, 'Não foi possível criar sua conta. Tente novamente.'))
     } finally { pending.current = false; setLoading(false) }
@@ -56,7 +51,7 @@ export default function RegistrationScreen() {
         <View style={styles.header}><Pressable accessibilityRole="button" accessibilityLabel="Voltar" onPress={() => router.canGoBack() ? router.back() : goLogin()} hitSlop={10}><Text style={styles.back}>‹</Text></Pressable><Text accessibilityRole="header" style={styles.title}>Criar conta</Text></View>
         {success ? <View style={styles.group}>
           <Text accessibilityRole="header" style={styles.title}>Conta criada com sucesso!</Text>
-          <Text accessibilityRole="alert" style={styles.description}>Vamos conhecer o Guardiões da Energia.</Text>
+          <Text accessibilityRole="alert" style={styles.description}>Vamos conhecer o Guardiões da Energia. Depois, entre com o celular ou e-mail e a senha que você acabou de criar.</Text>
           <Button title="Continuar" loading={loading} onPress={() => router.replace('/introducao')} />
         </View> : <>
         <Text style={styles.description}>Leva menos de 1 minuto. Sem CPF.</Text>

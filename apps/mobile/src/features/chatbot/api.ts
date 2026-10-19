@@ -1,6 +1,7 @@
 import * as Location from 'expo-location';
 import { IA_URL } from './config';
 import { enviarRelato, obterToken } from './adaptador';
+import { resolverBairro } from './bairro';
 
 export type Nivel = 'N1' | 'N2' | 'N3';
 
@@ -12,7 +13,7 @@ export type Analise = {
   nivel: Nivel;
 };
 
-export type Local = { rotulo: string; bairro: string; lat: number; lng: number };
+export type Local = { rotulo: string; bairro: string; bairroId?: string; lat: number; lng: number };
 
 export type Relato = {
   usuario: string;
@@ -64,16 +65,21 @@ export async function salvarRelato(relato: Relato) {
 }
 
 export async function obterLocal(): Promise<Local> {
-  const vazio = { rotulo: 'Local não identificado', bairro: 'Não identificado', lat: 0, lng: 0 };
+  const vazio = async (): Promise<Local> => {
+    const b = await resolverBairro('');
+    return { rotulo: 'Local não identificado', bairro: b?.nome ?? 'Não identificado', ...(b?.id ? { bairroId: b.id } : {}), lat: 0, lng: 0 };
+  };
   try {
     const permissao = await Location.requestForegroundPermissionsAsync();
-    if (permissao.status !== 'granted') return vazio;
+    if (permissao.status !== 'granted') return await vazio();
     const posicao = await Location.getCurrentPositionAsync({});
     const [e] = await Location.reverseGeocodeAsync(posicao.coords);
-    const bairro = e?.district || e?.subregion || 'Não identificado';
+    const detectado = e?.district || e?.subregion || '';
+    const b = await resolverBairro(detectado);
+    const bairro = b?.nome ?? 'Não identificado';
     const rotulo = [e?.street, e?.district].filter(Boolean).join(' · ') || bairro;
-    return { rotulo, bairro, lat: posicao.coords.latitude, lng: posicao.coords.longitude };
+    return { rotulo, bairro, ...(b?.id ? { bairroId: b.id } : {}), lat: posicao.coords.latitude, lng: posicao.coords.longitude };
   } catch {
-    return vazio;
+    return await vazio();
   }
 }

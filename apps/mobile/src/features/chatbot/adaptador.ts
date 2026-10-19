@@ -23,11 +23,15 @@ export async function enviarRelato(relato: Relato) {
     photoUrl = uploadedPhoto.reference;
   }
   const prioridades = { N1: 'HIGH', N2: 'MEDIUM', N3: 'LOW' } as const;
+  const bairroTexto = relato.local.bairro.trim();
+  const bairro = bairroTexto && bairroTexto !== 'Não identificado' ? bairroTexto : '';
   const body: CreateReportBody = {
     title: relato.categoria?.trim() || 'Risco na rede elétrica',
     description: relato.comentario?.trim() || relato.descricao?.trim() || 'Risco informado pelo usuário.',
     address: relato.local.rotulo.trim() || 'Local não identificado',
-    neighborhood: relato.local.bairro.trim() || 'Não identificado',
+    // Bairro só vai quando é conhecido (catálogo ou cadastro); sem ele o servidor usa o bairro do cadastro.
+    ...(bairro ? { neighborhood: bairro } : {}),
+    ...(relato.local.bairroId ? { neighborhoodId: relato.local.bairroId } : {}),
     urgency: prioridades[relato.nivel],
     latitude: relato.local.lat === 0 && relato.local.lng === 0 ? null : relato.local.lat,
     longitude: relato.local.lat === 0 && relato.local.lng === 0 ? null : relato.local.lng,

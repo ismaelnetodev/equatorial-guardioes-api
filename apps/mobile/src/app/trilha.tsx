@@ -102,7 +102,8 @@ export default function TrailScreen() {
 
   const modules = trail?.modules.filter(item => item.isActive) ?? []
   const firstModule = modules[0]
-  const reportsLocked = !firstModule || firstModule.status !== 'completed'
+  // A liberação vem do servidor (`canReport`, a mesma regra do envio do relato); o status do módulo é só reserva.
+  const reportsLocked = profile ? !profile.canReport : !firstModule || firstModule.status !== 'completed'
   const currentModule = modules.find(item => item.status === 'in_progress') ?? modules.find(item => item.status === 'available')
   const currentNumber = currentModule ? modules.findIndex(item => item.id === currentModule.id) + 1 : 0
   const completedCount = modules.filter(item => item.status === 'completed').length
