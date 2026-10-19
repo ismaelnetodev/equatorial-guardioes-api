@@ -29,7 +29,7 @@ export default function LearningScreen() {
   const pending = useRef(false)
   const scroll = useRef<ScrollView>(null)
   const post = phase === 'pos'
-  const title = phase === 'training' ? 'Treinamento' : post ? 'Pós-teste' : 'Pré-teste'
+  const title = phase === 'training' ? 'Treinamento' : post ? 'Avaliação do módulo' : 'Pré-teste'
 
   function fail(cause: unknown) { recordFailure(cause);
     if (cause instanceof ApiError && cause.status === 401) { router.replace('/entrar'); return }

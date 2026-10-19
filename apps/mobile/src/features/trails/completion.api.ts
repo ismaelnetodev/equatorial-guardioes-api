@@ -4,7 +4,7 @@ import { getTrail, getTrailProgress, listTrails, type TrailDetails } from './tra
 import { refreshLearningSummary } from './progress.api'
 
 export async function getModuleCompletion(moduleId: string, trailId?: string, signal?: AbortSignal) {
-  await refreshLearningSummary(signal)
+  const learningSummary = await refreshLearningSummary(signal)
   const [catalog, selectedTrail] = await Promise.all([listTrails(signal), trailId ? getTrail(trailId, signal) : Promise.resolve(undefined)])
   let trail: TrailDetails | undefined = selectedTrail
   if (!trail) {
@@ -29,7 +29,7 @@ export async function getModuleCompletion(moduleId: string, trailId?: string, si
     firstModule: moduleZero?.moduleId === moduleId,
     reportsUnlocked: moduleZero?.status === 'completed',
     totalPoints: learn.totalPoints,
-    pendingPoints: learn.moduleCompletion.pendingPoints,
+    pendingPoints: learningSummary.pendingPoints,
     breakdown: { preTest: learn.preTest.pointsAwarded, training: learn.training.pointsAwarded, postTest: postResult?.pointsBreakdown.postTest ?? learn.postTest.pointsAwarded, moduleCompletion: learn.moduleCompletion.pointsAwarded },
     completedModules: progress.modules.filter(item => item.status === 'completed').length,
     totalModules: progress.modules.length,

@@ -105,7 +105,7 @@ export default function ModuleScreen() {
     pending.current = true; setBusy(true); setActionError('')
     try {
       await ensureStarted()
-      router.push({ pathname: '/aprender', params: { moduleId: params.moduleId, trailId: params.trailId, phase } })
+      router.push({ pathname: '/modulo/aprender', params: { moduleId: params.moduleId, trailId: params.trailId, phase } })
     } catch (cause) { recordFailure(cause); handleActionError(cause) }
     finally { pending.current = false; setBusy(false) }
   }
@@ -169,7 +169,7 @@ export default function ModuleScreen() {
             <View style={styles.section}><Text style={styles.eyebrow}>ETAPAS</Text>
               {requiresQuiz ? <Stage title="Pré-teste" description="Quiz de conhecimentos prévios" status={learn?.preTest.status === 'completed' ? 'Concluído' : 'Disponível'} kind={learn?.preTest.status === 'completed' ? 'completed' : 'active'} onPress={() => { if (module.status === 'available') void openTraining(); else openStage('pre', learn?.preTest.status === 'completed') }} disabled={busy} /> : null}
               <Stage title="Treinamento" description="Conteúdo do módulo" status={requiresQuiz && learn?.training.status === 'locked' ? 'Bloqueado' : completed || learn?.training.status === 'completed' ? 'Concluído' : 'Disponível'} kind={requiresQuiz && (!learn || learn.training.status === 'locked') ? 'locked' : completed || learn?.training.status === 'completed' ? 'completed' : 'active'} onPress={requiresQuiz ? () => openStage('training') : () => { void openTraining() }} disabled={busy || requiresQuiz && (!learn || learn.training.status === 'locked')} />
-              {requiresQuiz ? <Stage title="Pós-teste" description={learn ? `Mínimo: ${learn.postTest.minimumCorrect} acertos em ${learn.postTest.totalCount ?? 0} perguntas` : "Avaliação de aprendizagem"} status={!learn || learn.postTest.status === 'locked' ? 'Bloqueado' : learn.postTest.status === 'completed' ? 'Aprovado' : learn.postTest.isApproved === false ? 'Revisar resultado' : 'Disponível'} kind={!learn || learn.postTest.status === 'locked' ? 'locked' : learn.postTest.status === 'completed' ? 'completed' : 'active'} onPress={() => openStage('pos', learn?.postTest.isApproved != null)} disabled={busy || !learn || learn.postTest.status === 'locked'} /> : null}
+              {requiresQuiz ? <Stage title="Avaliação" description={learn ? `Pós-teste · mínimo de ${learn.postTest.minimumCorrect} acertos em ${learn.postTest.totalCount ?? 0} perguntas` : 'Avaliação de aprendizagem'} status={!learn || learn.postTest.status === 'locked' ? 'Bloqueado' : learn.postTest.status === 'completed' ? 'Aprovado' : learn.postTest.isApproved === false ? 'Revisar resultado' : 'Disponível'} kind={!learn || learn.postTest.status === 'locked' ? 'locked' : learn.postTest.status === 'completed' ? 'completed' : 'active'} onPress={() => openStage('pos', learn?.postTest.isApproved != null)} disabled={busy || !learn || learn.postTest.status === 'locked'} /> : null}
             </View>
             <View style={styles.score}><AppIcon name="star" color={colors.primary} size={20} /><Text style={styles.scoreText}>{learn ? `${learn.totalPoints} pontos recebidos` : "Pontuação não consultada"}</Text>{learn?.moduleCompletion.pendingPoints ? <Text style={styles.scoreText}>{learn.moduleCompletion.pendingPoints} pendentes</Text> : null}</View>
             {completed ? <Text accessibilityRole="alert" style={styles.success}>Módulo concluído! Seu progresso foi salvo.</Text> : null}

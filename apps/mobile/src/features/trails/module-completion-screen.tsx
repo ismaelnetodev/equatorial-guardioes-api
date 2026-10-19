@@ -25,7 +25,7 @@ export function ModuleCompletionScreen({ data, onTrail, onReport }: Props) {
           <Text style={styles.points}>{points(data.totalPoints)} pts</Text>
           <Text style={styles.breakdown}>pré {points(data.breakdown.preTest)} · treino {points(data.breakdown.training)} · pós {points(data.breakdown.postTest)}{data.breakdown.moduleCompletion > 0 ? ` · módulo ${points(data.breakdown.moduleCompletion)}` : ''}</Text>
           <View style={styles.progressRow}><Text style={styles.progressLabel}>Trilha</Text><View style={styles.progressTrack}><View style={[styles.progressFill, { width: `${progress}%` }]} /></View><Text style={styles.progressValue}>{data.completedModules}/{data.totalModules}</Text></View>
-          {data.pendingPoints > 0 ? <Text style={styles.pending}>{data.pendingPoints} pontos aguardando liberação pelo limite diário.</Text> : null}
+          {data.pendingPoints > 0 ? <Text style={styles.pending}>{data.pendingPoints} pontos de aprendizagem estão pendentes por causa do limite diário e serão liberados quando houver espaço.</Text> : null}
         </View>
         {data.after.totalCount > 0 ? <View style={styles.comparison}><Text style={styles.eyebrow}>ANTES E DEPOIS</Text><ScoreBar label="Antes" correct={data.before.correctCount} total={data.before.totalCount} /><ScoreBar label="Depois" correct={data.after.correctCount} total={data.after.totalCount} after /></View> : null}
       </View>

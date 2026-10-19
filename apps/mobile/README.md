@@ -9,11 +9,11 @@ As rotas da API abaixo usam o prefixo `/api/v1`.
 | Tela/fluxo | Implementação e integração |
 | --- | --- |
 | Entrar (`/entrar`) | Integrada a `POST /entrar`; guarda o token de sessão.  Sem botão de Google nem recuperação de senha (não há endpoint). |
-| Criar conta (`/cadastrar`) | Integrada a `GET /neighborhoods/` e `POST /cadastrar`; envia bairro, aceite dos termos e, quando informado, código de convite. O cadastro não cria sessão: ao concluir, o usuário segue para a introdução e faz login em `/entrar`. |
+| Criar conta (`/cadastrar`) | Integrada a `GET /neighborhoods/` e `POST /cadastrar`; envia bairro, aceite dos termos e, quando informado, código de convite. Após o cadastro, retorna a `/entrar` com uma confirmação; a sessão começa somente após o login. |
 | Introdução (`/introducao`) | Conteúdo local; direciona para trilha ou login conforme a sessão. |
 | Trilha (`/trilha`) | Integrada a `GET /me`, `GET /trails/`, `GET /trails/:trailId`, `GET /progress/trails/:trailId`, `GET /progress/learning`, `POST /progress/learning-awards/claim` e `GET /trails/:trailId/completion`. Mostra progresso e pontos; a imagem de Lençóis fica restrita ao cabeçalho com o cartão de progresso. |
 | Detalhe do módulo (`/modulo/:moduleId`) | Integrado a progresso e conteúdo do módulo. Ao iniciar ou continuar, atualiza o estado e abre a primeira etapa pendente: pré-teste, treinamento ou pós-teste. |
-| Pré/pós-teste e treinamento (`/modulo/aprender`) | Integrados a `GET /modules/:moduleId/learn`, rotas de quiz pré e pós, `GET /modules/:moduleId/training` e `POST /modules/:moduleId/training/complete`. Respostas e feedback vêm da API; a ilustração do quiz não é interativa. |
+| Pré-teste, treinamento e avaliação do módulo (`/modulo/aprender`) | Integrados a `GET /modules/:moduleId/learn`, rotas de quiz pré e pós, `GET /modules/:moduleId/training` e `POST /modules/:moduleId/training/complete`. O pós-teste avalia a aprendizagem e sua aprovação é necessária para concluir módulos configurados com quiz; as respostas são vinculadas à tentativa iniciada pela API. |
 | Resultado e conclusão do módulo (`/modulo/aprender`, `/modulo/conclusao`) | Exibem comparação entre pré e pós-teste, pontos e estado de conclusão retornados pelo backend, com banners dimensionados para manter a proporção das referências visuais. |
 | Prova final e certificado (`/modulo/prova-final`) | Integrada a `GET/POST /trails/:trailId/final-exam`, `GET /trails/:trailId/completion` e `POST /trails/:trailId/certificate`; permite compartilhar o certificado emitido. |
 | Pontos de aprendizado (`/pontos`) | Integrada a `GET /progress/learning`, `GET /progress/learning/history` e `POST /progress/learning-awards/claim`; mostra pontos liberados, pendentes e extrato paginado. Acesso disponível pela trilha e pelo perfil. |
@@ -30,7 +30,7 @@ As rotas da API abaixo usam o prefixo `/api/v1`.
 ## Compilado do desenvolvimento local
 
 - **Acesso e cadastro:** login e criação de conta integrados à API; validação de nome, contato, senha de pelo menos 8 caracteres, bairro, aceite dos termos e convite opcional, com erros junto aos campos.
-- **Trilha e aprendizagem:** progresso e pontos carregados da API; o módulo abre a primeira etapa pendente. Pré/pós-testes, treinamento, feedback e conclusão usam o conteúdo e estado retornados pelo backend.
+- **Trilha e aprendizagem:** progresso e pontos carregados da API; o módulo abre a primeira etapa pendente. Pré/pós-testes, avaliação, treinamento e feedback usam as tentativas retornadas pela API. A conclusão do módulo exige aprovação no pós-teste quando há quiz; pontos que excedem os limites diários aparecem como pendentes no saldo do usuário.
 - **Perfil, ranking e recompensas:** perfil e selos integrados; ranking por bairro e contribuição conectados à API; recompensas e pontos ligados aos endpoints disponíveis. Ranking por cidade permanece como Fase 2, pois não há endpoint correspondente.
 - **Relatos, convites e certificado:** fluxos conectados às rotas existentes, incluindo envio e acompanhamento de relatos, compartilhamento de convites e emissão/compartilhamento de certificado.
 - **Interface e navegação:** cabeçalho da trilha, banners nas proporções das referências, azulejo amarelo em recompensas, imagem do quiz não interativa, retorno entre cards da introdução, destaque correto do menu inferior e campos de texto com apenas a borda externa.

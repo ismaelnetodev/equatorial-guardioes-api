@@ -21,7 +21,6 @@ export default function RegistrationScreen() {
   const [visible, setVisible] = useState(false)
   const [loading, setLoading] = useState(false)
   const [submitted, setSubmitted] = useState(false)
-  const [success, setSuccess] = useState(false)
   const [error, setError] = useState('')
   const pending = useRef(false)
   const value = contact.trim()
@@ -38,8 +37,7 @@ export default function RegistrationScreen() {
     pending.current = true; setLoading(true)
     try {
       await register({ name: name.trim(), ...(email ? { email: value.toLowerCase() } : { cellphone: phone }), password, neighborhood: neighborhood!.name, ...(neighborhood!.id ? { neighborhoodId: neighborhood!.id } : {}), ...(invite.trim() ? { inviteCode: invite.trim() } : {}), acceptedTerms: true })
-      // O cadastro não cria sessão: o login é feito na tela de entrar (a introdução termina nela).
-      setSubmitted(false); setPassword(''); setSuccess(true)
+      router.replace({ pathname: '/entrar', params: { cadastro: 'sucesso' } })
     } catch (cause) {
       setError(errorMessage(cause, 'Não foi possível criar sua conta. Tente novamente.'))
     } finally { pending.current = false; setLoading(false) }
@@ -49,26 +47,22 @@ export default function RegistrationScreen() {
     <KeyboardAvoidingView style={styles.flex} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
       <ScrollView keyboardShouldPersistTaps="handled" contentContainerStyle={styles.content}>
         <View style={styles.header}><Pressable accessibilityRole="button" accessibilityLabel="Voltar" onPress={() => router.canGoBack() ? router.back() : goLogin()} hitSlop={10}><Text style={styles.back}>‹</Text></Pressable><Text accessibilityRole="header" style={styles.title}>Criar conta</Text></View>
-        {success ? <View style={styles.group}>
-          <Text accessibilityRole="header" style={styles.title}>Conta criada com sucesso!</Text>
-          <Text accessibilityRole="alert" style={styles.description}>Vamos conhecer o Guardiões da Energia. Depois, entre com o celular ou e-mail e a senha que você acabou de criar.</Text>
-          <Button title="Continuar" loading={loading} onPress={() => router.replace('/introducao')} />
-        </View> : <>
+        <>
         <Text style={styles.description}>Leva menos de 1 minuto. Sem CPF.</Text>
-        <InputField label="Como quer ser chamado" value={name} onChangeText={setName} placeholder="Maria" maxLength={100} autoComplete="name" textContentType="name" editable={!loading && !success} error={submitted && name.trim().length < 2 ? 'Informe pelo menos 2 caracteres.' : undefined} />
-        <InputField label="Celular ou e-mail" value={contact} onChangeText={setContact} placeholder="(98) 9 8888-0000" maxLength={254} autoCapitalize="none" autoCorrect={false} autoComplete="username" editable={!loading && !success} error={submitted ? contactError : undefined} />
-        <InputField label="Senha" value={password} onChangeText={setPassword} placeholder="Pelo menos 8 caracteres" maxLength={128} secureTextEntry={!visible} autoCapitalize="none" autoCorrect={false} autoComplete="new-password" textContentType="newPassword" editable={!loading && !success} error={submitted && password.length < 8 ? 'Use pelo menos 8 caracteres.' : undefined} trailing={<Pressable accessibilityRole="button" accessibilityLabel={visible ? 'Ocultar senha' : 'Mostrar senha'} onPress={() => setVisible(!visible)} hitSlop={8}><FormIcon name="eye" /></Pressable>} />
+        <InputField label="Como quer ser chamado" value={name} onChangeText={setName} placeholder="Maria" maxLength={100} autoComplete="name" textContentType="name" editable={!loading} error={submitted && name.trim().length < 2 ? 'Informe pelo menos 2 caracteres.' : undefined} />
+        <InputField label="Celular ou e-mail" value={contact} onChangeText={setContact} placeholder="(98) 9 8888-0000" maxLength={254} autoCapitalize="none" autoCorrect={false} autoComplete="username" editable={!loading} error={submitted ? contactError : undefined} />
+        <InputField label="Senha" value={password} onChangeText={setPassword} placeholder="Pelo menos 8 caracteres" maxLength={128} secureTextEntry={!visible} autoCapitalize="none" autoCorrect={false} autoComplete="new-password" textContentType="newPassword" editable={!loading} error={submitted && password.length < 8 ? 'Use pelo menos 8 caracteres.' : undefined} trailing={<Pressable accessibilityRole="button" accessibilityLabel={visible ? 'Ocultar senha' : 'Mostrar senha'} onPress={() => setVisible(!visible)} hitSlop={8}><FormIcon name="eye" /></Pressable>} />
         <View style={styles.group}><View style={styles.labelRow}><Text style={styles.label}>Seu bairro</Text><Text style={styles.required}>OBRIGATÓRIO</Text></View>
-          <Pressable disabled={loading || success} accessibilityRole="button" accessibilityLabel={`Seu bairro: ${neighborhood?.name ?? 'Escolha seu bairro'}`} onPress={() => setPicker(true)} style={styles.selector}><FormIcon name="pin" /><Text style={[styles.selection, !neighborhood && styles.placeholder]}>{neighborhood?.name ?? 'Escolha seu bairro'}</Text><Text style={styles.chevron}>⌄</Text></Pressable>
+          <Pressable disabled={loading} accessibilityRole="button" accessibilityLabel={`Seu bairro: ${neighborhood?.name ?? 'Escolha seu bairro'}`} onPress={() => setPicker(true)} style={styles.selector}><FormIcon name="pin" /><Text style={[styles.selection, !neighborhood && styles.placeholder]}>{neighborhood?.name ?? 'Escolha seu bairro'}</Text><Text style={styles.chevron}>⌄</Text></Pressable>
           {neighborhoodError ? <Text accessibilityRole="alert" style={styles.error}>{neighborhoodError}</Text> : null}
         </View>
-        <InputField label="Código de convite (opcional)" leading={<FormIcon name="gift" />} value={invite} onChangeText={setInvite} placeholder="Ex.: MARIA-7K2" maxLength={50} autoCapitalize="characters" autoCorrect={false} editable={!loading && !success} error={submitted && invite.trim() && invite.trim().length < 3 ? 'Use pelo menos 3 caracteres ou deixe vazio.' : undefined} />
-        <View style={styles.acceptance}><Pressable accessibilityRole="checkbox" accessibilityLabel="Aceitar termos e privacidade" accessibilityState={{ checked: accepted }} disabled={loading || success} onPress={() => setAccepted(!accepted)} style={[styles.checkbox, accepted && styles.checked]}>{accepted ? <Text style={styles.check}>✓</Text> : null}</Pressable><Text style={styles.description}>Li e aceito os <Text accessibilityRole="link" onPress={() => setTerms(true)} style={styles.link}>termos e a privacidade.</Text></Text></View>
+        <InputField label="Código de convite (opcional)" leading={<FormIcon name="gift" />} value={invite} onChangeText={setInvite} placeholder="Ex.: MARIA-7K2" maxLength={50} autoCapitalize="characters" autoCorrect={false} editable={!loading} error={submitted && invite.trim() && invite.trim().length < 3 ? 'Use pelo menos 3 caracteres ou deixe vazio.' : undefined} />
+        <View style={styles.acceptance}><Pressable accessibilityRole="checkbox" accessibilityLabel="Aceitar termos e privacidade" accessibilityState={{ checked: accepted }} disabled={loading} onPress={() => setAccepted(!accepted)} style={[styles.checkbox, accepted && styles.checked]}>{accepted ? <Text style={styles.check}>✓</Text> : null}</Pressable><Text style={styles.description}>Li e aceito os <Text accessibilityRole="link" onPress={() => setTerms(true)} style={styles.link}>termos e a privacidade.</Text></Text></View>
         {termsError ? <Text accessibilityRole="alert" style={styles.error}>{termsError}</Text> : null}
         {error ? <Text accessibilityRole="alert" style={styles.error}>{error}</Text> : null}
-        <Button title="Criar conta" loading={loading} disabled={success} onPress={() => { void submit() }} />
+        <Button title="Criar conta" loading={loading} onPress={() => { void submit() }} />
         <Pressable accessibilityRole="button" onPress={goLogin} style={styles.login}><Text style={styles.description}>Já tenho conta. <Text style={styles.link}>Entrar</Text></Text></Pressable>
-        </>}
+        </>
       </ScrollView>
     </KeyboardAvoidingView>
     <NeighborhoodPicker visible={picker} value={neighborhood} onClose={() => setPicker(false)} onConfirm={item => { setNeighborhood(item); setPicker(false) }} />

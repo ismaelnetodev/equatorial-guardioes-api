@@ -1,5 +1,5 @@
-import { useRef, useState } from 'react'
-import { router } from 'expo-router'
+import { useEffect, useRef, useState } from 'react'
+import { router, useLocalSearchParams } from 'expo-router'
 import { StatusBar } from 'expo-status-bar'
 import { KeyboardAvoidingView, Platform, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
@@ -11,6 +11,7 @@ import { login } from '../features/auth/auth.api'
 import { ApiError } from '../services/api'
 
 export default function LoginScreen() {
+  const { cadastro } = useLocalSearchParams<{ cadastro?: string }>()
   const [contact, setContact] = useState('')
   const [password, setPassword] = useState('')
   const [visible, setVisible] = useState(false)
@@ -25,6 +26,10 @@ export default function LoginScreen() {
   const email = value.includes('@')
   const contactError = !value ? 'Informe seu celular ou e-mail.' : email ? (/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value) ? '' : 'Informe um e-mail válido.') : (/^\+?[1-9]\d{7,14}$/.test(phone) ? '' : 'Informe o celular com DDD, apenas números.')
   const passwordError = password.length < 8 ? 'A senha deve ter pelo menos 8 caracteres.' : ''
+
+  useEffect(() => {
+    if (cadastro === 'sucesso') setNotice('Conta criada. Entre com seu celular ou e-mail e a senha cadastrada.')
+  }, [cadastro])
 
   async function submit() {
     if (pending.current) return
