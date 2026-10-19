@@ -248,6 +248,7 @@ npm run build
 | `npm run test:watch` | Acompanha os testes da API. |
 | `npm run check:mobile` | Verifica a compatibilidade das dependências Expo. |
 | `npm run build:api` | Compila a API em `apps/api/dist`. |
+| `npm run build:web:production` | Exige URLs HTTPS da API e IA no ambiente e exporta o web sem ler `.env` local. |
 | `npm run build:mobile` | Exporta os bundles Android, iOS e web em `apps/mobile/dist`. |
 | `npm run start:api` | Executa a API compilada. |
 

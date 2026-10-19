@@ -68,7 +68,29 @@ Três opções (algo perigoso, sem energia ou emergência). A foto só pela câm
 - Limpeza automática de uploads que não chegaram a ser associados a um relato.
 - Fila de prioridade com mover posição dentro do `/admin`. A API de relatos já exige o risco confirmado (`LOW`, `MEDIUM`, `HIGH`) ao resolver um relato; essa regra deve ser preservada na integração.
 
+## Base de ajuda e índice
+
+O guia `apps/ia/base_conhecimento/plataforma.md` contém os fluxos atuais do app e
+é incluído integralmente no contexto de cada resposta, com prioridade sobre o PDF
+antigo. Atualize esse guia quando os fluxos mudarem. O Dockerfile copia toda a pasta.
+
+A coleção Chroma é identificada pelo hash do PDF, do guia e do modelo de embedding.
+Mudanças nessas fontes geram uma nova coleção automaticamente, sem reutilizar o
+índice antigo. Indexações interrompidas são retomadas pelos IDs dos trechos.
+O índice é criado no primeiro acesso. Para preparar e conferir uma revisão antes
+de enviar tráfego, execute dentro do container, em `/app`:
+
+```sh
+python -c "from rag import criar_banco_vetores; print(len(criar_banco_vetores().get()['ids']))"
+```
+
+`CHROMA_DB_DIR` permite apontar para um volume persistente; o padrão é `chroma_db`
+ao lado de `rag.py`. Sem volume, cada container novo reconstrói o índice e usa a
+API de embeddings. `/health` verifica apenas o processo HTTP, não Gemini/RAG.
+Após o deploy, teste também `/duvidas` com uma sessão válida e as três sugestões
+da tela. Não publique tokens de usuário nem a chave Gemini nos logs.
+
 ## Atenção
 
 - O Gemini na camada grátis tem 20 solicitações por dia. Quando acaba, o chat avisa o usuário.
-- O PDF do RAG diz que o app é um PWA. Corrija o PDF e apague `apps/ia/chroma_db` para refazer a base.
+- O PDF contém informações antigas do produto. O guia atual tem prioridade para dúvidas de uso da plataforma.

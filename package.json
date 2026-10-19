@@ -18,6 +18,7 @@
     "build:api": "npm run build --workspace apps/api",
     "build:mobile": "npm run build --workspace apps/mobile",
     "build:web": "npm run build:web --workspace apps/mobile",
+    "build:web:production": "node scripts/build-web-production.mjs",
     "build": "npm run build --workspaces --if-present",
     "typecheck": "npm run typecheck --workspaces --if-present",
     "test": "npm run test --workspaces --if-present",

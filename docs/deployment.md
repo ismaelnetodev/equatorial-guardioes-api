@@ -1,7 +1,8 @@
 # Deployment
 
 A aplicação possui três serviços: web Expo, API Node.js e IA Python.
-O banco pode ser hospedado no Neon. A hospedagem da API e da IA está em definição.
+O web está no Cloudflare Pages (`guardioesenergia`); API e IA estão no Azure
+Container Apps, grupo `guardioes-mvp`. As imagens ficam no ACR `guardioesapi`.
 
 ## Integração
 
@@ -19,9 +20,41 @@ secrets da hospedagem, fora do repositório. Variáveis `EXPO_PUBLIC_*` são pú
 
 O workflow `.github/workflows/delivery.yml` executa somente CI: valida migrations
 em PostgreSQL temporário, contratos, tipos, testes e builds. O deploy automático
-será configurado após a escolha da hospedagem.
+não está configurado; a publicação pelos CLIs é uma etapa separada.
 
 Antes de publicar, aplique as migrations com `npm run db:deploy`, configure a
 persistência ou reconstrução do índice RAG da IA e teste login e chat autenticado.
 Use `npm run build:web` para exportar o web. O perfil Android `preview` em
 `apps/mobile/eas.json` gera APK após vincular o projeto à conta Expo.
+
+## Publicar o web de produção (PowerShell, na raiz)
+
+```powershell
+$env:EXPO_PUBLIC_API_URL = 'https://guardioes-api.purplebush-6b46e5a7.brazilsouth.azurecontainerapps.io/api/v1'
+$env:EXPO_PUBLIC_IA_URL = 'https://guardioes-ia.purplebush-6b46e5a7.brazilsouth.azurecontainerapps.io'
+npm run build:web:production
+if ($LASTEXITCODE -ne 0) { throw 'Build interrompido' }
+npx wrangler pages deploy apps/mobile/dist --project-name guardioesenergia --branch main
+```
+
+Esse comando ignora `.env` local e exige as duas URLs HTTPS. Variáveis Expo são
+incorporadas ao JavaScript: alterar uma variável depois do build não corrige o
+bundle. Confira as URLs no JavaScript servido pelo domínio de produção.
+
+## Publicar a IA
+
+Depois do workflow **Build container images** concluir, importe a tag do commit
+do GHCR para o ACR e atualize somente `guardioes-ia`:
+
+```powershell
+$imageCommit = git rev-parse HEAD
+az acr import --name guardioesapi --source "ghcr.io/ismaelnetodev/equatorial-guardioes-api/ia:$imageCommit" --image "guardioes-ia:$imageCommit"
+if ($LASTEXITCODE -ne 0) { throw 'Importação interrompida' }
+az containerapp update -g guardioes-mvp -n guardioes-ia --image "guardioesapi.azurecr.io/guardioes-ia:$imageCommit"
+```
+
+Preserve as variáveis e referências de secrets existentes. Confira a revisão pronta,
+`/health`, CORS e prepare o índice conforme [o guia do chatbot](chatbot-ia.md#base-de-ajuda-e-índice).
+Teste as três perguntas sugeridas em `/chat-duvidas` antes de considerar o deploy
+concluído. Sem volume, o índice é reconstruído automaticamente após a substituição
+do container; a preparação antecipada evita esse trabalho na primeira pergunta.
